@@ -1,3 +1,4 @@
 class Chain(object):
     def __init__(self):
-        pass
+        self.phrases = []
+        self.transposes = []

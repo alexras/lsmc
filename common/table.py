@@ -1,3 +1,8 @@
 class Table(object):
     def __init__(self):
-        pass
+        self.allocated = False
+        self.transposes = []
+        self.fx = []
+        self.fx_vals = []
+        self.fx2 = []
+        self.fx2_vals = []

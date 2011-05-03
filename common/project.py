@@ -1,10 +1,14 @@
 import sys
-from phrase import Phrase
-from groove import Groove
 from chain import Chain
-from table import Table
+from synth import Synth
+from wave import Wave
+from clock import Clock
+from groove import Groove
 from instrument import Instrument, SpeechInstrument
+from phrase import Phrase
 from song import Song
+from table import Table
+import utils
 
 class Project(object):
     # Byte used to denote run-length encoding
@@ -39,16 +43,34 @@ class Project(object):
     STATE_DONE = 6
 
     # Max. number of phrases
-    NUM_PHRASES = 256
+    NUM_PHRASES = 255
 
     # Max. number of tables
     NUM_TABLES = 32
 
+    # Number of soft-synths
+    NUM_SYNTHS = 16
+
+    # Waves per soft-synth
+    WAVES_PER_SYNTH = 16
+
+    # Frames per wave
+    FRAMES_PER_WAVE = 16
+
+    # Number of entries in each table
+    ENTRIES_PER_TABLE = 16
+
     # Max. number of instruments
     NUM_INSTRUMENTS = 64
 
+    # Max. number of parameters per instrument
+    PARAMS_PER_INSTRUMENT = 16
+
     # Max. number of chains
     NUM_CHAINS = 128
+
+    # Max. number of phrases per chain
+    PHRASES_PER_CHAIN = 16
 
     # Max. number of grooves
     NUM_GROOVES = 32
@@ -92,10 +114,10 @@ class Project(object):
     # Max. length of a word name
     WORD_NAME_LENGTH = 4
 
-    # Table allocation table
+    # Table allocation table (1 for allocated, 0 for unallocated)
     TABLE_ALLOC_TABLE = (0x2020, 0x203f)
 
-    # Instrument allocation table
+    # Instrument allocation table (1 for allocated, 0 for unallocated)
     INSTR_ALLOC_TABLE = (0x2040, 0x207f)
 
     # Phrase numbers for chains
@@ -183,8 +205,8 @@ class Project(object):
     # Phrase instruments
     PHRASE_INSTR = (0x7000, 0x7fef)
 
-    # "Mem initialized" flag (should be 'rb')
-    MEM_INITIALIZED_FLAG = (0x7ff0, 0x7ff2)
+    # "Memory initialized" flag (should be 'rb')
+    MEM_INITIALIZED_FLAG = (0x7ff0, 0x7ff1)
 
     def __init__(self, name, version, blocks):
         self.name = name
@@ -197,8 +219,21 @@ class Project(object):
         self.phrases = []
         self.chains = []
         self.grooves = []
+        self.synths = []
 
         self.song = Song()
+
+        self.clock = Clock()
+        self.total_clock = Clock()
+        self.tempo = None
+        self.tune_setting = None
+        self.key_delay = None
+        self.key_repeat = None
+        self.font = None
+        self.sync_setting = None
+        self.colorset = None
+        self.subsong_mask = None
+        self.clone = None
 
         for i in xrange(self.NUM_TABLES):
             self.tables.append(Table())
@@ -214,6 +249,15 @@ class Project(object):
 
         for i in xrange(self.NUM_GROOVES):
             self.grooves.append(Groove())
+
+        for i in xrange(self.NUM_SYNTHS):
+            synth = Synth()
+
+            for j in xrange(self.WAVES_PER_SYNTH):
+                synth.waves.append(Wave())
+
+            self.synths.append(synth)
+
 
         phrase_id = 0
         for i in xrange(self.PHRASE_NOTES[0], self.PHRASE_NOTES[1] + 1,
@@ -243,6 +287,9 @@ class Project(object):
 
         speech_instrument = SpeechInstrument()
 
+        # Speech instrument is always allocated
+        speech_instrument.allocated = True
+
         for i in xrange(self.SPEECH_INSTR_WORDS[0],
                         self.SPEECH_INSTR_WORDS[1] + 1, self.WORD_LENGTH):
             speech_instrument.words.append(raw_data[i:i + self.WORD_LENGTH])
@@ -254,7 +301,164 @@ class Project(object):
 
         self.instruments.append(speech_instrument)
 
-        print raw_data[self.TABLE_ALLOC_TABLE[0]:self.TABLE_ALLOC_TABLE[1] + 1]
+        table_id = 0
+        for i in xrange(self.TABLE_ALLOC_TABLE[0],
+                        self.TABLE_ALLOC_TABLE[1] + 1):
+            self.tables[table_id].allocated = bool(raw_data[i])
+            table_id += 1
+
+        instr_id = 0
+        for i in xrange(self.INSTR_ALLOC_TABLE[0],
+                        self.INSTR_ALLOC_TABLE[1] + 1):
+            self.instruments[instr_id].allocated = bool(raw_data[i])
+            instr_id += 1
+
+        chain_id = 0
+        for i in xrange(self.CHAIN_PHRASES[0], self.CHAIN_PHRASES[1] + 1,
+                        self.PHRASES_PER_CHAIN):
+            self.chains[chain_id].phrases = \
+                raw_data[i:i + self.PHRASES_PER_CHAIN]
+            chain_id += 1
+
+        chain_id = 0
+        for i in xrange(self.CHAIN_TRANSPOSES[0], self.CHAIN_TRANSPOSES[1] + 1,
+                        self.PHRASES_PER_CHAIN):
+            self.chains[chain_id].transposes = \
+                raw_data[i:i+ self.PHRASES_PER_CHAIN]
+            chain_id += 1
+
+        instr_id = 0
+        for i in xrange(self.INSTR_PARAMS[0], self.INSTR_PARAMS[1] + 1,
+                        self.PARAMS_PER_INSTRUMENT):
+            self.instruments[instr_id].params = \
+                raw_data[i:i + self.PARAMS_PER_INSTRUMENT]
+            instr_id += 1
+
+        table_id = 0
+        for i in xrange(self.TABLE_TRANSPOSES[0], self.TABLE_TRANSPOSES[1] + 1,
+                        self.ENTRIES_PER_TABLE):
+            self.tables[table_id].transposes = \
+                raw_data[i:i + self.ENTRIES_PER_TABLE]
+            table_id += 1
+
+        table_id = 0
+        for i in xrange(self.TABLE_FX[0], self.TABLE_FX[1] + 1,
+                        self.ENTRIES_PER_TABLE):
+            self.tables[table_id].transposes = \
+                raw_data[i:i + self.ENTRIES_PER_TABLE]
+            table_id += 1
+
+        table_id = 0
+        for i in xrange(self.TABLE_FX_VALS[0], self.TABLE_FX_VALS[1] + 1,
+                        self.ENTRIES_PER_TABLE):
+            self.tables[table_id].transposes = \
+                raw_data[i:i + self.ENTRIES_PER_TABLE]
+            table_id += 1
+
+        table_id = 0
+        for i in xrange(self.TABLE_FX_2[0], self.TABLE_FX_2[1] + 1,
+                        self.ENTRIES_PER_TABLE):
+            self.tables[table_id].transposes = \
+                raw_data[i:i + self.ENTRIES_PER_TABLE]
+            table_id += 1
+
+        table_id = 0
+        for i in xrange(self.TABLE_FX_2_VALS[0], self.TABLE_FX_2_VALS[1] + 1,
+                        self.ENTRIES_PER_TABLE):
+            self.tables[table_id].transposes = \
+                raw_data[i:i + self.ENTRIES_PER_TABLE]
+            table_id += 1
+
+        utils.check_mem_init_flag(raw_data, self.MEM_INIT_FLAG[0],
+                                  self.MEM_INIT_FLAG[1])
+
+        phrase_id = 0
+        for i in xrange(self.PHRASE_ALLOC_TABLE[0],
+                        self.PHRASE_ALLOC_TABLE[1] + 1):
+            current_bits = utils.get_bits(raw_data[i])
+
+            for j in xrange(len(current_bits)):
+                self.phrases[phrase_id].allocated = bool(current_bits[j])
+                phrase_id += 1
+
+                if phrase_id == self.NUM_PHRASES:
+                    break
+
+        chain_id = 0
+        for i in xrange(self.CHAIN_ALLOC_TABLE[0],
+                        self.CHAIN_ALLOC_TABLE[1] + 1):
+            current_bits = utils.get_bits(raw_data[i])
+
+            for j in xrange(len(current_bits)):
+                self.chains[chain_id].allocated = bool(current_bits[j])
+                chain_id += 1
+
+        synth_id = 0
+        for i in xrange(self.SOFT_SYNTH_PARAMS[0],
+                        self.SOFT_SYNTH_PARAMS[1] + 1,
+                        self.WAVES_PER_SYNTH):
+            self.synths[synth_id].params = raw_data[i:i + self.WAVES_PER_SYNTH]
+            synth_id += 1
+
+        self.clock.hours = raw_data[self.CLOCK_HOURS]
+        self.clock.minutes = raw_data[self.CLOCK_MINUTES]
+        self.tempo = raw_data[self.TEMPO]
+        self.tune_setting = raw_data[self.TUNE_SETTING]
+        self.total_clock.days = raw_data[self.TOTAL_CLOCK_DAYS]
+        self.total_clock.hours = raw_data[self.TOTAL_CLOCK_HOURS]
+        self.total_clock.minutes = raw_data[self.TOTAL_CLOCK_MINUTES]
+
+        # total_clock_checksum = raw_data[self.TOTAL_CLOCK_CHECKSUM]
+        # expected_checksum = self.total_clock.days + \
+        #     self.total_clock.hours + self.total_clock.minutes
+
+        # if total_clock_checksum != expected_checksum:
+        #     sys.exit(".sav file appears to be corrupted; total clock checksum "
+        #              "mismatch (s/b %d, is %d)" % (total_clock_checksum,
+        #                                            expected_checksum))
+
+        self.key_delay = raw_data[self.KEY_DELAY]
+        self.key_repeat = raw_data[self.KEY_REPEAT]
+        self.font = raw_data[self.FONT]
+        self.sync_setting = raw_data[self.SYNC_SETTING]
+        self.colorset = raw_data[self.COLORSET]
+        self.subsong_mask = raw_data[self.SUBSONG_MASK]
+        self.clone = raw_data[self.CLONE]
+
+        phrase_id = 0
+        for i in xrange(self.PHRASE_FX[0], self.PHRASE_FX[1] + 1,
+                        self.STEPS_PER_PHRASE):
+            self.phrases[phrase_id].fx = raw_data[i:i + self.STEPS_PER_PHRASE]
+            phrase_id += 1
+
+        phrase_id = 0
+        for i in xrange(self.PHRASE_FX_VALS[0], self.PHRASE_FX_VALS[1] + 1,
+                        self.STEPS_PER_PHRASE):
+            self.phrases[phrase_id].fx_vals = \
+                raw_data[i:i + self.STEPS_PER_PHRASE]
+            phrase_id += 1
+
+        wave_id = 0
+        for i in xrange(self.WAVE_FRAMES[0], self.WAVE_FRAMES[1] + 1,
+                        self.FRAMES_PER_WAVE):
+            synth_id = wave_id / self.WAVES_PER_SYNTH
+            synth_wave_id = wave_id % self.WAVES_PER_SYNTH
+
+            self.synths[synth_id].waves[synth_wave_id].frames = \
+                raw_data[i:i + self.FRAMES_PER_WAVE]
+
+            wave_id += 1
+
+        phrase_id = 0
+        for i in xrange(self.PHRASE_INSTR[0], self.PHRASE_INSTR[1] + 1,
+                        self.STEPS_PER_PHRASE):
+            self.phrases[phrase_id].instruments = \
+                raw_data[i:i + self.STEPS_PER_PHRASE]
+            phrase_id += 1
+
+        utils.check_mem_init_flag(raw_data,
+                                  self.MEM_INITIALIZED_FLAG[0],
+                                  self.MEM_INITIALIZED_FLAG[1])
 
     def parse_blocks(self, blocks):
         raw_data = []
