@@ -1,5 +1,8 @@
+from instrument import Instrument
+from wave import Wave
+
 # Maximum size of a block
-BLOCK_SIZE = 0x20
+BLOCK_SIZE = 0x200
 
 # Byte used to denote run-length encoding
 RLE_BYTE = 0xc0
@@ -38,7 +41,7 @@ class BlockWriter(object):
     def write(self, raw_data, factory):
         current_block = None
 
-        blocks_ids_for_file = []
+        block_ids_for_file = []
 
         data_index = 0
         data_size = len(raw_data)
@@ -137,7 +140,7 @@ class BlockReader(object):
     STATE_DEFAULT_WAVE = 5
     STATE_DONE = 6
 
-    def read(self, blocks):
+    def read(self, block_dict):
         """
         Parses a dictionary of blocks into a raw byte stream
         """
@@ -145,14 +148,14 @@ class BlockReader(object):
 
         state = self.STATE_BYTES
 
-        current_block_index = sorted(blocks.keys())[0]
-        current_block = blocks[current_block_index]
+        current_block_index = sorted(block_dict.keys())[0]
+        current_block = block_dict[current_block_index]
         current_block.offset = 0
 
         rle_byte_value = None
 
         while state != self.STATE_DONE:
-            data_byte = current_block[current_block.offset]
+            data_byte = current_block.data[current_block.offset]
             current_block.offset += 1
 
             if state == self.STATE_BYTES:
@@ -189,7 +192,7 @@ class BlockReader(object):
                     state = self.STATE_DONE
                 else:
                     current_block_index = data_byte
-                    current_block = blocks[current_block_index]
+                    current_block = block_dict[current_block_index]
                     current_block.offset = 0
                     state = self.STATE_BYTES
 

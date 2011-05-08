@@ -48,7 +48,6 @@ def get_byte(bits):
     byte = 0
     for i in xrange(8):
         byte = byte | (bits[i] * (2 ** (7 - i)))
-        print byte
 
     return byte
 

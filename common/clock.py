@@ -7,3 +7,7 @@ class Clock(object):
     def __repr__(self):
         return "%d days, %d hours, %d minutes" % \
             (self.days, self.hours, self.minutes)
+
+    @property
+    def checksum(self):
+        return self.days + self.hours + self.minutes

@@ -5,10 +5,13 @@ import utils
 from StringIO import StringIO
 import blocks
 from project import Project
+from blocks import BlockWriter, BlockFactory
 
 class SAVFile(object):
     # Start offset of SAV file contents
     START_OFFSET = 0x8000
+
+    HEADER_EMPTY_SECTION_1 = (0x8120, 0x813d)
 
     # Offset of SRAM initialization check
     SRAM_INIT_CHECK_OFFSET = 0x813e
@@ -85,11 +88,12 @@ class SAVFile(object):
 
         for file_number in file_blocks:
             block_numbers = file_blocks[file_number]
-            blocks = {}
+            block_map = {}
 
             for block_number in block_numbers:
                 offset = self.BLOCKS_START_OFFSET + \
                     (block_number * blocks.BLOCK_SIZE)
+
                 fp.seek(offset, os.SEEK_SET)
 
                 block_contents = fp.read(blocks.BLOCK_SIZE)
@@ -97,11 +101,11 @@ class SAVFile(object):
                 block_data = utils.binary_uint(
                     block_contents, 1, len(block_contents))
 
-                blocks[block_number] = blocks.Block(block_number, block_data)
+                block_map[block_number] = blocks.Block(block_number, block_data)
 
             project = Project(name = filenames[file_number],
                               version = file_versions[file_number],
-                              blocks = blocks)
+                              blocks = block_map)
             self.projects.append(project)
 
         fp.close()
@@ -126,7 +130,9 @@ class SAVFile(object):
         writer = BlockWriter()
         factory = BlockFactory()
 
-        num_blocks = self.BAT_END_OFFSET - self.BAT_START_OFFSET + 1
+        # Block allocation table doesn't include header block because it's
+        # always in use, so have to add additional block to account for header
+        num_blocks = self.BAT_END_OFFSET - self.BAT_START_OFFSET + 2
 
         header_block = factory.new_block()
 
@@ -153,10 +159,30 @@ class SAVFile(object):
         fp.write(self.preamble)
 
         for project in self.projects:
-            header_block.data.extend([ord(x) for x in list(project.name)])
+            name_bytes = [ord(x) for x in list(project.name)]
+
+            for i in xrange(self.FILENAME_LENGTH - len(name_bytes)):
+                name_bytes.append(0)
+
+            header_block.data.extend(name_bytes)
+
+        empty_project_name = []
+
+        for i in xrange(self.FILENAME_LENGTH):
+            empty_project_name.append(0)
+
+        for i in xrange(self.NUM_FILES - len(self.projects)):
+            header_block.data.extend(empty_project_name)
 
         for project in self.projects:
             header_block.data.append(project.version)
+
+        for i in xrange(self.NUM_FILES - len(self.projects)):
+            header_block.data.append(0)
+
+        for i in xrange(self.HEADER_EMPTY_SECTION_1[0],
+                        self.HEADER_EMPTY_SECTION_1[1] + 1):
+            header_block.data.append(0)
 
         header_block.data.extend([ord('j'), ord('k')])
 
@@ -170,17 +196,17 @@ class SAVFile(object):
                 file_no = b
             header_block.data.append(file_no)
 
-        assert len(header_block.data) == Block.BLOCK_SIZE, "Header block " \
-            "isn't the expected length; expected %d, got %d" % \
-            (Block.BLOCK_SIZE, len(header_block.data))
+        assert len(header_block.data) == blocks.BLOCK_SIZE, \
+            "Header block isn't the expected length; expected 0x%x, got 0x%x" \
+            % (blocks.BLOCK_SIZE, len(header_block.data))
 
         block_map = factory.blocks
 
         empty_block_data = []
-        for i in xrange(Block.BLOCK_SIZE):
+        for i in xrange(blocks.BLOCK_SIZE):
             empty_block_data.append(0)
 
-        for i in xrange(0, num_blocks):
+        for i in xrange(num_blocks):
             if i in block_map:
                 data_list = block_map[i].data
             else:
@@ -192,4 +218,4 @@ class SAVFile(object):
 
 if __name__ == "__main__":
     sav = SAVFile(sys.argv[1])
-    save.save(sys.argv[2])
+    sav.save(sys.argv[2])

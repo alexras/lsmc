@@ -48,9 +48,6 @@ class Project(object):
     # Steps per groove
     STEPS_PER_GROOVE = 16
 
-    # Number of channels
-    NUM_CHANNELS = 4
-
     # Steps per table
     STEPS_PER_TABLE = 16
 
@@ -94,7 +91,7 @@ class Project(object):
     INSTR_NAMES = (0x1e7a, 0x1fb9)
 
     # Empty section #2
-    EMPTY_SECTION_2 = (0x2000, 0x201f)
+    EMPTY_SECTION_2 = (0x1fba, 0x201f)
 
     # Table allocation table (1 for allocated, 0 for unallocated)
     TABLE_ALLOC_TABLE = (0x2020, 0x203f)
@@ -187,11 +184,17 @@ class Project(object):
     # Wave synth overwrite locks
     WAVE_SYNTH_OVERWRITE_LOCKS = (0x3fc4, 0x3fc5)
 
+    # Empty section #4
+    EMPTY_SECTION_4 = (0x3fc6, 0x3fff)
+
     # Phrase FX
     PHRASE_FX = (0x4000, 0x4fef)
 
     # Phrase FX values
     PHRASE_FX_VALS = (0x4ff0, 0x5fdf)
+
+    # Empty section #5
+    EMPTY_SECTION_5 = (0x5fe0, 0x5fff)
 
     # Wave frames
     WAVE_FRAMES = (0x6000, 0x6fff)
@@ -202,8 +205,8 @@ class Project(object):
     # "Memory initialized" flag (should be 'rb')
     MEM_INIT_FLAG_3 = (0x7ff0, 0x7ff1)
 
-    # Empty section #4
-    EMPTY_SECTION_4 = (0x7ff2, 0x7ffe)
+    # Empty section #6
+    EMPTY_SECTION_6 = (0x7ff2, 0x7ffe)
 
     # Version byte (0 = < 3.6.0, 1 = 3.6.0, 2 = >= 3.6.1)
     VERSION_BYTE = 0x7fff
@@ -270,9 +273,8 @@ class Project(object):
                                     self.STEPS_PER_GROOVE,
                                     self.grooves, "ticks")
 
-        for i in xrange(self.CHAINNOS[0], self.CHAINNOS[1] + 1,
-                        self.NUM_CHANNELS):
-            self.song.chain_numbers.append(raw_data[i:i + self.NUM_CHANNELS])
+        self.song.chain_numbers = raw_data[self.CHAINNOS[0] :
+                                           self.CHAINNOS[1] + 1]
 
         self._copy_values_into_list(raw_data, self.TABLE_ENVELOPES,
                                     self.STEPS_PER_TABLE, self.tables,
@@ -281,15 +283,16 @@ class Project(object):
         self.speech_instrument = SpeechInstrument()
 
         # Speech instrument is always allocated
-        speech_instrument.allocated = True
+        self.speech_instrument.allocated = True
 
         for i in xrange(self.SPEECH_INSTR_WORDS[0],
                         self.SPEECH_INSTR_WORDS[1] + 1, self.WORD_LENGTH):
-            speech_instrument.words.append(raw_data[i:i + self.WORD_LENGTH])
+            self.speech_instrument.words.append(
+                raw_data[i:i + self.WORD_LENGTH])
 
         for i in xrange(self.WORD_NAMES[0], self.WORD_NAMES[1] + 1,
                         self.WORD_NAME_LENGTH):
-            speech_instrument.word_names.append(
+            self.speech_instrument.word_names.append(
                 raw_data[i:i + self.WORD_NAME_LENGTH])
 
         utils.check_mem_init_flag(raw_data, self.MEM_INIT_FLAG_1[0],
@@ -359,13 +362,11 @@ class Project(object):
         self.total_clock.minutes = raw_data[self.TOTAL_CLOCK_MINUTES]
 
         # total_clock_checksum = raw_data[self.TOTAL_CLOCK_CHECKSUM]
-        # expected_checksum = self.total_clock.days + \
-        #     self.total_clock.hours + self.total_clock.minutes
 
-        # if total_clock_checksum != expected_checksum:
+        # if total_clock_checksum != self.total_clock.checksum:
         #     sys.exit(".sav file appears to be corrupted; total clock checksum "
-        #              "mismatch (s/b %d, is %d)" % (total_clock_checksum,
-        #                                            expected_checksum))
+        #              "mismatch (s/b %d, is %d)" % (self.total_clock.checksum,
+        #                                            total_clock_checksum))
 
         self.key_delay = raw_data[self.KEY_DELAY]
         self.key_repeat = raw_data[self.KEY_REPEAT]
@@ -420,7 +421,7 @@ class Project(object):
                                       obj_field):
         object_id = 0
         for i in xrange(index_range[0], index_range[1] + 1):
-            self.obj_list[object_id].__dict__[obj_field] = raw_data[i]
+            obj_list[object_id].__dict__[obj_field] = raw_data[i]
             object_id += 1
 
     def _decompress_alloc_table(self, raw_data, index_range, objects,
@@ -443,9 +444,19 @@ class Project(object):
         self._append_field_from_objects(raw_data, self.phrases, "notes")
         raw_data.extend(self.bookmarks)
         self._append_empty_section(raw_data, self.EMPTY_SECTION_1)
+
+        self._check_offset(len(raw_data), self.GROOVES[0])
+
         self._append_field_from_objects(raw_data, self.grooves, "ticks")
+        self._check_offset(len(raw_data), self.CHAINNOS[0])
+
         raw_data.extend(self.song.chain_numbers)
+
+        self._check_offset(len(raw_data), self.TABLE_ENVELOPES[0])
+
         self._append_field_from_objects(raw_data, self.tables, "envelopes")
+
+        self._check_offset(len(raw_data), self.SPEECH_INSTR_WORDS[0])
 
         for word in self.speech_instrument.words:
             raw_data.extend(word)
@@ -454,19 +465,26 @@ class Project(object):
             raw_data.extend(word_name)
 
         # Memory check bit
-        raw_data.extend(['r', 'b'])
+        self._append_mem_check_bytes(raw_data)
 
         # Make sure we're at the right offset
-        assert len(raw_data) == MEM_INIT_FLAG_1[1] + 1, "At this point in "\
-            "raw data generation, we are at an incorrect offset in the file"
+        self._check_offset(len(raw_data), self.MEM_INIT_FLAG_1[1] + 1)
 
         self._append_field_from_objects(raw_data, self.instruments, "name")
 
+        self._check_offset(len(raw_data), self.EMPTY_SECTION_2[0])
+
+        self._append_empty_section(raw_data, self.EMPTY_SECTION_2)
+
+        self._check_offset(len(raw_data), self.TABLE_ALLOC_TABLE[0])
+
         for table in self.tables:
-            raw_data.append(int(instr.allocated))
+            raw_data.append(int(table.allocated))
 
         for instr in self.instruments:
             raw_data.append(int(instr.allocated))
+
+        self._check_offset(len(raw_data), self.CHAIN_PHRASES[0])
 
         self._append_field_from_objects(raw_data, self.chains, "phrases")
         self._append_field_from_objects(raw_data, self.chains, "transposes")
@@ -478,34 +496,47 @@ class Project(object):
         self._append_field_from_objects(raw_data, self.tables, "fx2_vals")
 
         # Add second memory check bytes
-        raw_data.extend(['r', 'b'])
+        self._append_mem_check_bytes(raw_data)
 
         # Make sure our offset's still right
-        assert len(raw_data) == MEM_INIT_FLAG_2[1] + 1, "At this point in "\
-            "raw data generation, we are at an incorrect offset in the file"
+        self._check_offset(len(raw_data), self.MEM_INIT_FLAG_2[1] + 1)
 
         self._append_condensed_allocation_table(
             raw_data, self.phrases, "allocated")
 
+        self._check_offset(len(raw_data), self.CHAIN_ALLOC_TABLE[0])
+
         self._append_condensed_allocation_table(
             raw_data, self.chains, "allocated")
 
+        self._check_offset(len(raw_data), self.SOFT_SYNTH_PARAMS[0])
+
         self._append_field_from_objects(raw_data, self.synths, "params")
+
+        self._check_offset(len(raw_data), self.CLOCK_HOURS)
 
         raw_data.append(self.clock.hours)
         raw_data.append(self.clock.minutes)
         raw_data.append(self.tempo)
         raw_data.append(self.tune_setting)
+
+        self._check_offset(len(raw_data), self.TOTAL_CLOCK_DAYS)
+
         raw_data.append(self.total_clock.days)
         raw_data.append(self.total_clock.hours)
         raw_data.append(self.total_clock.minutes)
+        raw_data.append(self.total_clock.checksum)
         raw_data.append(self.key_delay)
         raw_data.append(self.key_repeat)
         raw_data.append(self.font)
         raw_data.append(self.sync_setting)
         raw_data.append(self.colorset)
 
-        self._append_empty_section(raw_data, EMPTY_SECTION_3)
+        self._check_offset(len(raw_data), self.EMPTY_SECTION_3[0])
+
+        self._append_empty_section(raw_data, self.EMPTY_SECTION_3)
+
+        self._check_offset(len(raw_data), self.CLONE)
 
         raw_data.append(self.clone)
         raw_data.append(self.file_changed)
@@ -513,8 +544,17 @@ class Project(object):
         raw_data.append(self.prelisten)
         raw_data.extend(self.wave_synth_overwrite_locks)
 
+        self._append_empty_section(raw_data, self.EMPTY_SECTION_4)
+
+        self._check_offset(len(raw_data), self.PHRASE_FX[0])
+
         self._append_field_from_objects(raw_data, self.phrases, "fx")
+
         self._append_field_from_objects(raw_data, self.phrases, "fx_vals")
+
+        self._append_empty_section(raw_data, self.EMPTY_SECTION_5)
+
+        self._check_offset(len(raw_data), self.WAVE_FRAMES[0])
 
         for synth in self.synths:
             for wave in synth.waves:
@@ -522,13 +562,12 @@ class Project(object):
 
         self._append_field_from_objects(raw_data, self.phrases, "instruments")
 
-        raw_data.extend(['r', 'b'])
+        self._append_mem_check_bytes(raw_data)
 
         # Make sure we're at the right offset
-        assert len(raw_data) == MEM_INIT_FLAG_3[1] + 1, "At this point in "\
-            "raw data generation, we are at an incorrect offset in the file"
+        self._check_offset(len(raw_data), self.MEM_INIT_FLAG_3[1] + 1)
 
-        self._append_empty_section(raw_data, EMPTY_SECTION_4)
+        self._append_empty_section(raw_data, self.EMPTY_SECTION_6)
 
         raw_data.append(self.version_byte)
 
@@ -550,8 +589,22 @@ class Project(object):
         obj_bits = []
 
         for obj in objects:
-            obj_bits.append(obj.__dict__(field_name))
+            obj_bits.append(obj.__dict__[field_name])
 
             if len(obj_bits) == 8:
                 raw_data.append(utils.get_byte(obj_bits))
                 obj_bits = []
+
+        if len(obj_bits) != 0:
+            for i in xrange(8 - len(obj_bits)):
+                obj_bits.append(0)
+
+            raw_data.append(utils.get_byte(obj_bits))
+
+    def _append_mem_check_bytes(self, raw_data):
+        raw_data.extend([ord('r'), ord('b')])
+
+    def _check_offset(self, data_size, expected_data_size):
+        assert data_size == expected_data_size, "At this point in raw data "\
+            "generation, we are at an incorrect offset in the file; expected "\
+            "to be at %x, but we are at %x" % (expected_data_size, data_size)
