@@ -3,12 +3,16 @@ import sys
 from struct import unpack
 import utils
 from StringIO import StringIO
-
+import blocks
 from project import Project
 
 class SAVFile(object):
     # Start offset of SAV file contents
     START_OFFSET = 0x8000
+
+    # Offset of SRAM initialization check
+    SRAM_INIT_CHECK_OFFSET = 0x813e
+    SRAM_INIT_CHECK_LENGTH = 2
 
     # Offset where active file number appears
     ACTIVE_FILE_NUMBER_OFFSET = 0x8140
@@ -17,12 +21,11 @@ class SAVFile(object):
     BAT_START_OFFSET = 0x8141
 
     # End of block allocation table
-    BAT_END_OFFSET = 0x8200
+    BAT_END_OFFSET = 0x81ff
 
     # Start index for data blocks
     # The file's header is block 0, so blocks are indexed from 1
     BLOCKS_START_OFFSET = 0x8000
-
 
     # The maximum number of files that the .sav can support
     NUM_FILES = 0x20
@@ -38,30 +41,13 @@ class SAVFile(object):
 
     #Constants
     EMPTY_BLOCK = 0xff
-    BLOCK_SIZE = 0x200
 
-    def __init__(self):
+    def __init__(self, filename):
         self.projects = []
-        self.active_project_number = None
 
-    def __str__(self):
-
-        str_stream = StringIO()
-
-        for project in self.projects:
-            print >>str_stream, str(project)
-
-        print >>str_stream, "Active Project: %s" % \
-            (self.projects[self.active_project_number])
-
-        str_stream_stringval = str_stream.getvalue()
-        str_stream.close()
-        return str_stream_stringval
-
-    def load(self, filename):
         fp = open(filename, 'r')
 
-        fp.seek(self.START_OFFSET)
+        self.preamble = fp.read(self.START_OFFSET)
 
         filenames = []
 
@@ -74,14 +60,20 @@ class SAVFile(object):
             file_versions.append(utils.binary_read_uint(
                     fp, self.FILE_VERSION_LENGTH))
 
-        fp.seek(self.ACTIVE_FILE_NUMBER_OFFSET, os.SEEK_SET)
+        fp.seek(self.SRAM_INIT_CHECK_OFFSET, os.SEEK_SET)
+
+        sram_check = fp.read(self.SRAM_INIT_CHECK_LENGTH)
+
+        if sram_check != 'jk':
+            sys.exit("SRAM init check bits incorrect "
+                     "(should be 'jk', was '%s')" % (sram_check))
 
         self.active_project_number = utils.binary_read_uint(
             fp, self.FILE_NUMBER_LENGTH)
 
         file_blocks = {}
 
-        for i in xrange(self.BAT_START_OFFSET, self.BAT_END_OFFSET):
+        for i in xrange(self.BAT_START_OFFSET, self.BAT_END_OFFSET + 1):
             block_number = i - self.BAT_START_OFFSET + 1
             file_number = utils.binary_read_uint(fp, self.FILE_NUMBER_LENGTH)
 
@@ -97,12 +89,15 @@ class SAVFile(object):
 
             for block_number in block_numbers:
                 offset = self.BLOCKS_START_OFFSET + \
-                    (block_number * self.BLOCK_SIZE)
+                    (block_number * blocks.BLOCK_SIZE)
                 fp.seek(offset, os.SEEK_SET)
 
-                block_contents = fp.read(self.BLOCK_SIZE)
-                blocks[block_number] = utils.binary_uint(
+                block_contents = fp.read(blocks.BLOCK_SIZE)
+
+                block_data = utils.binary_uint(
                     block_contents, 1, len(block_contents))
+
+                blocks[block_number] = blocks.Block(block_number, block_data)
 
             project = Project(name = filenames[file_number],
                               version = file_versions[file_number],
@@ -111,8 +106,90 @@ class SAVFile(object):
 
         fp.close()
 
+    def __str__(self):
+
+        str_stream = StringIO()
+
+        for project in self.projects:
+            print >>str_stream, str(project)
+
+        print >>str_stream, "Active Project: %s" % \
+            (self.projects[self.active_project_number])
+
+        str_stream_stringval = str_stream.getvalue()
+        str_stream.close()
+        return str_stream_stringval
+
+    def save(self, filename):
+        fp = open(filename, 'w')
+
+        writer = BlockWriter()
+        factory = BlockFactory()
+
+        num_blocks = self.BAT_END_OFFSET - self.BAT_START_OFFSET + 1
+
+        header_block = factory.new_block()
+
+        block_table = []
+
+        for i in xrange(num_blocks):
+            block_table.append(None)
+
+        # First block is the header block, so we should ignore it when creating
+        # the block allocation table
+        block_table[0] = -1
+
+        for i in xrange(len(self.projects)):
+            project = self.projects[i]
+
+            raw_data = project.get_raw_data()
+
+            project_blocks = writer.write(raw_data, factory)
+
+            for b in project_blocks:
+                block_table[b] = i
+
+        # Bytes up to START_OFFSET will remain the same
+        fp.write(self.preamble)
+
+        for project in self.projects:
+            header_block.data.extend([ord(x) for x in list(project.name)])
+
+        for project in self.projects:
+            header_block.data.append(project.version)
+
+        header_block.data.extend([ord('j'), ord('k')])
+
+        header_block.data.append(self.active_project_number)
+
+        # Ignore the header block when serializing the block allocation table
+        for b in block_table[1:]:
+            if b == None:
+                file_no = self.EMPTY_BLOCK
+            else:
+                file_no = b
+            header_block.data.append(file_no)
+
+        assert len(header_block.data) == Block.BLOCK_SIZE, "Header block " \
+            "isn't the expected length; expected %d, got %d" % \
+            (Block.BLOCK_SIZE, len(header_block.data))
+
+        block_map = factory.blocks
+
+        empty_block_data = []
+        for i in xrange(Block.BLOCK_SIZE):
+            empty_block_data.append(0)
+
+        for i in xrange(0, num_blocks):
+            if i in block_map:
+                data_list = block_map[i].data
+            else:
+                data_list = empty_block_data
+
+            utils.binary_write_uint_list(fp, data_list, 1)
+
+        fp.close()
 
 if __name__ == "__main__":
-    sav = SAVFile()
-    sav.load(sys.argv[1])
-    print sav
+    sav = SAVFile(sys.argv[1])
+    save.save(sys.argv[2])

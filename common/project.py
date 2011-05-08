@@ -9,39 +9,9 @@ from phrase import Phrase
 from song import Song
 from table import Table
 import utils
+from blocks import BlockReader
 
 class Project(object):
-    # Byte used to denote run-length encoding
-    RLE_BYTE = 0xc0
-
-    # Byte used to denote special action
-    SPECIAL_BYTE = 0xe0
-
-    # Byte used to denote end of file (appears after special byte)
-    EOF_BYTE = 0xff
-
-    # Byte used to denote default instrument
-    DEFAULT_INSTR_BYTE = 0xf1
-
-    # Byte used to denote default wave
-    DEFAULT_WAVE_BYTE = 0xf0
-
-    # Binary data for default instrument
-    DEFAULT_INSTR = [0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0, 0xf3, 0, 0]
-
-    # Binary data for default wave
-    DEFAULT_WAVE = [0x8e, 0xcd, 0xcc, 0xbb, 0xaa, 0xa9, 0x99, 0x88, 0x87, 0x76,
-                    0x66, 0x55, 0x54, 0x43, 0x32, 0x31]
-
-    # State machine states for __init__
-    STATE_BYTES = 0
-    STATE_RLE_BYTE = 1
-    STATE_RLE_COUNT = 2
-    STATE_SPECIAL_BYTE = 3
-    STATE_DEFAULT_INSTR = 4
-    STATE_DEFAULT_WAVE = 5
-    STATE_DONE = 6
-
     # Max. number of phrases
     NUM_PHRASES = 255
 
@@ -54,17 +24,14 @@ class Project(object):
     # Waves per soft-synth
     WAVES_PER_SYNTH = 16
 
-    # Frames per wave
-    FRAMES_PER_WAVE = 16
-
     # Number of entries in each table
     ENTRIES_PER_TABLE = 16
 
     # Max. number of instruments
     NUM_INSTRUMENTS = 64
 
-    # Max. number of parameters per instrument
-    PARAMS_PER_INSTRUMENT = 16
+    # Max. instrument name length
+    INSTRUMENT_NAME_LENGTH = 5
 
     # Max. number of chains
     NUM_CHAINS = 128
@@ -75,32 +42,17 @@ class Project(object):
     # Max. number of grooves
     NUM_GROOVES = 32
 
-    # Notes for phrases
-    PHRASE_NOTES = (0, 0xfef)
-
     # Steps per phrase
     STEPS_PER_PHRASE = 16
-
-    # Grooves
-    GROOVES = (0x1090, 0x128f)
 
     # Steps per groove
     STEPS_PER_GROOVE = 16
 
-    # Chain numbers for song
-    CHAINNOS = (0x1290, 0x168f)
-
     # Number of channels
     NUM_CHANNELS = 4
 
-    # Envelopes for tables
-    TABLE_ENVELOPES = (0x1690, 0x188f)
-
     # Steps per table
     STEPS_PER_TABLE = 16
-
-    # Speech instrument "words"
-    SPEECH_INSTR_WORDS = (0x1890, 0x1dcf)
 
     # Max. length of a "word"
     WORD_LENGTH = 0x20
@@ -108,11 +60,41 @@ class Project(object):
     # Number of "words" in the speech instrument
     NUM_WORDS = 42
 
+    # Max. length of a word name
+    WORD_NAME_LENGTH = 4
+
+    # Notes for phrases
+    PHRASE_NOTES = (0, 0xfef)
+
+    # Bookmarks
+    BOOKMARKS = (0x0ff0, 0x102f)
+
+    # Empty section #1
+    EMPTY_SECTION_1 = (0x1030, 0x108f)
+
+    # Grooves
+    GROOVES = (0x1090, 0x128f)
+
+    # Chain numbers for song
+    CHAINNOS = (0x1290, 0x168f)
+
+    # Envelopes for tables
+    TABLE_ENVELOPES = (0x1690, 0x188f)
+
+    # Speech instrument "words"
+    SPEECH_INSTR_WORDS = (0x1890, 0x1dcf)
+
     # Word names
     WORD_NAMES = (0x1dd0, 0x1e77)
 
-    # Max. length of a word name
-    WORD_NAME_LENGTH = 4
+    # Mem initialized flag #1 (should be 'rb')
+    MEM_INIT_FLAG_1 = (0x1e78, 0x1e79)
+
+    # Instrument names
+    INSTR_NAMES = (0x1e7a, 0x1fb9)
+
+    # Empty section #2
+    EMPTY_SECTION_2 = (0x2000, 0x201f)
 
     # Table allocation table (1 for allocated, 0 for unallocated)
     TABLE_ALLOC_TABLE = (0x2020, 0x203f)
@@ -141,11 +123,11 @@ class Project(object):
     # Table FX 2
     TABLE_FX_2 = (0x3a80, 0x3c7f)
 
-    # Table FX 2 Values
+    # Table FX 2 values
     TABLE_FX_2_VALS = (0x3c80, 0x3e7f)
 
     # "Memory initialized" flag (should be 'rb')
-    MEM_INIT_FLAG = (0x3e80, 0x3e81)
+    MEM_INIT_FLAG_2 = (0x3e80, 0x3e81)
 
     # Phrase allocation table
     PHRASE_ALLOC_TABLE = (0x3e82, 0x3ea1)
@@ -187,11 +169,23 @@ class Project(object):
     # Colorset
     COLORSET = 0x3fbe
 
-    # Subsong mask (one of 0x0f, 0x1f, 0x3f, 0x7f, 0xff)
-    SUBSONG_MASK = 0x3fbf
+    # Empty section #3
+    EMPTY_SECTION_3 = (0x3fbf, 0x3fbf)
 
     # Clone (0 = deep, 1 = slim)
     CLONE = 0x3fc0
+
+    # Has the file changed?
+    FILE_CHANGED = 0x3fc1
+
+    # Power save mode
+    POWER_SAVE = 0x3fc2
+
+    # Pre-listen mode
+    PRELISTEN = 0x3fc3
+
+    # Wave synth overwrite locks
+    WAVE_SYNTH_OVERWRITE_LOCKS = (0x3fc4, 0x3fc5)
 
     # Phrase FX
     PHRASE_FX = (0x4000, 0x4fef)
@@ -206,13 +200,21 @@ class Project(object):
     PHRASE_INSTR = (0x7000, 0x7fef)
 
     # "Memory initialized" flag (should be 'rb')
-    MEM_INITIALIZED_FLAG = (0x7ff0, 0x7ff1)
+    MEM_INIT_FLAG_3 = (0x7ff0, 0x7ff1)
+
+    # Empty section #4
+    EMPTY_SECTION_4 = (0x7ff2, 0x7ffe)
+
+    # Version byte (0 = < 3.6.0, 1 = 3.6.0, 2 = >= 3.6.1)
+    VERSION_BYTE = 0x7fff
 
     def __init__(self, name, version, blocks):
         self.name = name
         self.version = version
 
-        raw_data = self.parse_blocks(blocks)
+        reader = BlockReader()
+
+        raw_data = reader.read(blocks)
 
         self.tables = []
         self.instruments = []
@@ -220,6 +222,7 @@ class Project(object):
         self.chains = []
         self.grooves = []
         self.synths = []
+        self.bookmarks = []
 
         self.song = Song()
 
@@ -232,7 +235,6 @@ class Project(object):
         self.font = None
         self.sync_setting = None
         self.colorset = None
-        self.subsong_mask = None
         self.clone = None
 
         for i in xrange(self.NUM_TABLES):
@@ -258,34 +260,25 @@ class Project(object):
 
             self.synths.append(synth)
 
+        self._copy_values_into_list(raw_data, self.PHRASE_NOTES,
+                                    self.STEPS_PER_PHRASE,
+                                    self.phrases, "notes")
 
-        phrase_id = 0
-        for i in xrange(self.PHRASE_NOTES[0], self.PHRASE_NOTES[1] + 1,
-                        self.STEPS_PER_PHRASE):
-            self.phrases[phrase_id].notes = \
-                raw_data[i:i + self.STEPS_PER_PHRASE]
-            phrase_id += 1
+        self.bookmarks = raw_data[self.BOOKMARKS[0] : self.BOOKMARKS[1] + 1]
 
-        groove_id = 0
-        for i in xrange(self.GROOVES[0], self.GROOVES[1] + 1,
-                        self.STEPS_PER_GROOVE):
-            self.grooves[groove_id].ticks = \
-                raw_data[i:i + self.STEPS_PER_GROOVE]
-            groove_id += 1
-
+        self._copy_values_into_list(raw_data, self.GROOVES,
+                                    self.STEPS_PER_GROOVE,
+                                    self.grooves, "ticks")
 
         for i in xrange(self.CHAINNOS[0], self.CHAINNOS[1] + 1,
                         self.NUM_CHANNELS):
             self.song.chain_numbers.append(raw_data[i:i + self.NUM_CHANNELS])
 
-        table_id = 0
-        for i in xrange(self.TABLE_ENVELOPES[0], self.TABLE_ENVELOPES[1] + 1,
-                        self.STEPS_PER_TABLE):
-            self.tables[table_id].envelopes = \
-                raw_data[i:i + self.STEPS_PER_TABLE]
-            table_id += 1
+        self._copy_values_into_list(raw_data, self.TABLE_ENVELOPES,
+                                    self.STEPS_PER_TABLE, self.tables,
+                                    "envelopes")
 
-        speech_instrument = SpeechInstrument()
+        self.speech_instrument = SpeechInstrument()
 
         # Speech instrument is always allocated
         speech_instrument.allocated = True
@@ -299,106 +292,63 @@ class Project(object):
             speech_instrument.word_names.append(
                 raw_data[i:i + self.WORD_NAME_LENGTH])
 
-        self.instruments.append(speech_instrument)
+        utils.check_mem_init_flag(raw_data, self.MEM_INIT_FLAG_1[0],
+                                  self.MEM_INIT_FLAG_1[1])
 
-        table_id = 0
-        for i in xrange(self.TABLE_ALLOC_TABLE[0],
-                        self.TABLE_ALLOC_TABLE[1] + 1):
-            self.tables[table_id].allocated = bool(raw_data[i])
-            table_id += 1
+        self._copy_values_into_list(raw_data, self.INSTR_NAMES,
+                                    self.INSTRUMENT_NAME_LENGTH,
+                                    self.instruments, "name")
 
-        instr_id = 0
-        for i in xrange(self.INSTR_ALLOC_TABLE[0],
-                        self.INSTR_ALLOC_TABLE[1] + 1):
-            self.instruments[instr_id].allocated = bool(raw_data[i])
-            instr_id += 1
+        self._copy_from_decompressed_table(
+            raw_data, self.TABLE_ALLOC_TABLE, self.tables, "allocated")
 
-        chain_id = 0
-        for i in xrange(self.CHAIN_PHRASES[0], self.CHAIN_PHRASES[1] + 1,
-                        self.PHRASES_PER_CHAIN):
-            self.chains[chain_id].phrases = \
-                raw_data[i:i + self.PHRASES_PER_CHAIN]
-            chain_id += 1
+        self._copy_from_decompressed_table(
+            raw_data, self.INSTR_ALLOC_TABLE, self.instruments, "allocated")
 
-        chain_id = 0
-        for i in xrange(self.CHAIN_TRANSPOSES[0], self.CHAIN_TRANSPOSES[1] + 1,
-                        self.PHRASES_PER_CHAIN):
-            self.chains[chain_id].transposes = \
-                raw_data[i:i+ self.PHRASES_PER_CHAIN]
-            chain_id += 1
+        self._copy_values_into_list(raw_data, self.CHAIN_PHRASES,
+                                    self.PHRASES_PER_CHAIN, self.chains,
+                                    "phrases")
 
-        instr_id = 0
-        for i in xrange(self.INSTR_PARAMS[0], self.INSTR_PARAMS[1] + 1,
-                        self.PARAMS_PER_INSTRUMENT):
-            self.instruments[instr_id].params = \
-                raw_data[i:i + self.PARAMS_PER_INSTRUMENT]
-            instr_id += 1
+        self._copy_values_into_list(raw_data, self.CHAIN_TRANSPOSES,
+                                    self.PHRASES_PER_CHAIN, self.chains,
+                                    "transposes")
 
-        table_id = 0
-        for i in xrange(self.TABLE_TRANSPOSES[0], self.TABLE_TRANSPOSES[1] + 1,
-                        self.ENTRIES_PER_TABLE):
-            self.tables[table_id].transposes = \
-                raw_data[i:i + self.ENTRIES_PER_TABLE]
-            table_id += 1
+        self._copy_values_into_list(raw_data, self.INSTR_PARAMS,
+                                    Instrument.NUM_PARAMS,
+                                    self.instruments, "params")
 
-        table_id = 0
-        for i in xrange(self.TABLE_FX[0], self.TABLE_FX[1] + 1,
-                        self.ENTRIES_PER_TABLE):
-            self.tables[table_id].transposes = \
-                raw_data[i:i + self.ENTRIES_PER_TABLE]
-            table_id += 1
+        self._copy_values_into_list(raw_data, self.TABLE_TRANSPOSES,
+                                    self.ENTRIES_PER_TABLE, self.tables,
+                                    "transposes")
 
-        table_id = 0
-        for i in xrange(self.TABLE_FX_VALS[0], self.TABLE_FX_VALS[1] + 1,
-                        self.ENTRIES_PER_TABLE):
-            self.tables[table_id].transposes = \
-                raw_data[i:i + self.ENTRIES_PER_TABLE]
-            table_id += 1
+        self._copy_values_into_list(raw_data, self.TABLE_FX,
+                                    self.ENTRIES_PER_TABLE, self.tables, "fx")
 
-        table_id = 0
-        for i in xrange(self.TABLE_FX_2[0], self.TABLE_FX_2[1] + 1,
-                        self.ENTRIES_PER_TABLE):
-            self.tables[table_id].transposes = \
-                raw_data[i:i + self.ENTRIES_PER_TABLE]
-            table_id += 1
+        self._copy_values_into_list(raw_data, self.TABLE_FX_VALS,
+                                    self.ENTRIES_PER_TABLE, self.tables,
+                                    "fx_vals")
 
-        table_id = 0
-        for i in xrange(self.TABLE_FX_2_VALS[0], self.TABLE_FX_2_VALS[1] + 1,
-                        self.ENTRIES_PER_TABLE):
-            self.tables[table_id].transposes = \
-                raw_data[i:i + self.ENTRIES_PER_TABLE]
-            table_id += 1
+        self._copy_values_into_list(raw_data, self.TABLE_FX_2,
+                                    self.ENTRIES_PER_TABLE, self.tables, "fx2")
 
-        utils.check_mem_init_flag(raw_data, self.MEM_INIT_FLAG[0],
-                                  self.MEM_INIT_FLAG[1])
+        self._copy_values_into_list(raw_data, self.TABLE_FX_2_VALS,
+                                    self.ENTRIES_PER_TABLE, self.tables,
+                                    "fx2_vals")
 
-        phrase_id = 0
-        for i in xrange(self.PHRASE_ALLOC_TABLE[0],
-                        self.PHRASE_ALLOC_TABLE[1] + 1):
-            current_bits = utils.get_bits(raw_data[i])
+        utils.check_mem_init_flag(raw_data, self.MEM_INIT_FLAG_2[0],
+                                  self.MEM_INIT_FLAG_2[1])
 
-            for j in xrange(len(current_bits)):
-                self.phrases[phrase_id].allocated = bool(current_bits[j])
-                phrase_id += 1
+        self._decompress_alloc_table(raw_data, self.PHRASE_ALLOC_TABLE,
+                                     self.phrases, "allocated",
+                                     self.NUM_PHRASES)
 
-                if phrase_id == self.NUM_PHRASES:
-                    break
+        self._decompress_alloc_table(raw_data, self.CHAIN_ALLOC_TABLE,
+                                     self.chains, "allocated",
+                                     self.NUM_CHAINS)
 
-        chain_id = 0
-        for i in xrange(self.CHAIN_ALLOC_TABLE[0],
-                        self.CHAIN_ALLOC_TABLE[1] + 1):
-            current_bits = utils.get_bits(raw_data[i])
-
-            for j in xrange(len(current_bits)):
-                self.chains[chain_id].allocated = bool(current_bits[j])
-                chain_id += 1
-
-        synth_id = 0
-        for i in xrange(self.SOFT_SYNTH_PARAMS[0],
-                        self.SOFT_SYNTH_PARAMS[1] + 1,
-                        self.WAVES_PER_SYNTH):
-            self.synths[synth_id].params = raw_data[i:i + self.WAVES_PER_SYNTH]
-            synth_id += 1
+        self._copy_values_into_list(raw_data, self.SOFT_SYNTH_PARAMS,
+                                    self.WAVES_PER_SYNTH,
+                                    self.synths, "params")
 
         self.clock.hours = raw_data[self.CLOCK_HOURS]
         self.clock.minutes = raw_data[self.CLOCK_MINUTES]
@@ -422,108 +372,186 @@ class Project(object):
         self.font = raw_data[self.FONT]
         self.sync_setting = raw_data[self.SYNC_SETTING]
         self.colorset = raw_data[self.COLORSET]
-        self.subsong_mask = raw_data[self.SUBSONG_MASK]
         self.clone = raw_data[self.CLONE]
+        self.file_changed = raw_data[self.FILE_CHANGED]
+        self.power_save = raw_data[self.POWER_SAVE]
+        self.prelisten = raw_data[self.PRELISTEN]
+        self.wave_synth_overwrite_locks = raw_data[
+            self.WAVE_SYNTH_OVERWRITE_LOCKS[0] :
+            self.WAVE_SYNTH_OVERWRITE_LOCKS[1] + 1]
+        self.version_byte = raw_data[self.VERSION_BYTE]
 
-        phrase_id = 0
-        for i in xrange(self.PHRASE_FX[0], self.PHRASE_FX[1] + 1,
-                        self.STEPS_PER_PHRASE):
-            self.phrases[phrase_id].fx = raw_data[i:i + self.STEPS_PER_PHRASE]
-            phrase_id += 1
+        self._copy_values_into_list(raw_data, self.PHRASE_FX,
+                                    self.STEPS_PER_PHRASE, self.phrases, "fx")
 
-        phrase_id = 0
-        for i in xrange(self.PHRASE_FX_VALS[0], self.PHRASE_FX_VALS[1] + 1,
-                        self.STEPS_PER_PHRASE):
-            self.phrases[phrase_id].fx_vals = \
-                raw_data[i:i + self.STEPS_PER_PHRASE]
-            phrase_id += 1
+        self._copy_values_into_list(raw_data, self.PHRASE_FX_VALS,
+                                    self.STEPS_PER_PHRASE, self.phrases,
+                                    "fx_vals")
 
         wave_id = 0
         for i in xrange(self.WAVE_FRAMES[0], self.WAVE_FRAMES[1] + 1,
-                        self.FRAMES_PER_WAVE):
+                        Wave.NUM_FRAMES):
             synth_id = wave_id / self.WAVES_PER_SYNTH
             synth_wave_id = wave_id % self.WAVES_PER_SYNTH
 
             self.synths[synth_id].waves[synth_wave_id].frames = \
-                raw_data[i:i + self.FRAMES_PER_WAVE]
+                raw_data[i:i + Wave.NUM_FRAMES]
 
             wave_id += 1
 
-        phrase_id = 0
-        for i in xrange(self.PHRASE_INSTR[0], self.PHRASE_INSTR[1] + 1,
-                        self.STEPS_PER_PHRASE):
-            self.phrases[phrase_id].instruments = \
-                raw_data[i:i + self.STEPS_PER_PHRASE]
-            phrase_id += 1
+        self._copy_values_into_list(raw_data, self.PHRASE_INSTR,
+                                    self.STEPS_PER_PHRASE, self.phrases,
+                                    "instruments")
 
         utils.check_mem_init_flag(raw_data,
-                                  self.MEM_INITIALIZED_FLAG[0],
-                                  self.MEM_INITIALIZED_FLAG[1])
+                                  self.MEM_INIT_FLAG_3[0],
+                                  self.MEM_INIT_FLAG_3[1])
 
-    def parse_blocks(self, blocks):
+    def _copy_values_into_list(self, raw_data, index_range, index_delta,
+                               obj_list, field_name):
+        current_obj_id = 0
+
+        for i in xrange(index_range[0], index_range[1] + 1, index_delta):
+            obj_list[current_obj_id].__dict__[field_name] \
+                = raw_data[i:i + index_delta]
+            current_obj_id += 1
+
+    def _copy_from_decompressed_table(self, raw_data, index_range, obj_list,
+                                      obj_field):
+        object_id = 0
+        for i in xrange(index_range[0], index_range[1] + 1):
+            self.obj_list[object_id].__dict__[obj_field] = raw_data[i]
+            object_id += 1
+
+    def _decompress_alloc_table(self, raw_data, index_range, objects,
+                                object_field, num_objects):
+        object_id = 0
+        for i in xrange(index_range[0], index_range[1] + 1):
+            current_bits = utils.get_bits(raw_data[i])
+
+            for j in xrange(len(current_bits)):
+                objects[object_id].__dict__[object_field] = current_bits[j]
+                object_id += 1
+
+                if object_id == num_objects:
+                    break
+
+
+    def get_raw_data(self):
         raw_data = []
 
-        state = self.STATE_BYTES
+        self._append_field_from_objects(raw_data, self.phrases, "notes")
+        raw_data.extend(self.bookmarks)
+        self._append_empty_section(raw_data, self.EMPTY_SECTION_1)
+        self._append_field_from_objects(raw_data, self.grooves, "ticks")
+        raw_data.extend(self.song.chain_numbers)
+        self._append_field_from_objects(raw_data, self.tables, "envelopes")
 
-        current_block_index = sorted(blocks.keys())[0]
-        current_block = blocks[current_block_index]
-        current_block_offset = 0
+        for word in self.speech_instrument.words:
+            raw_data.extend(word)
 
-        rle_byte_value = None
+        for word_name in self.speech_instrument.word_names:
+            raw_data.extend(word_name)
 
-        while state != self.STATE_DONE:
-            data_byte = current_block[current_block_offset]
-            current_block_offset += 1
+        # Memory check bit
+        raw_data.extend(['r', 'b'])
 
-            if state == self.STATE_BYTES:
-                if data_byte == self.RLE_BYTE:
-                    state = self.STATE_RLE_BYTE
-                elif data_byte == self.SPECIAL_BYTE:
-                    state = self.STATE_SPECIAL_BYTE
-                else:
-                    raw_data.append(data_byte)
+        # Make sure we're at the right offset
+        assert len(raw_data) == MEM_INIT_FLAG_1[1] + 1, "At this point in "\
+            "raw data generation, we are at an incorrect offset in the file"
 
-            elif state == self.STATE_RLE_BYTE:
-                if data_byte == self.RLE_BYTE:
-                    raw_data.append(data_byte)
-                    state = self.STATE_BYTES
-                else:
-                    rle_byte_value = data_byte
-                    state = self.STATE_RLE_COUNT
+        self._append_field_from_objects(raw_data, self.instruments, "name")
 
-            elif state == self.STATE_RLE_COUNT:
-                for i in xrange(data_byte):
-                    raw_data.append(rle_byte_value)
-                state = self.STATE_BYTES
+        for table in self.tables:
+            raw_data.append(int(instr.allocated))
 
-            elif state == self.STATE_SPECIAL_BYTE:
-                if data_byte == self.SPECIAL_BYTE:
-                    raw_data.append(data_byte)
-                    state = self.STATE_BYTES
-                elif data_byte == self.DEFAULT_INSTR_BYTE:
-                    state = self.STATE_DEFAULT_INSTR
-                elif data_byte == self.DEFAULT_WAVE_BYTE:
-                    state = self.STATE_DEFAULT_WAVE
-                elif data_byte == self.EOF_BYTE:
-                    # End of file reached; can stop parsing
-                    state = self.STATE_DONE
-                else:
-                    current_block_index = data_byte
-                    current_block = blocks[current_block_index]
-                    current_block_offset = 0
-                    state = self.STATE_BYTES
+        for instr in self.instruments:
+            raw_data.append(int(instr.allocated))
 
-            elif state == self.STATE_DEFAULT_INSTR:
-                for i in xrange(data_byte):
-                    raw_data.extend(self.DEFAULT_INSTR)
+        self._append_field_from_objects(raw_data, self.chains, "phrases")
+        self._append_field_from_objects(raw_data, self.chains, "transposes")
+        self._append_field_from_objects(raw_data, self.instruments, "params")
+        self._append_field_from_objects(raw_data, self.tables, "transposes")
+        self._append_field_from_objects(raw_data, self.tables, "fx")
+        self._append_field_from_objects(raw_data, self.tables, "fx_vals")
+        self._append_field_from_objects(raw_data, self.tables, "fx2")
+        self._append_field_from_objects(raw_data, self.tables, "fx2_vals")
 
-                state = self.STATE_BYTES
-            elif state == self.STATE_DEFAULT_WAVE:
-                for i in xrange(data_byte):
-                    raw_data.extend(self.DEFAULT_WAVE)
+        # Add second memory check bytes
+        raw_data.extend(['r', 'b'])
 
-                state = self.STATE_BYTES
-            else:
-                sys.exit("Encountered invalid state %d" % (state))
+        # Make sure our offset's still right
+        assert len(raw_data) == MEM_INIT_FLAG_2[1] + 1, "At this point in "\
+            "raw data generation, we are at an incorrect offset in the file"
+
+        self._append_condensed_allocation_table(
+            raw_data, self.phrases, "allocated")
+
+        self._append_condensed_allocation_table(
+            raw_data, self.chains, "allocated")
+
+        self._append_field_from_objects(raw_data, self.synths, "params")
+
+        raw_data.append(self.clock.hours)
+        raw_data.append(self.clock.minutes)
+        raw_data.append(self.tempo)
+        raw_data.append(self.tune_setting)
+        raw_data.append(self.total_clock.days)
+        raw_data.append(self.total_clock.hours)
+        raw_data.append(self.total_clock.minutes)
+        raw_data.append(self.key_delay)
+        raw_data.append(self.key_repeat)
+        raw_data.append(self.font)
+        raw_data.append(self.sync_setting)
+        raw_data.append(self.colorset)
+
+        self._append_empty_section(raw_data, EMPTY_SECTION_3)
+
+        raw_data.append(self.clone)
+        raw_data.append(self.file_changed)
+        raw_data.append(self.power_save)
+        raw_data.append(self.prelisten)
+        raw_data.extend(self.wave_synth_overwrite_locks)
+
+        self._append_field_from_objects(raw_data, self.phrases, "fx")
+        self._append_field_from_objects(raw_data, self.phrases, "fx_vals")
+
+        for synth in self.synths:
+            for wave in synth.waves:
+                raw_data.extend(wave.frames)
+
+        self._append_field_from_objects(raw_data, self.phrases, "instruments")
+
+        raw_data.extend(['r', 'b'])
+
+        # Make sure we're at the right offset
+        assert len(raw_data) == MEM_INIT_FLAG_3[1] + 1, "At this point in "\
+            "raw data generation, we are at an incorrect offset in the file"
+
+        self._append_empty_section(raw_data, EMPTY_SECTION_4)
+
+        raw_data.append(self.version_byte)
+
+        # Make sure the data is the right size
+        assert len(raw_data) == 0x8000, "Raw data was not assigned"
 
         return raw_data
+
+    def _append_field_from_objects(self, raw_data, obj_list, field_name):
+        for obj in obj_list:
+            raw_data.extend(obj.__dict__[field_name])
+
+    def _append_empty_section(self, raw_data, section_boundaries):
+        for i in xrange(section_boundaries[1] - section_boundaries[0] + 1):
+            raw_data.append(0)
+
+    def _append_condensed_allocation_table(self, raw_data, objects,
+                                           field_name):
+        obj_bits = []
+
+        for obj in objects:
+            obj_bits.append(obj.__dict__(field_name))
+
+            if len(obj_bits) == 8:
+                raw_data.append(utils.get_byte(obj_bits))
+                obj_bits = []
