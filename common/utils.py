@@ -12,8 +12,8 @@ def binary_uint_pack_str(length, quantity):
     elif length == 8:
         unpack_str += "Q"
     else:
-        sys.exit("Don't know how to read a binary number that's %d bytes long",
-                 length)
+        assert False, "Don't know how to read a binary number that's %d " \
+            "bytes long" % length
 
     return unpack_str
 
@@ -52,11 +52,9 @@ def get_byte(bits):
     return byte
 
 def check_mem_init_flag(raw_data, first_byte_loc, second_byte_loc):
-    mem_init_flag = "".join([chr(x) for x in
-                             raw_data[first_byte_loc:second_byte_loc + 1]])
-
-
-    if mem_init_flag != "rb":
-        sys.exit(".sav file appears to be corrupted; mem. init flag "
-                 "mismatch (s/b 'rb', is '%s')" % (mem_init_flag))
+    mem_init_flag = raw_data[first_byte_loc:second_byte_loc + 1]
+    ref_mem_flag = [ord('r'), ord('b')]
+    if mem_init_flag != ref_mem_flag:
+        assert False, ".sav file appears to be corrupted; mem. init flag " \
+            "mismatch (s/b %s, is %s)" % (ref_mem_flag, mem_init_flag)
 

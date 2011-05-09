@@ -68,8 +68,8 @@ class SAVFile(object):
         sram_check = fp.read(self.SRAM_INIT_CHECK_LENGTH)
 
         if sram_check != 'jk':
-            sys.exit("SRAM init check bits incorrect "
-                     "(should be 'jk', was '%s')" % (sram_check))
+            assert False, "SRAM init check bits incorrect " \
+                "(should be 'jk', was '%s')" % (sram_check)
 
         self.active_project_number = utils.binary_read_uint(
             fp, self.FILE_NUMBER_LENGTH)
