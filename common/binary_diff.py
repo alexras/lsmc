@@ -3,6 +3,7 @@
 from itertools import izip
 import os, sys
 from optparse import OptionParser
+import utils
 
 def binary_diff(file1, file2, start_offset = 0):
     fp1 = open(file1, 'rb')
@@ -28,14 +29,16 @@ def binary_diff(file1, file2, start_offset = 0):
             print "First difference at offset 0x%x" % (bytes_read)
             print ""
             print "Area of first difference:"
-            fp1.seek(-8, os.SEEK_CUR)
-            fp2.seek(-8, os.SEEK_CUR)
 
-            region1 = fp1.read(16)
-            region2 = fp2.read(16)
+            for fp in [fp1, fp2]:
+                fp.seek(-4, os.SEEK_CUR)
 
-            print [x for x in region1]
-            print [x for x in region2]
+            region1 = utils.binary_read_uint_list(fp1, 1, 16)
+            region2 = utils.binary_read_uint_list(fp2, 1, 16)
+
+            for (filename, region) in [(file1, region1), (file2, region2)]:
+                print "%s: %s" % (' '.join(["0x%x" % (x) for x in region]),
+                                  filename)
             break
         else:
             bytes_read += 1

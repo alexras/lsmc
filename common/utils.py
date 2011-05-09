@@ -25,6 +25,9 @@ def binary_uint(int_str, length, quantity):
 def binary_read_uint(fp, length):
     return binary_uint(fp.read(length), length, 1)[0]
 
+def binary_read_uint_list(fp, length, quantity):
+    return binary_uint(fp.read(length * quantity), length, quantity)
+
 def binary_write_uint(fp, num, length):
     pack_str = binary_uint_pack_str(length, 1)
     fp.write(pack(pack_str, num))

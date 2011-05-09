@@ -6,6 +6,7 @@ from StringIO import StringIO
 import blocks
 from project import Project
 from blocks import BlockWriter, BlockFactory
+import filepack
 
 class SAVFile(object):
     # Start offset of SAV file contents
@@ -103,6 +104,7 @@ class SAVFile(object):
 
                 block_map[block_number] = blocks.Block(block_number, block_data)
 
+            print "Parsing file %d: %s" % (file_number, filenames[file_number])
             project = Project(name = filenames[file_number],
                               version = file_versions[file_number],
                               blocks = block_map)
@@ -150,9 +152,13 @@ class SAVFile(object):
 
             raw_data = project.get_raw_data()
 
-            project_blocks = writer.write(raw_data, factory)
+            compressed_data = filepack.compress(raw_data)
+            print "Compressed data length for file %d: %d" % \
+                (i, len(compressed_data))
 
-            for b in project_blocks:
+            project_block_ids = writer.write(compressed_data, factory)
+
+            for b in project_block_ids:
                 block_table[b] = i
 
         # Bytes up to START_OFFSET will remain the same
@@ -219,3 +225,6 @@ class SAVFile(object):
 if __name__ == "__main__":
     sav = SAVFile(sys.argv[1])
     sav.save(sys.argv[2])
+    sav2 = SAVFile(sys.argv[2])
+
+    assert sav == sav2
