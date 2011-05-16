@@ -105,9 +105,42 @@ class SAVFile(object):
                 block_map[block_number] = blocks.Block(block_number, block_data)
 
             print "Parsing file %d: %s" % (file_number, filenames[file_number])
+
             project = Project(name = filenames[file_number],
-                              version = file_versions[file_number],
-                              blocks = block_map)
+                              version = file_versions[file_number])
+
+            reader = BlockReader()
+
+            if self.name == "CABURRTO":
+                fp = open("blocks_in", 'w')
+                print >>fp, blocks
+                fp.close()
+
+            compressed_data = reader.read(blocks)
+
+            if self.name == "CABURRTO":
+                fp = open("compressed_in", 'w')
+                for datum in compressed_data:
+                    print >>fp, datum
+                fp.close()
+
+            print "Compressed data size for %s: 0x%x" % (self.name,
+                                                         len(compressed_data))
+
+            raw_data = filepack.decompress(compressed_data)
+
+            if self.name == "CABURRTO":
+                fp = open("raw_in", 'w')
+                for datum in raw_data:
+                    print >>fp, datum
+                fp.close()
+
+            assert len(raw_data) == consts.RAW_DATA_SIZE, "Raw data generated " \
+                "by BlockReader.read() is not the right size (expected 0x%x, " \
+                "got 0x%x)" % (consts.RAW_DATA_SIZE, len(raw_data))
+
+            project.load_data(raw_data)
+
             self.projects.append(project)
 
         fp.close()

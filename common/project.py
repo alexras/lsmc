@@ -9,7 +9,6 @@ from phrase import Phrase
 import song
 from table import Table
 import utils
-from blocks import BlockReader
 import consts
 import filepack
 
@@ -214,39 +213,9 @@ VERSION_BYTE = 0x7fff
 
 
 class Project(object):
-    def __init__(self, name, version, blocks):
+    def __init__(self, name, version):
         self.name = name
         self.version = version
-
-        reader = BlockReader()
-
-        if name == "CABURRTO":
-            fp = open("blocks_in", 'w')
-            print >>fp, blocks
-            fp.close()
-
-        compressed_data = reader.read(blocks)
-
-        if name == "CABURRTO":
-            fp = open("compressed_in", 'w')
-            for datum in compressed_data:
-                print >>fp, datum
-            fp.close()
-
-        print "Compressed data size for %s: 0x%x" % (name, len(compressed_data))
-
-        raw_data = filepack.decompress(compressed_data)
-
-        if name == "CABURRTO":
-            fp = open("raw_in", 'w')
-            for datum in raw_data:
-                print >>fp, datum
-            fp.close()
-
-        assert len(raw_data) == consts.RAW_DATA_SIZE, "Raw data generated " \
-            "by BlockReader.read() is not the right size (expected 0x%x, " \
-            "got 0x%x)" % (consts.RAW_DATA_SIZE, len(raw_data))
-
         self.tables = []
         self.instruments = []
         self.phrases = []
@@ -291,6 +260,7 @@ class Project(object):
 
             self.synths.append(synth)
 
+    def load_data(self, raw_data):
         self._copy_values_into_list(raw_data, PHRASE_NOTES,
                                     STEPS_PER_PHRASE,
                                     self.phrases, "notes")
