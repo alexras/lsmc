@@ -12,7 +12,7 @@ class Block(object):
         self.id = block_id
         self.data = data
 
-    def __repr__(self):
+    def __repr__(self): # pragma: no cover
         repr_str = "{"
         repr_str += "BLOCK %d (%d bytes)\n" % (self.id, len(self.data))
 
@@ -28,8 +28,8 @@ class Block(object):
         repr_str += "}"
         return repr_str
 
-    def __eq__(self, other):
-        return other.data == self.data
+    # def __eq__(self, other):
+    #     return other.data == self.data
 
 
 class BlockFactory(object):

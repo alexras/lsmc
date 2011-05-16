@@ -235,7 +235,8 @@ def decompress(compressed_data):
 
             state = STATE_BYTES
         else:
-            assert False, "Encountered invalid state %d" % (state)
+            assert False, "Encountered invalid state %d" % \
+                (state) # pragma: no cover
 
     return raw_data
 
@@ -266,6 +267,9 @@ def compress(raw_data):
         data_index = _compress_default(
             raw_data, compressed_data, data_index, data_size,
             wave.DEFAULT, wave.NUM_FRAMES, DEFAULT_WAVE_BYTE)
+
+        if data_index == data_size:
+            break
 
         # Can't run-length encode the run-length encode special byte
         if raw_data[data_index] == RLE_BYTE:

@@ -5,6 +5,7 @@ sys.path.append(
 
 import unittest
 import common.blocks as bl
+import common.filepack as filepack
 
 class TestBlocks(unittest.TestCase):
     def test_simple_read_write(self):
