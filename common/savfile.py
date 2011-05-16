@@ -147,14 +147,27 @@ class SAVFile(object):
         # the block allocation table
         block_table[0] = -1
 
-        for i in xrange(len(self.projects)):
-            project = self.projects[i]
-
+        for (i, project) in enumerate(self.projects):
             raw_data = project.get_raw_data()
 
+            if i == 0:
+                rawfp = open("raw_out", 'w')
+                for datum in raw_data:
+                    print >>rawfp, datum
+                rawfp.close()
+
+            print "Raw data length for file %d: 0x%x" % \
+                (i, len(raw_data))
+
             compressed_data = filepack.compress(raw_data)
-            print "Compressed data length for file %d: %d" % \
+            print "Compressed data length for file %d: 0x%x" % \
                 (i, len(compressed_data))
+
+            if i == 0:
+                compfp = open("compressed_out", 'w')
+                for datum in compressed_data:
+                    print >>compfp, datum
+                compfp.close()
 
             project_block_ids = writer.write(compressed_data, factory)
 
@@ -225,6 +238,3 @@ class SAVFile(object):
 if __name__ == "__main__":
     sav = SAVFile(sys.argv[1])
     sav.save(sys.argv[2])
-    sav2 = SAVFile(sys.argv[2])
-
-    assert sav == sav2

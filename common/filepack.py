@@ -27,8 +27,8 @@ STATE_DEFAULT_INSTR = 4
 STATE_DEFAULT_WAVE = 5
 STATE_DONE = 6
 
-def split(compressed_data, segment_size):
-    # Split compressed data into roughly block-sized segments
+def split(compressed_data, segment_size, block_factory):
+    # Split compressed data into blocks
     segments = []
 
     current_segment_start = 0
@@ -86,10 +86,34 @@ def split(compressed_data, segment_size):
     assert total_segment_length == len(compressed_data), "Lost %d bytes of " \
         "data while segmenting" % (len(compressed_data) - total_segment_length)
 
-    return segments
+    block_ids = []
 
-def merge(segments):
-        current_segment = segments[sorted(segments.keys())[0]]
+    for segment in segments:
+        block = block_factory.new_block()
+        block_ids.append(block.id)
+
+    for (i, segment) in enumerate(segments):
+        block = block_factory.blocks[block_ids[i]]
+
+        assert len(block.data) == 0, "Encountered a block with "
+        "pre-existing data while writing"
+
+        if i == len(segments) - 1:
+            # Write EOF to the end of the segment
+            add_eof(segment)
+        else:
+            # Write a pointer to the next segment
+            add_block_switch(segment, block_ids[i + 1])
+
+        # Pad segment with zeroes until it's large enough
+        pad(segment, segment_size)
+
+        block.data = segment
+
+    return block_ids
+
+def merge(blocks):
+        current_block = blocks[sorted(blocks.keys())[0]]
 
         compressed_data = []
         eof = False
@@ -99,12 +123,12 @@ def merge(segments):
 
         while not eof:
             data_size_to_append = None
-            next_segment = None
+            next_block = None
 
             i = 0
-            while i < len(current_segment) - 1:
-                current_byte = current_segment[i]
-                next_byte = current_segment[i + 1]
+            while i < len(current_block.data) - 1:
+                current_byte = current_block.data[i]
+                next_byte = current_block.data[i + 1]
 
                 if current_byte == RLE_BYTE:
                     if next_byte == RLE_BYTE:
@@ -123,22 +147,22 @@ def merge(segments):
                         if next_byte == EOF_BYTE:
                             eof = True
                         else:
-                            next_segment = segments[next_byte]
+                            next_block = blocks[next_byte]
 
                         break
                 else:
                     i += 1
 
             assert data_size_to_append is not None, "Ran off the end of a "\
-                "segment without encountering a segment switch or EOF"
+                "block without encountering a block switch or EOF"
 
-            compressed_data.extend(current_segment[0:data_size_to_append])
+            compressed_data.extend(current_block.data[0:data_size_to_append])
 
             if not eof:
-                assert next_segment is not None, "Switched segments, but did " \
-                    "not provide the next segment to switch to"
+                assert next_block is not None, "Switched blocks, but did " \
+                    "not provide the next block to switch to"
 
-                current_segment = next_segment
+                current_block = next_block
 
         return compressed_data
 
@@ -161,12 +185,10 @@ def decompress(compressed_data):
 
     rle_byte_value = None
 
-    index = 0
     data_size = len(compressed_data)
 
-    while index < data_size:
+    for index in xrange(len(compressed_data)):
         data_byte = compressed_data[index]
-        index += 1
 
         if state == STATE_BYTES:
             if data_byte == RLE_BYTE:
@@ -231,20 +253,26 @@ def compress(raw_data):
         # If we encounter the default instrument at this point in the file,
         # use the abbreviated representation for the default instrument
 
-        if raw_data[data_index:data_index + instrument.NUM_PARAMS] == \
-                instrument.DEFAULT:
-            compressed_data.extend([SPECIAL_BYTE, DEFAULT_INSTR_BYTE])
-            data_index += instrument.NUM_PARAMS
+        data_index = _compress_default(
+            raw_data, compressed_data, data_index, data_size,
+            instrument.DEFAULT, instrument.NUM_PARAMS, DEFAULT_INSTR_BYTE)
+
+        if data_index == data_size:
+            break
 
         # If we encounter the default wave at this point in the file, use
         # the abbreviated representation for the default wave
 
-        elif raw_data[data_index:data_index + wave.NUM_FRAMES] == \
-                wave.DEFAULT:
-            compressed_data.extend([SPECIAL_BYTE, DEFAULT_WAVE_BYTE])
-            data_index += wave.NUM_FRAMES
+        data_index = _compress_default(
+            raw_data, compressed_data, data_index, data_size,
+            wave.DEFAULT, wave.NUM_FRAMES, DEFAULT_WAVE_BYTE)
 
-        # Otherwise we're just dealing with bytes
+        # Can't run-length encode the run-length encode special byte
+        if raw_data[data_index] == RLE_BYTE:
+            compressed_data.extend([RLE_BYTE, RLE_BYTE])
+            data_index += 1
+        # Otherwise we're just dealing with bytes and we can try to run-length
+        # encode
         else:
             current_byte = raw_data[data_index]
 
@@ -263,13 +291,19 @@ def compress(raw_data):
 
             num_occurrences = min(lookahead_index - data_index, 255)
 
-            # If you're writing a reserved byte (i.e. a command specifier)
-            # you'll have to write each occurrence of the byte twice to
-            # avoid it being interpreted as a control character
-            if current_byte in RESERVED_BYTES:
-                num_occurrences *= 2
+            # If you're dealing with the special byte, it makes sense to encode
+            # if two or more special bytes occur in succession, since you'll
+            # have to double up those bytes in a non-RLE encoding anyway.
+            if current_byte == SPECIAL_BYTE:
+                if num_occurrences > 1:
+                    compressed_data.extend([RLE_BYTE, current_byte,
+                                            num_occurrences])
+                else:
+                    compressed_data.extend([SPECIAL_BYTE, SPECIAL_BYTE])
 
-            if num_occurrences > 3:
+            # If you've got more than three occurrences of the same non-special
+            # byte, it makes sense to run-length encode
+            elif num_occurrences > 3:
                 compressed_data.extend([RLE_BYTE, current_byte,
                                         num_occurrences])
             else:
@@ -279,3 +313,18 @@ def compress(raw_data):
             data_index += num_occurrences
 
     return compressed_data
+
+def _compress_default(raw_data, compressed_data, data_index, data_size,
+                      default, default_length, default_special_byte):
+    num_defaults = 0
+
+    while data_index < data_size and \
+            raw_data[data_index:data_index + default_length] == default:
+        num_defaults += 1
+        data_index += default_length
+
+    if num_defaults > 0:
+        compressed_data.extend([SPECIAL_BYTE, default_special_byte,
+                                num_defaults])
+
+    return data_index

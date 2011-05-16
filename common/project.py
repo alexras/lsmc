@@ -220,11 +220,28 @@ class Project(object):
 
         reader = BlockReader()
 
+        if name == "CABURRTO":
+            fp = open("blocks_in", 'w')
+            print >>fp, blocks
+            fp.close()
+
         compressed_data = reader.read(blocks)
 
-        print "Compressed data size for %s: %d" % (name, len(compressed_data))
+        if name == "CABURRTO":
+            fp = open("compressed_in", 'w')
+            for datum in compressed_data:
+                print >>fp, datum
+            fp.close()
+
+        print "Compressed data size for %s: 0x%x" % (name, len(compressed_data))
 
         raw_data = filepack.decompress(compressed_data)
+
+        if name == "CABURRTO":
+            fp = open("raw_in", 'w')
+            for datum in raw_data:
+                print >>fp, datum
+            fp.close()
 
         assert len(raw_data) == consts.RAW_DATA_SIZE, "Raw data generated " \
             "by BlockReader.read() is not the right size (expected 0x%x, " \
