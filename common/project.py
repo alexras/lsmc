@@ -30,9 +30,6 @@ ENTRIES_PER_TABLE = 16
 # Max. number of instruments
 NUM_INSTRUMENTS = 64
 
-# Max. instrument name length
-INSTRUMENT_NAME_LENGTH = 5
-
 # Max. number of chains
 NUM_CHAINS = 128
 
@@ -214,7 +211,7 @@ VERSION_BYTE = 0x7fff
 
 class Project(object):
     def __init__(self, name, version):
-        self.name = name
+        self.name = utils.strip_nulls(name)
         self.version = version
         self.tables = []
         self.instruments = []
@@ -297,7 +294,7 @@ class Project(object):
                                   MEM_INIT_FLAG_1[1])
 
         self._copy_values_into_list(raw_data, INSTR_NAMES,
-                                    INSTRUMENT_NAME_LENGTH,
+                                    instrument.NAME_LENGTH,
                                     self.instruments, "name")
 
         self._copy_from_decompressed_table(
@@ -415,15 +412,15 @@ class Project(object):
         current_obj_id = 0
 
         for i in xrange(index_range[0], index_range[1] + 1, index_delta):
-            obj_list[current_obj_id].__dict__[field_name] \
-                = raw_data[i:i + index_delta]
+            setattr(obj_list[current_obj_id], field_name,
+                    raw_data[i:i + index_delta])
             current_obj_id += 1
 
     def _copy_from_decompressed_table(self, raw_data, index_range, obj_list,
                                       obj_field):
         object_id = 0
         for i in xrange(index_range[0], index_range[1] + 1):
-            obj_list[object_id].__dict__[obj_field] = raw_data[i]
+            setattr(obj_list[object_id], obj_field, raw_data[i])
             object_id += 1
 
     def _decompress_alloc_table(self, raw_data, index_range, objects,
@@ -433,7 +430,7 @@ class Project(object):
             current_bits = utils.get_bits(raw_data[i])
 
             for j in xrange(len(current_bits)):
-                objects[object_id].__dict__[object_field] = current_bits[j]
+                setattr(objects[object_id], object_field, current_bits[j])
                 object_id += 1
 
                 if object_id == num_objects:
@@ -472,7 +469,9 @@ class Project(object):
         # Make sure we're at the right offset
         self._check_offset(len(raw_data), MEM_INIT_FLAG_1[1] + 1)
 
-        self._append_field_from_objects(raw_data, self.instruments, "name")
+        for instr in self.instruments:
+            raw_data.extend(utils.string_to_bytes(
+                    instr.name, instrument.NAME_LENGTH))
 
         self._check_offset(len(raw_data), EMPTY_SECTION_2[0])
 
@@ -582,7 +581,7 @@ class Project(object):
 
     def _append_field_from_objects(self, raw_data, obj_list, field_name):
         for obj in obj_list:
-            raw_data.extend(obj.__dict__[field_name])
+            raw_data.extend(getattr(obj, field_name))
 
     def _append_empty_section(self, raw_data, section_boundaries):
         for i in xrange(section_boundaries[1] - section_boundaries[0] + 1):
@@ -593,7 +592,7 @@ class Project(object):
         obj_bits = []
 
         for obj in objects:
-            obj_bits.append(obj.__dict__[field_name])
+            obj_bits.append(getattr(obj, field_name))
 
             if len(obj_bits) == 8:
                 raw_data.append(utils.get_byte(obj_bits))

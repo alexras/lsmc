@@ -102,7 +102,8 @@ class SAVFile(object):
                 block_data = utils.binary_uint(
                     block_contents, 1, len(block_contents))
 
-                block_map[block_number] = blockutils.Block(block_number, block_data)
+                block_map[block_number] = blockutils.Block(block_number,
+                                                           block_data)
 
             project = Project(name = filenames[file_number],
                               version = file_versions[file_number])
@@ -168,10 +169,8 @@ class SAVFile(object):
         fp.write(self.preamble)
 
         for project in self.projects:
-            name_bytes = [ord(x) for x in list(project.name)]
-
-            for i in xrange(self.FILENAME_LENGTH - len(name_bytes)):
-                name_bytes.append(0)
+            name_bytes = utils.string_to_bytes(project.name,
+                                               self.FILENAME_LENGTH)
 
             header_block.data.extend(name_bytes)
 

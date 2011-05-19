@@ -1,3 +1,4 @@
+import os
 import warnings
 import sys
 from struct import pack, unpack
@@ -63,3 +64,40 @@ def check_mem_init_flag(raw_data, first_byte_loc, second_byte_loc):
         assert False, ".sav file appears to be corrupted; mem. init flag " \
             "mismatch (s/b %s, is %s)" % (ref_mem_flag, mem_init_flag)
 
+
+def strip_nulls(string):
+    try:
+        string = string[:string.index('\x00')]
+    except ValueError:
+        # No null characters found, pass the string unaltered
+        pass
+
+    return string
+
+def make_unique_filename(prefix, suffix, parent):
+    filename_prefix = os.path.join(parent, prefix)
+
+    normal_filename = "%s%s" % (filename_prefix, suffix)
+
+    if not os.path.exists(normal_filename):
+        return normal_filename
+
+    i = 1
+
+    while True:
+        indexed_filename = "%s_%d%s" % (filename_prefix, i, suffix)
+
+        if not os.path.exists(indexed_filename):
+            return indexed_filename
+
+        i += 1
+
+def string_to_bytes(string, length):
+    if string == None:
+        string = ""
+    bytes = [ord(x) for x in list(string)]
+
+    for i in xrange(length - len(bytes)):
+        bytes.append(0)
+
+    return bytes
