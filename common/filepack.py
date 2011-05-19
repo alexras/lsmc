@@ -113,58 +113,58 @@ def split(compressed_data, segment_size, block_factory):
     return block_ids
 
 def merge(blocks):
-        current_block = blocks[sorted(blocks.keys())[0]]
+    current_block = blocks[sorted(blocks.keys())[0]]
 
-        compressed_data = []
-        eof = False
+    compressed_data = []
+    eof = False
 
-        ignored_special_commands = [DEFAULT_INSTR_BYTE,
-                                    DEFAULT_WAVE_BYTE]
+    ignored_special_commands = [DEFAULT_INSTR_BYTE,
+                                DEFAULT_WAVE_BYTE]
 
-        while not eof:
-            data_size_to_append = None
-            next_block = None
+    while not eof:
+        data_size_to_append = None
+        next_block = None
 
-            i = 0
-            while i < len(current_block.data) - 1:
-                current_byte = current_block.data[i]
-                next_byte = current_block.data[i + 1]
+        i = 0
+        while i < len(current_block.data) - 1:
+            current_byte = current_block.data[i]
+            next_byte = current_block.data[i + 1]
 
-                if current_byte == RLE_BYTE:
-                    if next_byte == RLE_BYTE:
-                        i += 2
-                    else:
-                        i += 3
-                elif current_byte == SPECIAL_BYTE:
-                    if next_byte in ignored_special_commands:
-                        i += 3
-                    elif next_byte == SPECIAL_BYTE:
-                        i += 2
-                    else:
-                        data_size_to_append = i
-
-                        # hit end of file
-                        if next_byte == EOF_BYTE:
-                            eof = True
-                        else:
-                            next_block = blocks[next_byte]
-
-                        break
+            if current_byte == RLE_BYTE:
+                if next_byte == RLE_BYTE:
+                    i += 2
                 else:
-                    i += 1
+                    i += 3
+            elif current_byte == SPECIAL_BYTE:
+                if next_byte in ignored_special_commands:
+                    i += 3
+                elif next_byte == SPECIAL_BYTE:
+                    i += 2
+                else:
+                    data_size_to_append = i
 
-            assert data_size_to_append is not None, "Ran off the end of a "\
-                "block without encountering a block switch or EOF"
+                    # hit end of file
+                    if next_byte == EOF_BYTE:
+                        eof = True
+                    else:
+                        next_block = blocks[next_byte]
 
-            compressed_data.extend(current_block.data[0:data_size_to_append])
+                    break
+            else:
+                i += 1
 
-            if not eof:
-                assert next_block is not None, "Switched blocks, but did " \
-                    "not provide the next block to switch to"
+        assert data_size_to_append is not None, "Ran off the end of a "\
+            "block without encountering a block switch or EOF"
 
-                current_block = next_block
+        compressed_data.extend(current_block.data[0:data_size_to_append])
 
-        return compressed_data
+        if not eof:
+            assert next_block is not None, "Switched blocks, but did " \
+                "not provide the next block to switch to"
+
+            current_block = next_block
+
+    return compressed_data
 
 def add_eof(segment):
     segment.extend([SPECIAL_BYTE, EOF_BYTE])
@@ -328,7 +328,11 @@ def _compress_default(raw_data, compressed_data, data_index, data_size,
         data_index += default_length
 
     if num_defaults > 0:
-        compressed_data.extend([SPECIAL_BYTE, default_special_byte,
-                                num_defaults])
+        while num_defaults > 0:
+            num_defaults_to_compress = min(num_defaults, 255)
+            compressed_data.extend([SPECIAL_BYTE, default_special_byte,
+                                    num_defaults_to_compress])
+
+            num_defaults -= num_defaults_to_compress
 
     return data_index

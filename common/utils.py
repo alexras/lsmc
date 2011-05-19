@@ -1,3 +1,4 @@
+import warnings
 import sys
 from struct import pack, unpack
 
@@ -34,7 +35,8 @@ def binary_write_uint(fp, num, length):
 
 def binary_write_uint_list(fp, uint_list, uint_length):
     pack_str = binary_uint_pack_str(uint_length, len(uint_list))
-    fp.write(pack(pack_str, *uint_list))
+    packed = pack(pack_str, *uint_list)
+    fp.write(packed)
 
 def get_bits(byte):
     bits = []

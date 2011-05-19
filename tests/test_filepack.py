@@ -94,6 +94,57 @@ class FilePackTest(unittest.TestCase):
 
         self.assertEqual(data, decompressed)
 
+    def test_large_rle_compress(self):
+        data = []
+
+        for i in xrange(275):
+            data.append(42)
+
+        compressed = filepack.compress(data)
+
+        reference = [filepack.RLE_BYTE, 42, 255, filepack.RLE_BYTE, 42, 20]
+
+        self.assertEqual(compressed, reference)
+
+        decompressed = filepack.decompress(compressed)
+
+        self.assertEqual(data, decompressed)
+
+    def test_large_default_instr_compress(self):
+        data = []
+
+        for i in xrange(300):
+            data.extend(instrument.DEFAULT)
+
+        compressed = filepack.compress(data)
+
+        reference = [filepack.SPECIAL_BYTE, filepack.DEFAULT_INSTR_BYTE, 255,
+                     filepack.SPECIAL_BYTE, filepack.DEFAULT_INSTR_BYTE, 45]
+
+        self.assertEqual(compressed, reference)
+
+        decompressed = filepack.decompress(compressed)
+
+        self.assertEqual(data, decompressed)
+
+    def test_large_default_wave_compress(self):
+        data = []
+
+        for i in xrange(300):
+            data.extend(wave.DEFAULT)
+
+        compressed = filepack.compress(data)
+
+        reference = [filepack.SPECIAL_BYTE, filepack.DEFAULT_WAVE_BYTE, 255,
+                     filepack.SPECIAL_BYTE, filepack.DEFAULT_WAVE_BYTE, 45]
+
+        self.assertEqual(compressed, reference)
+
+        decompressed = filepack.decompress(compressed)
+
+        self.assertEqual(data, decompressed)
+
+
     def test_bad_rle_split(self):
         data = [filepack.RLE_BYTE]
 

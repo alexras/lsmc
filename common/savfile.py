@@ -3,9 +3,9 @@ import sys
 from struct import unpack
 import utils
 from StringIO import StringIO
-import blocks
 from project import Project
-from blocks import BlockWriter, BlockFactory
+import blockutils
+from blockutils import BlockReader, BlockWriter, BlockFactory
 import filepack
 
 class SAVFile(object):
@@ -93,51 +93,25 @@ class SAVFile(object):
 
             for block_number in block_numbers:
                 offset = self.BLOCKS_START_OFFSET + \
-                    (block_number * blocks.BLOCK_SIZE)
+                    (block_number * blockutils.BLOCK_SIZE)
 
                 fp.seek(offset, os.SEEK_SET)
 
-                block_contents = fp.read(blocks.BLOCK_SIZE)
+                block_contents = fp.read(blockutils.BLOCK_SIZE)
 
                 block_data = utils.binary_uint(
                     block_contents, 1, len(block_contents))
 
-                block_map[block_number] = blocks.Block(block_number, block_data)
-
-            print "Parsing file %d: %s" % (file_number, filenames[file_number])
+                block_map[block_number] = blockutils.Block(block_number, block_data)
 
             project = Project(name = filenames[file_number],
                               version = file_versions[file_number])
 
             reader = BlockReader()
 
-            if self.name == "CABURRTO":
-                fp = open("blocks_in", 'w')
-                print >>fp, blocks
-                fp.close()
-
-            compressed_data = reader.read(blocks)
-
-            if self.name == "CABURRTO":
-                fp = open("compressed_in", 'w')
-                for datum in compressed_data:
-                    print >>fp, datum
-                fp.close()
-
-            print "Compressed data size for %s: 0x%x" % (self.name,
-                                                         len(compressed_data))
+            compressed_data = reader.read(block_map)
 
             raw_data = filepack.decompress(compressed_data)
-
-            if self.name == "CABURRTO":
-                fp = open("raw_in", 'w')
-                for datum in raw_data:
-                    print >>fp, datum
-                fp.close()
-
-            assert len(raw_data) == consts.RAW_DATA_SIZE, "Raw data generated " \
-                "by BlockReader.read() is not the right size (expected 0x%x, " \
-                "got 0x%x)" % (consts.RAW_DATA_SIZE, len(raw_data))
 
             project.load_data(raw_data)
 
@@ -183,24 +157,7 @@ class SAVFile(object):
         for (i, project) in enumerate(self.projects):
             raw_data = project.get_raw_data()
 
-            if i == 0:
-                rawfp = open("raw_out", 'w')
-                for datum in raw_data:
-                    print >>rawfp, datum
-                rawfp.close()
-
-            print "Raw data length for file %d: 0x%x" % \
-                (i, len(raw_data))
-
             compressed_data = filepack.compress(raw_data)
-            print "Compressed data length for file %d: 0x%x" % \
-                (i, len(compressed_data))
-
-            if i == 0:
-                compfp = open("compressed_out", 'w')
-                for datum in compressed_data:
-                    print >>compfp, datum
-                compfp.close()
 
             project_block_ids = writer.write(compressed_data, factory)
 
@@ -248,14 +205,14 @@ class SAVFile(object):
                 file_no = b
             header_block.data.append(file_no)
 
-        assert len(header_block.data) == blocks.BLOCK_SIZE, \
+        assert len(header_block.data) == blockutils.BLOCK_SIZE, \
             "Header block isn't the expected length; expected 0x%x, got 0x%x" \
-            % (blocks.BLOCK_SIZE, len(header_block.data))
+            % (blockutils.BLOCK_SIZE, len(header_block.data))
 
         block_map = factory.blocks
 
         empty_block_data = []
-        for i in xrange(blocks.BLOCK_SIZE):
+        for i in xrange(blockutils.BLOCK_SIZE):
             empty_block_data.append(0)
 
         for i in xrange(num_blocks):

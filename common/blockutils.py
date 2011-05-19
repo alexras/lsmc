@@ -1,5 +1,4 @@
 import filepack
-import blocks
 import instrument
 import wave
 import consts
@@ -46,8 +45,8 @@ class BlockFactory(object):
 
 class BlockWriter(object):
     def write(self, compressed_data, factory):
-        return filepack.split(compressed_data, blocks.BLOCK_SIZE,
-                                   factory)
+        return filepack.split(compressed_data, BLOCK_SIZE,
+                              factory)
 
 class BlockReader(object):
 
