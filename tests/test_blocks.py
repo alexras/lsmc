@@ -4,7 +4,7 @@ sys.path.append(
     os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
 
 import unittest
-import common.blocks as bl
+import common.blockutils as bl
 import common.filepack as filepack
 
 class TestBlocks(unittest.TestCase):

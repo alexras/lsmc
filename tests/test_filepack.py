@@ -6,7 +6,7 @@ sys.path.append(
 import unittest
 import common.filepack as filepack
 import common.instrument as instrument
-import common.blocks as bl
+import common.blockutils as bl
 import common.wave as wave
 
 class FilePackTest(unittest.TestCase):
