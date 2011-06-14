@@ -101,3 +101,51 @@ def string_to_bytes(string, length):
         bytes.append(0)
 
     return bytes
+
+def extract_bits(byte, start_bit, end_bit):
+    """
+    Extract the bits in [start_bit, end_bit] from the byte and return them as
+    an integer
+    """
+    mask = _get_mask(start_bit, end_bit)
+    return (byte & mask) >> start_bit
+
+def inject_bits(dest_byte, source_byte,
+                start_bit, end_bit):
+    """
+    Inject a set of bits from one byte into another byte
+    """
+
+    source_length = end_bit - start_bit + 1
+
+    source_mask = _get_mask(0, source_length - 1)
+    dest_mask = _get_mask(start_bit, end_bit)
+
+    # Invert destination mask so that bits to be replaced get masked out
+    dest_mask = dest_mask ^ (2 ** 8 - 1)
+
+    # Mask off source and shift into position
+    source_byte = source_byte & source_mask
+    source_byte = source_byte << start_bit
+
+    # Mask off dest
+    dest_byte = dest_byte & dest_mask
+
+    # Merge source into destination
+    return dest_byte | source_byte
+
+def _get_mask(start_bit, end_bit):
+    """
+    Generate a mask that will mask off bits all bits in the range
+    [start_bit, end_bit]
+    """
+
+    assert start_bit <= end_bit, "Start bit must be less than end bit"
+
+    num_bits = end_bit - start_bit + 1
+    mask = (2 ** num_bits) - 1
+    mask = mask << start_bit
+    return mask
+
+def byte_to_binary_string(byte):
+    return ''.join([str(x) for x in get_bits(byte)])
