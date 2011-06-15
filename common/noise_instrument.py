@@ -4,7 +4,7 @@ SOUNDLENGTH_UNLIM = 0
 
 class NoiseInstrument(Instrument):
     def __init__(self):
-        super(Instrument, self).__init__()
+        super(NoiseInstrument, self).__init__()
 
         self.property_info = {
             "envelope" : InstrumentProperty(1),

@@ -4,7 +4,7 @@ LENGTH_AUTO = 0
 
 class KitInstrument(Instrument):
     def __init__(self):
-        super(Instrument, self).__init__()
+        super(KitInstrument, self).__init__()
 
         self.property_info = {
             "volume" : InstrumentProperty(1),

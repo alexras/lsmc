@@ -4,7 +4,7 @@ SOUND_LENGTH_UNLIM = -1
 
 class PulseInstrument(Instrument):
     def __init__(self):
-        super(Instrument,self).__init__()
+        super(PulseInstrument,self).__init__()
 
         self.property_info = {
             "envelope" : InstrumentProperty(1),
@@ -26,4 +26,3 @@ class PulseInstrument(Instrument):
         for key, value in self.property_info.items():
             setattr(self.__class__, key,
                     property(value.prop_getter, value.prop_setter))
-

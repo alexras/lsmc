@@ -7,7 +7,7 @@ PLAY_TYPE_MANUAL = 3
 
 class WaveInstrument(Instrument):
     def __init__(self):
-        super(Instrument,self).__init__()
+        super(WaveInstrument,self).__init__()
 
         self.property_info = {
             "volume" : InstrumentProperty(1),
