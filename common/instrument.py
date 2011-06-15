@@ -10,6 +10,11 @@ NUM_PARAMS = 16
 # Max. instrument name length
 NAME_LENGTH = 5
 
+PULSE_TYPE = 0
+WAVE_TYPE = 1
+KIT_TYPE = 2
+NOISE_TYPE = 3
+
 class InstrumentProperty(object):
     def __init__(self, byte, start_bit = 0, end_bit = 7):
         self.byte = byte
@@ -31,6 +36,12 @@ class Instrument(object):
         self._name = None
         self.params = None
         self.table = None
+
+    def copy(self, other):
+        self._allocated = other._allocated
+        self._name = other._name
+        self.params = other.params
+        self.table = other.table
 
     @property
     def name(self):
@@ -65,16 +76,16 @@ class Instrument(object):
 
         if instr_type_byte == 0:
             # Pulse instrument
-            pass
+            return PULSE_TYPE
         elif instr_type_byte == 1:
             # Wave instrument
-            pass
+            return WAVE_TYPE
         elif instr_type_byte == 2:
             # Kit instrument
-            pass
+            return KIT_TYPE
         elif instr_type_byte == 3:
             # Noise instrument
-            pass
+            return NOISE_TYPE
 
     def __eq__(self, other):
         return type(self) == type(other) and self.params == other.params
@@ -82,15 +93,34 @@ class Instrument(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def as_dict(self):
+        dump_dict = {
+            "name" : self.name,
+            "raw_params" : self.params,
+            }
+
+        # Since we're attaching the table whole-cloth, no need to dump these
+        # attributes
+        skip_keys = ["has_table", "table_number"]
+
+        for key, value in self.property_info.items():
+            if key in skip_keys:
+                continue
+            dump_dict[key] = getattr(self, key)
+
+        if self.table is not None:
+            dump_dict["table"] = self.table.as_dict()
+        else:
+            dump_dict["table"] = None
+
+        return dump_dict
+
     def dump(self, filename):
         assert self.allocated, "Shouldn't be saving an unallocated instrument"
 
         fp = open(filename, 'w')
 
-        dump_dict = {
-            "name" : self.name,
-            "raw_params" : self.params,
-            }
+        dump_dict = self.as_dict()
 
         json.dump(dump_dict, fp)
         fp.close()
