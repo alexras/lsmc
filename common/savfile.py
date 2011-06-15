@@ -115,6 +115,7 @@ class SAVFile(object):
             raw_data = filepack.decompress(compressed_data)
 
             project.load_data(raw_data)
+            project.postprocess()
 
             self.projects.append(project)
 
