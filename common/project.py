@@ -11,6 +11,10 @@ from table import Table
 import utils
 import consts
 import filepack
+from pulse_instrument import PulseInstrument
+from wave_instrument import WaveInstrument
+from kit_instrument import KitInstrument
+from noise_instrument import NoiseInstrument
 
 # Max. number of phrases
 NUM_PHRASES = 255
@@ -403,6 +407,29 @@ class Project(object):
         utils.check_mem_init_flag(raw_data,
                                   MEM_INIT_FLAG_3[0],
                                   MEM_INIT_FLAG_3[1])
+
+    def postprocess(self):
+        instrument_subtypes = {
+            instrument.PULSE_TYPE : PulseInstrument,
+            instrument.WAVE_TYPE : WaveInstrument,
+            instrument.KIT_TYPE : KitInstrument,
+            instrument.NOISE_TYPE : NoiseInstrument
+            }
+
+        # Turn instruments into their appropriate types and copy in tables and
+        # waves
+        for i, instr in enumerate(self.instruments):
+            if not instr.allocated:
+                continue
+            subtype_instance = instrument_subtypes[instr.instrument_type]()
+            subtype_instance.copy(instr)
+
+            if hasattr(subtype_instance, "has_table") and \
+                    subtype_instance.has_table:
+                subtype_instance.table = \
+                    self.tables[subtype_instance.table_number]
+
+            self.instruments[i] = subtype_instance
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
