@@ -7,20 +7,23 @@ sys.path.append(
 import common.savfile as savfile
 
 class ProjectTests(unittest.TestCase):
+    SAV_IN = os.path.join(os.path.dirname(__file__), "test_data", "lsdj.sav")
+    SAV_OUT = os.path.join(os.path.dirname(__file__), "lsdj.sav.out")
+
     def setUp(self):
-       if os.path.exists("lsdj.sav.out"):
-           os.unlink("lsdj.sav.out")
+       if os.path.exists(ProjectTests.SAV_OUT):
+           os.unlink(ProjectTests.SAV_OUT)
 
     def tearDown(self):
-       if os.path.exists("lsdj.sav.out"):
-           os.unlink("lsdj.sav.out")
+       if os.path.exists(ProjectTests.SAV_OUT):
+           os.unlink(ProjectTests.SAV_OUT)
 
     def test_project_save_load(self):
-        sav = savfile.SAVFile(os.path.join("test_data", "lsdj.sav"))
+        sav = savfile.SAVFile(ProjectTests.SAV_IN)
 
-        sav.save("lsdj.sav.out")
+        sav.save(ProjectTests.SAV_OUT)
 
-        new_sav = savfile.SAVFile("lsdj.sav.out")
+        new_sav = savfile.SAVFile(ProjectTests.SAV_OUT)
 
         self.assertEqual(sav, new_sav)
 
