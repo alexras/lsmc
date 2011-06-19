@@ -7,8 +7,9 @@ from project import Project
 import blockutils
 from blockutils import BlockReader, BlockWriter, BlockFactory
 import filepack
+from rich_comparable_mixin import RichComparableMixin
 
-class SAVFile(object):
+class SAVFile(RichComparableMixin):
     # Start offset of SAV file contents
     START_OFFSET = 0x8000
 

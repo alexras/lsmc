@@ -1,4 +1,6 @@
-class Clock(object):
+from rich_comparable_mixin import RichComparableMixin
+
+class Clock(RichComparableMixin):
     def __init__(self):
         self.days = 0
         self.hours = 0

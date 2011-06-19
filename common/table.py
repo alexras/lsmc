@@ -1,4 +1,6 @@
-class Table(object):
+from rich_comparable_mixin import RichComparableMixin
+
+class Table(RichComparableMixin):
     def __init__(self):
         self.allocated = False
         self.transposes = []

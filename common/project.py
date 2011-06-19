@@ -16,6 +16,7 @@ from wave_instrument import WaveInstrument
 from kit_instrument import KitInstrument
 from noise_instrument import NoiseInstrument
 import speech_instrument
+from rich_comparable_mixin import RichComparableMixin
 
 # Max. number of phrases
 NUM_PHRASES = 255
@@ -205,7 +206,7 @@ EMPTY_SECTION_6 = (0x7ff2, 0x7ffe)
 VERSION_BYTE = 0x7fff
 
 
-class Project(object):
+class Project(RichComparableMixin):
     def __init__(self, name, version):
         self.name = utils.strip_nulls(name)
         self.version = version
@@ -352,13 +353,13 @@ class Project(object):
         self.total_clock.hours = raw_data[TOTAL_CLOCK_HOURS]
         self.total_clock.minutes = raw_data[TOTAL_CLOCK_MINUTES]
 
-        # total_clock_checksum = raw_data[TOTAL_CLOCK_CHECKSUM]
+        total_clock_checksum = raw_data[TOTAL_CLOCK_CHECKSUM]
 
-        # if total_clock_checksum != self.total_clock.checksum:
-        #     assert False, (".sav file appears to be corrupted; total "
-        #                    "clock checksum mismatch (s/b %d, is %d)" %
-        #                    (self.total_clock.checksum,
-        #                     total_clock_checksum))
+        if total_clock_checksum != self.total_clock.checksum:
+            assert False, (".sav file appears to be corrupted; total "
+                           "clock checksum mismatch (s/b %d, is %d)" %
+                           (self.total_clock.checksum,
+                            total_clock_checksum))
 
         self.key_delay = raw_data[KEY_DELAY]
         self.key_repeat = raw_data[KEY_REPEAT]
@@ -423,9 +424,6 @@ class Project(object):
 
             self.instruments[i] = subtype_instance
 
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
     def _copy_values_into_list(self, raw_data, index_range, index_delta,
                                obj_list, field_name):
         current_obj_id = 0
@@ -476,10 +474,10 @@ class Project(object):
 
         self._check_offset(len(raw_data), SPEECH_INSTR_WORDS[0])
 
-        for word in self.speech_instrument.words:
+        for word in self.speech_instrument.raw_words:
             raw_data.extend(word)
 
-        for word_name in self.speech_instrument.word_names:
+        for word_name in self.speech_instrument.raw_word_names:
             raw_data.extend(word_name)
 
         # Memory check bit
