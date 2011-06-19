@@ -1,6 +1,8 @@
 import json
 import utils
 
+from table import Table
+
 # Binary data for default instrument
 DEFAULT = [0, 0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0xf3, 0, 0]
 
@@ -95,18 +97,18 @@ class Instrument(object):
 
     def as_dict(self):
         dump_dict = {
-            "name" : self.name,
-            "raw_params" : self.params,
+            "name" : self.name
             }
 
         # Since we're attaching the table whole-cloth, no need to dump these
         # attributes
         skip_keys = ["has_table", "table_number"]
 
-        for key, value in self.property_info.items():
-            if key in skip_keys:
-                continue
-            dump_dict[key] = getattr(self, key)
+        if hasattr(self, "property_info"):
+            for key, value in self.property_info.items():
+                if key in skip_keys:
+                    continue
+                dump_dict[key] = getattr(self, key)
 
         if self.table is not None:
             dump_dict["table"] = self.table.as_dict()
@@ -131,12 +133,13 @@ class Instrument(object):
         jsonObj = json.load(fp)
 
         self.name = jsonObj["name"]
-        self.params = jsonObj["raw_params"]
+
+        if jsonObj["table"] != None:
+            self.table = Table()
+            self.table.load(jsonObj["table"])
+
+        if hasattr(self, "property_info"):
+            for key in self.property_info:
+                setattr(self, key, jsonObj[key])
 
         fp.close()
-
-class SpeechInstrument(object):
-    def __init__(self):
-        self.words = []
-        self.word_names = []
-        self.allocated = False

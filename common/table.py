@@ -14,3 +14,7 @@ class Table(object):
             write_dict[key] = getattr(self, key)
 
         return write_dict
+
+    def load(self, jsonObj):
+        for key in self.__dict__:
+            setattr(self, key, jsonObj[key])

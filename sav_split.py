@@ -13,6 +13,13 @@ def sav_split(filename, output_directory):
     for project in sav.projects:
         project_dir = str(os.path.join(output_directory, project.name))
         os.makedirs(project_dir)
+        # Dump all instruments to separate files
+        speech_instr_file = utils.make_unique_filename(
+            prefix = "SPEECH",
+            suffix = ".json",
+            parent = project_dir)
+
+        project.speech_instrument.dump(speech_instr_file)
 
         for (instr_index, instr) in enumerate(project.instruments):
             if not instr.allocated:
@@ -29,6 +36,8 @@ def sav_split(filename, output_directory):
                                                     suffix=".json",
                                                     parent=project_dir)
             instr.dump(instr_file)
+
+
 
 
 def main():

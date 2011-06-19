@@ -15,6 +15,7 @@ from pulse_instrument import PulseInstrument
 from wave_instrument import WaveInstrument
 from kit_instrument import KitInstrument
 from noise_instrument import NoiseInstrument
+import speech_instrument
 
 # Max. number of phrases
 NUM_PHRASES = 255
@@ -51,15 +52,6 @@ STEPS_PER_GROOVE = 16
 
 # Steps per table
 STEPS_PER_TABLE = 16
-
-# Max. length of a "word"
-WORD_LENGTH = 0x20
-
-# Number of "words" in the speech instrument
-NUM_WORDS = 42
-
-# Max. length of a word name
-WORD_NAME_LENGTH = 4
 
 # Notes for phrases
 PHRASE_NOTES = (0, 0xfef)
@@ -279,20 +271,20 @@ class Project(object):
                                     STEPS_PER_TABLE, self.tables,
                                     "envelopes")
 
-        self.speech_instrument = instrument.SpeechInstrument()
+        self.speech_instrument = speech_instrument.SpeechInstrument()
 
-        # Speech instrument is always allocated
         self.speech_instrument.allocated = True
 
         for i in xrange(SPEECH_INSTR_WORDS[0],
-                        SPEECH_INSTR_WORDS[1] + 1, WORD_LENGTH):
-            self.speech_instrument.words.append(
-                raw_data[i:i + WORD_LENGTH])
+                        SPEECH_INSTR_WORDS[1] + 1,
+                        speech_instrument.WORD_LENGTH):
+            self.speech_instrument.raw_words.append(
+                raw_data[i:i + speech_instrument.WORD_LENGTH])
 
         for i in xrange(WORD_NAMES[0], WORD_NAMES[1] + 1,
-                        WORD_NAME_LENGTH):
-            self.speech_instrument.word_names.append(
-                raw_data[i:i + WORD_NAME_LENGTH])
+                        speech_instrument.WORD_NAME_LENGTH):
+            self.speech_instrument.raw_word_names.append(
+                raw_data[i:i + speech_instrument.WORD_NAME_LENGTH])
 
         utils.check_mem_init_flag(raw_data, MEM_INIT_FLAG_1[0],
                                   MEM_INIT_FLAG_1[1])
