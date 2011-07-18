@@ -1,5 +1,6 @@
 import instrument
 import wave
+import project
 
 # Byte used to denote run-length encoding
 RLE_BYTE = 0xc0
@@ -247,92 +248,149 @@ def compress(raw_data):
     data_index = 0
     data_size = len(raw_data)
 
-    while data_index < data_size:
-        # If we encounter the default instrument at this point in the file,
-        # turn it into the abbreviated default instrument
+    data_index = _compress_rle_region(
+        raw_data, data_size, compressed_data, data_index,
+        min(project.INSTR_PARAMS[0], data_size))
 
-        # If we encounter the default instrument at this point in the file,
-        # use the abbreviated representation for the default instrument
+    if data_index == data_size:
+        return compressed_data
 
-        data_index = _compress_default(
-            raw_data, compressed_data, data_index, data_size,
-            instrument.DEFAULT, instrument.NUM_PARAMS, DEFAULT_INSTR_BYTE)
+    data_index = _compress_default_region(
+        raw_data, data_size, compressed_data, data_index,
+        project.INSTR_PARAMS[0], project.INSTR_PARAMS[1],
+        instrument.DEFAULT, instrument.NUM_PARAMS,
+        DEFAULT_INSTR_BYTE)
 
-        if data_index == data_size:
-            break
+    if data_index == data_size:
+        return compressed_data
+    else:
+        assert data_index == project.INSTR_PARAMS[1] + 1
 
-        # If we encounter the default wave at this point in the file, use
-        # the abbreviated representation for the default wave
+    data_index = _compress_rle_region(
+        raw_data, data_size, compressed_data, data_index,
+        min(project.WAVE_FRAMES[0], data_size))
 
-        data_index = _compress_default(
-            raw_data, compressed_data, data_index, data_size,
-            wave.DEFAULT, wave.NUM_FRAMES, DEFAULT_WAVE_BYTE)
+    if data_index == data_size:
+        return compressed_data
 
-        if data_index == data_size:
-            break
+    data_index = _compress_default_region(
+        raw_data, data_size, compressed_data, data_index,
+        project.WAVE_FRAMES[0], project.WAVE_FRAMES[1],
+        wave.DEFAULT, wave.NUM_FRAMES,
+        DEFAULT_WAVE_BYTE)
 
-        # Can't run-length encode the run-length encode special byte
-        if raw_data[data_index] == RLE_BYTE:
-            compressed_data.extend([RLE_BYTE, RLE_BYTE])
-            data_index += 1
-        # Otherwise we're just dealing with bytes and we can try to run-length
-        # encode
-        else:
-            current_byte = raw_data[data_index]
+    if data_index == data_size:
+        return compressed_data
+    else:
+        assert data_index == project.WAVE_FRAMES[1] + 1
 
-            # Do a lookahead to see how many identical bytes are at this
-            # point in the stream
-            lookahead_index = data_index
-
-            while lookahead_index < data_size and \
-                    raw_data[lookahead_index] == current_byte:
-                lookahead_index += 1
-
-            # If you have more than three identical bytes, doing run-length
-            # encoding is worth it; otherwise, just write the raw bytes and
-            # move on. If you have 256 or more bytes, will have to RLE
-            # multiple times
-
-            num_occurrences = min(lookahead_index - data_index, 255)
-
-            # If you're dealing with the special byte, it makes sense to encode
-            # if two or more special bytes occur in succession, since you'll
-            # have to double up those bytes in a non-RLE encoding anyway.
-            if current_byte == SPECIAL_BYTE:
-                if num_occurrences > 1:
-                    compressed_data.extend([RLE_BYTE, current_byte,
-                                            num_occurrences])
-                else:
-                    compressed_data.extend([SPECIAL_BYTE, SPECIAL_BYTE])
-
-            # If you've got more than three occurrences of the same non-special
-            # byte, it makes sense to run-length encode
-            elif num_occurrences > 3:
-                compressed_data.extend([RLE_BYTE, current_byte,
-                                        num_occurrences])
-            else:
-                for i in xrange(num_occurrences):
-                    compressed_data.append(current_byte)
-
-            data_index += num_occurrences
+    data_index = _compress_rle_region(
+        raw_data, data_size, compressed_data, data_index,
+        data_size)
 
     return compressed_data
 
-def _compress_default(raw_data, compressed_data, data_index, data_size,
-                      default, default_length, default_special_byte):
-    num_defaults = 0
+def _compress_default_region(raw_data, data_size, compressed_data, data_index,
+                             start_data_index, end_data_index, default,
+                             default_length, default_special_byte):
+    assert data_index == start_data_index
 
-    while data_index < data_size and \
-            raw_data[data_index:data_index + default_length] == default:
-        num_defaults += 1
-        data_index += default_length
+    # For each instrument/wave, figure out whether it's a default or not
 
-    if num_defaults > 0:
-        while num_defaults > 0:
-            num_defaults_to_compress = min(num_defaults, 255)
+    is_default = []
+
+    for index in xrange(start_data_index, min(end_data_index, data_size),
+                        default_length):
+        if raw_data[index:index + default_length] == default:
+            is_default.append(True)
+        else:
+            is_default.append(False)
+
+    # To compress adjacent default instruments together, as well as to allow
+    # maximum compression where defaults are not present, compress the list of
+    # booleans derived above into a runlength-encoded format
+
+    last_default_setting = None
+    count = 0
+    compressed_default_mapping = []
+
+    for default_setting in is_default:
+        if (last_default_setting == None or
+            last_default_setting == default_setting):
+
+            last_default_setting = default_setting
+            count += 1
+        else:
+            compressed_default_mapping.append((last_default_setting, count))
+            last_default_setting = default_setting
+            count = 1
+
+    compressed_default_mapping.append((last_default_setting, count))
+
+    assert sum([x[1] for x in compressed_default_mapping]) == len(is_default)
+
+    for (default_setting, count) in compressed_default_mapping:
+        if default_setting:
             compressed_data.extend([SPECIAL_BYTE, default_special_byte,
-                                    num_defaults_to_compress])
+                                    count])
 
-            num_defaults -= num_defaults_to_compress
+            data_index += default_length * count
+        else:
+            data_index = _compress_rle_region(
+                raw_data, data_size, compressed_data, data_index,
+                data_index + count * default_length)
 
     return data_index
+
+def _compress_rle_region(raw_data, raw_data_size, compressed_data, data_index,
+                         end_data_index):
+    while data_index < end_data_index:
+        data_index = _compress_rle(raw_data, raw_data_size, data_index,
+                                   compressed_data, end_data_index)
+
+    return data_index
+
+def _compress_rle(raw_data, raw_data_size,
+                  data_index, compressed_data, end_data_index):
+    current_byte = raw_data[data_index]
+
+    # RLE encoding byte is uncompressible, so don't attempt to compress it
+    if current_byte == RLE_BYTE:
+        compressed_data.extend([RLE_BYTE, RLE_BYTE])
+        return data_index + 1
+
+
+    # Do a lookahead to see how many identical bytes are at this
+    # point in the stream
+    lookahead_index = data_index
+
+    # If you're dealing with the special byte, it makes sense to encode
+    # if two or more special bytes occur in succession, since you'll
+    # have to double up those bytes in a non-RLE encoding anyway.
+
+    while (lookahead_index < end_data_index
+           and lookahead_index < raw_data_size
+           and raw_data[lookahead_index] == current_byte
+           and lookahead_index - data_index < 255):
+        lookahead_index += 1
+
+    num_occurrences = lookahead_index - data_index
+
+    assert num_occurrences > 0
+
+    if current_byte == SPECIAL_BYTE:
+        if num_occurrences > 1:
+            compressed_data.extend([RLE_BYTE, current_byte,
+                                    num_occurrences])
+        else:
+            compressed_data.extend([SPECIAL_BYTE, SPECIAL_BYTE])
+
+    # If you've got more than three occurrences of the same non-special
+    # byte, it makes sense to run-length encode
+    elif num_occurrences > 3:
+        compressed_data.extend([RLE_BYTE, current_byte, num_occurrences])
+    else:
+        for i in xrange(num_occurrences):
+            compressed_data.append(current_byte)
+
+    return data_index + num_occurrences

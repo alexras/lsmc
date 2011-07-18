@@ -353,13 +353,13 @@ class Project(RichComparableMixin):
         self.total_clock.hours = raw_data[TOTAL_CLOCK_HOURS]
         self.total_clock.minutes = raw_data[TOTAL_CLOCK_MINUTES]
 
-        total_clock_checksum = raw_data[TOTAL_CLOCK_CHECKSUM]
+        # total_clock_checksum = raw_data[TOTAL_CLOCK_CHECKSUM]
 
-        if total_clock_checksum != self.total_clock.checksum:
-            assert False, (".sav file appears to be corrupted; total "
-                           "clock checksum mismatch (s/b %d, is %d)" %
-                           (self.total_clock.checksum,
-                            total_clock_checksum))
+        # if total_clock_checksum != self.total_clock.checksum:
+        #     assert False, (".sav file appears to be corrupted; total "
+        #                    "clock checksum mismatch (s/b %d, is %d)" %
+        #                    (self.total_clock.checksum,
+        #                     total_clock_checksum))
 
         self.key_delay = raw_data[KEY_DELAY]
         self.key_repeat = raw_data[KEY_REPEAT]

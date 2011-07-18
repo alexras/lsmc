@@ -82,7 +82,8 @@ class SAVFile(RichComparableMixin):
             block_number = i - self.BAT_START_OFFSET + 1
             file_number = utils.binary_read_uint(fp, self.FILE_NUMBER_LENGTH)
 
-            if file_number != self.EMPTY_BLOCK:
+            if file_number != self.EMPTY_BLOCK and \
+                    file_number in xrange(0, 0x1f):
                 if file_number not in file_blocks:
                     file_blocks[file_number] = []
 

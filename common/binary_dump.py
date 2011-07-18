@@ -4,7 +4,7 @@ import os, sys
 import utils
 from optparse import OptionParser
 
-def binary_dump(filename, offset, size, width):
+def binary_dump(filename, offset, size, width, line_numbers):
     fp = open(filename)
 
     fp.seek(offset)
@@ -13,6 +13,8 @@ def binary_dump(filename, offset, size, width):
 
     i = 0
     while i < len(data):
+        if line_numbers:
+            print "0x%04X: " % (i),
         print ' '.join("0x%02x" % (x) for x in data[i: i + width])
         i += width
 
@@ -30,6 +32,8 @@ def main():
                             "in bytes (default %default)", default=0, type=int)
     optionParser.add_option("-w", "--width", help="width of the dump output , "
                             "in bytes (default %default)", default=10, type=int)
+    optionParser.add_option("-n", "--line_numbers", help="show line numbers",
+                            default=False, action="store_true")
 
     (options, args) = optionParser.parse_args()
 
@@ -47,7 +51,8 @@ def main():
     binary_dump(filename = filename,
                 offset = options.offset,
                 size = options.size,
-                width = options.width)
+                width = options.width,
+                line_numbers = options.line_numbers)
 
 if __name__ == "__main__":
     main()

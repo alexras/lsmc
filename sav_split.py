@@ -37,6 +37,15 @@ def sav_split(filename, output_directory):
                                                     parent=project_dir)
             instr.dump(instr_file)
 
+        for (phrase_index, phrase) in enumerate(project.phrases):
+            phrase_name = "phrase_%02X" % (phrase_index)
+
+            phrase_file = utils.make_unique_filename(prefix=phrase_name,
+                                                     suffix=".json",
+                                                     parent=project_dir)
+
+            phrase.dump(phrase_file)
+
 
 
 

@@ -31,7 +31,7 @@ def binary_diff(file1, file2, start_offset = 0):
             print "Area of first difference:"
 
             for fp in [fp1, fp2]:
-                fp.seek(-4, os.SEEK_CUR)
+                fp.seek(-6, os.SEEK_CUR)
 
             region1 = utils.binary_read_uint_list(fp1, 1, 16)
             region2 = utils.binary_read_uint_list(fp2, 1, 16)

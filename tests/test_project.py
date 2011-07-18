@@ -15,8 +15,9 @@ class ProjectTests(unittest.TestCase):
            os.unlink(ProjectTests.SAV_OUT)
 
     def tearDown(self):
-       if os.path.exists(ProjectTests.SAV_OUT):
-           os.unlink(ProjectTests.SAV_OUT)
+        pass
+       # if os.path.exists(ProjectTests.SAV_OUT):
+       #     os.unlink(ProjectTests.SAV_OUT)
 
     def test_project_save_load(self):
         sav = savfile.SAVFile(ProjectTests.SAV_IN)
