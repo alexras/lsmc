@@ -21,14 +21,15 @@ class FilePackTest(unittest.TestCase):
         self.assertEqual(data, decompressed)
 
     def test_rle_compress(self):
-        data = [0xde for i in xrange(150)]
+        data = [0xde for i in xrange(350)]
         data.extend([0xfe for i in xrange(220)])
         data.append(42)
         data.append(17)
 
         compressed = filepack.compress(data)
 
-        reference = [filepack.RLE_BYTE, 0xde, 150,
+        reference = [filepack.RLE_BYTE, 0xde, 255,
+                     filepack.RLE_BYTE, 0xde, 95,
                      filepack.RLE_BYTE, 0xfe, 220,
                      42, 17]
 
@@ -68,12 +69,10 @@ class FilePackTest(unittest.TestCase):
     def test_default_instr_compress(self):
         data = []
 
-        data.extend([0] * project.INSTR_PARAMS[0])
+        data.extend([0] * (project.INSTR_PARAMS[0]))
 
         for i in xrange(42):
             data.extend(instrument.DEFAULT)
-
-        compressed = filepack.compress(data)
 
         reference = []
 
@@ -81,6 +80,10 @@ class FilePackTest(unittest.TestCase):
 
         reference.extend([filepack.SPECIAL_BYTE,
                           filepack.DEFAULT_INSTR_BYTE, 42])
+
+        self.assertEqual(filepack.decompress(reference), data)
+
+        compressed = filepack.compress(data)
 
         self.assertEqual(compressed, reference)
 
@@ -125,23 +128,35 @@ class FilePackTest(unittest.TestCase):
 
         reference = []
 
-        self.extend_compressed_zeroes(reference, project.WAVE_FRAMES[0])
+        self.extend_compressed_zeroes(reference, project.INSTR_PARAMS[0])
+        self.extend_compressed_zeroes(
+            reference, project.INSTR_PARAMS[1] - project.INSTR_PARAMS[0])
+        self.extend_compressed_zeroes(
+            reference, project.WAVE_FRAMES[0] - project.INSTR_PARAMS[1])
 
         reference.extend([filepack.SPECIAL_BYTE,
                           filepack.DEFAULT_WAVE_BYTE, 33])
 
-        print
-        print compressed[138:154]
-        print reference[138:154]
-        for i in xrange(len(compressed)):
-            if compressed[i] != reference[i]:
-                print i
-                assert False
-        self.assertEqual(compressed, reference)
+        decompressed_reference = filepack.decompress(reference)
+        self.assertEqual(decompressed_reference, data)
+
+
+#        self.assertEqual(data, filepack.decompress(reference))
 
         decompressed = filepack.decompress(compressed)
 
         self.assertEqual(data, decompressed)
+
+        for i in xrange(len(compressed)):
+            if compressed[i] != reference[i]:
+                print
+                print i
+                print "compressed: ", map(hex, compressed[i-5:i+5])
+                print "reference : ", map(hex, reference[i-5:i+5])
+                print
+                assert False
+        self.assertEqual(compressed, reference)
+
 
     def extend_compressed_zeroes(self, data, num_zeroes):
         for i in xrange(num_zeroes / 255):
