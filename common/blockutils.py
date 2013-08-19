@@ -3,7 +3,11 @@ import instrument
 import wave
 import consts
 
-# Maximum size of a block
+"""LSDJ stores its data in a block-oriented format. This file contains a Block
+object that encapsulates a block's data, and
+"""
+
+# Maximum size of a block - 512 bytes
 BLOCK_SIZE = 0x200
 
 class Block(object):
@@ -27,11 +31,9 @@ class Block(object):
         repr_str += "}"
         return repr_str
 
-    # def __eq__(self, other):
-    #     return other.data == self.data
-
-
 class BlockFactory(object):
+    """Each block's ID should correspond to its position in an array of blocks.
+    """
     def __init__(self):
         self.max_id = 0
         self.blocks = {}
@@ -45,14 +47,14 @@ class BlockFactory(object):
 
 class BlockWriter(object):
     def write(self, compressed_data, factory):
+        """Splits a compressed byte stream into blocks.
+        """
         return filepack.split(compressed_data, BLOCK_SIZE,
                               factory)
 
 class BlockReader(object):
-
     def read(self, block_dict):
-        """
-        Parses a dictionary of blocks into a compressed byte stream
+        """Parses a dictionary of blocks into a compressed byte stream.
         """
 
         return filepack.merge(block_dict)

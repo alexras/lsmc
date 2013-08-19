@@ -248,8 +248,6 @@ def compress(raw_data):
     data_index = 0
     data_size = len(raw_data)
 
-    data_size = len(raw_data)
-
     index = 0
     next_bytes = [-1, -1, -1]
 

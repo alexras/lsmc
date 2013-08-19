@@ -1,0 +1,4 @@
+*.pyc
+cover/
+.coverage
+tests/test_data
