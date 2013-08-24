@@ -2,34 +2,35 @@ from instrument import Instrument, InstrumentProperty
 
 LENGTH_AUTO = 0
 
-class KitInstrument(Instrument):
-    def __init__(self):
-        super(KitInstrument, self).__init__()
+class KitInstrument(object):
+    def __init__(self, name, raw_instr):
+        self.name = name
+        self.vibrato_type = raw_instr.vibrato.type
+        self.vibrato_direction = raw_instr.vibrato.direction
 
-        self.property_info = {
-            "volume" : InstrumentProperty(1),
-            "keep_attack_2" : InstrumentProperty(2, 7, 7),
-            "half_speed" : InstrumentProperty(2, 6, 6),
-            "kit" : InstrumentProperty(2, 0, 5),
-            "length_1" : InstrumentProperty(3),
-            "loop_1" : InstrumentProperty(5, 6, 6),
-            "loop_2" : InstrumentProperty(5, 5, 5),
-            "automate_1" : InstrumentProperty(5, 4, 4),
-            "automate_2" : InstrumentProperty(5, 3, 3),
-            "vibrato_type" : InstrumentProperty(5, 1, 2),
-            "vibrato_direction" : InstrumentProperty(5, 0, 0),
-            "has_table" : InstrumentProperty(6, 5, 5),
-            "table_number" : InstrumentProperty(6, 0, 4),
-            "pan" : InstrumentProperty(7, 0, 1),
-            "pitch" : InstrumentProperty(8),
-            "keep_attack_2" : InstrumentProperty(9, 7, 7),
-            "kit_2" : InstrumentProperty(9, 0, 5),
-            "dist_type" : InstrumentProperty(10),
-            "length_2" : InstrumentProperty(11),
-            "offset" : InstrumentProperty(12),
-            "offset_2" : InstrumentProperty(13)
-            }
+        important_fields = [
+            "volume",
+            "keep_attack_2",
+            "half_speed",
+            "kit",
+            "length_1",
+            "loop_1",
+            "loop_2",
+            "automate_1",
+            "automate_2",
+            "vibrato_type",
+            "vibrato_direction",
+            "has_table",
+            "table_number",
+            "pan",
+            "pitch",
+            "keep_attack_2",
+            "kit_2",
+            "dist_type",
+            "length_2",
+            "offset",
+            "offset_2"
+            ]
 
-        for key, value in self.property_info.items():
-            setattr(self.__class__, key,
-                    property(value.prop_getter, value.prop_setter))
+        for field in important_fields:
+            setattr(self, field, getattr(raw_instr, field))

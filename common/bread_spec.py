@@ -1,0 +1,320 @@
+import bread as b
+
+EMPTY_BLOCK = 0xff
+
+# File management structure (starts at 0x8000)
+compressed_sav_file = [
+    # Up to 32 files (songs) can be saved to one cartridge
+    ("filenames", b.array(32, b.string(8))),
+    # Each file has a monotonically increasing version number
+    ("file_versions", b.array(32, b.byte)),
+    b.padding(30 * 8),
+    ("sram_init_check", b.string(2)), # set to 'jk' on init
+    # The file that is currently active
+    ("active_file", b.byte),
+    # Table mapping blocks to files.
+    ("block_alloc_table", b.array(191, b.byte))
+]
+
+# Should be 0x4000 bytes long
+sample_kit = [
+    ("magic_number", b.string(2)), # should be 0x60, 0x40
+    # The address of the first byte after each sample, or 0 if the sample is
+    # unused
+    ("sample_end_addresses", b.array(15, b.string(2))),
+    b.padding(2 * 8),
+    # For samples with names less than three characters long, sample names are
+    # padded with -. Unused sample names are full of nulls.
+    ("sample_names", b.array(15, b.string(3))),
+    b.padding(8),
+    # n/a?
+    b.padding(8 * 2),
+    ("kit_name", b.string(6)),
+    # n/a?
+    b.padding(8 * 4),
+    # Samples 8-1, then 15-9
+    ("force_loop", b.array(15, b.bit)),
+    # n/a?
+    b.padding(8 * 2),
+    # 4 bits per sample at 11468Hz, in chunks of 16 bytes
+    ("sample_data", b.array(127, b.array(128, b.nibble)))
+]
+
+# Max. number of phrases
+NUM_PHRASES = 255
+
+# Max. number of tables
+NUM_TABLES = 32
+
+# Number of soft-synths
+NUM_SYNTHS = 16
+
+# Waves per soft-synth
+WAVES_PER_SYNTH = 16
+
+# Number of frames per wave
+FRAMES_PER_WAVE = 16
+
+# Number of entries in each table
+ENTRIES_PER_TABLE = 16
+
+# Max. number of instruments
+NUM_INSTRUMENTS = 64
+
+# Max. number of chains
+NUM_CHAINS = 128
+
+# Max. number of phrases per chain
+PHRASES_PER_CHAIN = 16
+
+# Max. number of grooves
+NUM_GROOVES = 32
+
+# Steps per phrase
+STEPS_PER_PHRASE = 16
+
+# Steps per groove
+STEPS_PER_GROOVE = 16
+
+# Steps per table
+STEPS_PER_TABLE = 16
+
+# Max. length of a "word"
+WORD_LENGTH = 0x20
+
+# Number of "words" in the speech instrument
+NUM_WORDS = 42
+
+chain = [
+    ("pu1", b.byte),
+    ("pu2", b.byte),
+    ("wav", b.byte),
+    ("noi", b.byte)]
+
+pulse_instrument = [
+    ("envelope", b.byte),
+    ("phase_transpose", b.byte),
+    b.padding(1),
+    # If false, sound length is UNLIM
+    ("has_sound_length", b.boolean),
+    ("sound_length", b.intX(6)),
+    ("sweep", b.byte),
+    b.padding(3),
+    ("automate_1", b.boolean),
+    ("automate_2", b.boolean),
+    ("vibrato", [
+        ("type",b.semi_nibble),
+        ("direction", b.enum(1, {
+            0: "down",
+            1: "up"
+        }))
+    ]),
+    b.padding(2),
+    ("table_on", b.boolean),
+    ("table", b.intX(5)),
+    ("wave", b.seminibble),
+    ("phase_finetune", b.nibble),
+    ("pan", b.seminibble),
+    b.padding(8 * 7)
+]
+
+wave_instrument = [
+    ("volume", b.byte),
+    ("synth", b.nibble),
+    ("repeat", b.nibble),
+    b.padding(8 * 2 + 3),
+    ("automate_1", b.boolean),
+    ("automate_2", b.boolean),
+    ("vibrato", [
+        ("type",b.semi_nibble),
+        ("direction", b.enum(1,{
+            0: "down",
+            1: "up"
+        }))
+    ]),
+    b.padding(2),
+    ("table_on", b.boolean),
+    ("table", b.intX(5)),
+    b.padding(6),
+    ("pan", b.semi_nibble),
+    b.padding(8),
+    ("play_type", b.enum(2, {
+        "once": 0,
+        "loop": 1,
+        "ping-pong": 2,
+        "manual": 3
+    })),
+    b.padding(8 * 4),
+    ("steps", b.nibble),
+    ("speed", b.nibble),
+]
+
+kit_instrument = [
+    ("volume", b.byte),
+    ("keep_attack_2", b.boolean),
+    ("half_speed", b.boolean),
+    ("kit", b.intX(6)),
+    # 0 == "auto"
+    ("length_1", b.byte),
+    b.padding(9),
+    ("loop_1", b.boolean),
+    ("loop_2", b.boolean),
+    ("automate_1", b.boolean),
+    ("automate_2", b.boolean),
+    ("vibrato", [
+        ("type",b.semi_nibble),
+        ("direction", b.enum(1,{
+            0: "down",
+            1: "up"
+        }))
+    ]),
+    b.padding(2),
+    ("table_on", b.boolean),
+    ("table", b.intX(5)),
+    ("dist_type", b.byte),
+    # 0 == "auto"
+    ("length_2", b.byte),
+    ("offset", b.byte),
+    ("offset_2", b.byte),
+    b.padding(8)
+]
+
+noise_instrument = [
+    ("envelope", b.byte),
+    b.padding(8),
+    # If false, sound length is UNLIM
+    ("has_sound_length", b.boolean),
+    ("sound_length", b.intX(6)),
+    ("sweep", b.byte),
+    b.padding(3),
+    ("automate_1", b.boolean),
+    ("automate_2", b.boolean),
+    b.padding(5),
+    ("table_on", b.boolean),
+    ("table", b.intX(5)),
+    b.padding(9 * 8)
+]
+
+instrument = [
+    ("instrument_type", b.enum(8, {
+        0: "pulse",
+        1: "wave",
+        2: "kit",
+        3: "noise"
+    })),
+    (b.CONDITIONAL, "instrument_type", {
+        "pulse" : pulse_instrument,
+        "wave" : wave_instrument,
+        "kit" : kit_instrument,
+        "noise" : noise_instrument
+    })
+]
+
+softsynth_sound_params = [
+    ("volume", b.byte),
+    ("filter_cutoff", b.byte),
+    ("phase_amount", b.byte),
+    ("vertical_shift", b.byte)
+]
+
+softsynth = [
+    ("waveform", b.enum(8, {
+        0: "sawtooth",
+        1: "square",
+        2: "triangle"
+    })),
+    ("filter_type", b.enum(8, {
+        0: "lowpass",
+        1: "highpass",
+        2: "bandpass",
+        3: "allpass"
+    })),
+    ("filter_resonance", b.byte),
+    ("distortion", b.enum(8, {
+        0: "clip",
+        1: "wrap"
+    })),
+    ("phase_type", b.enum(8, {
+        0: "normal",
+        1: "resync",
+        2: "resync2"
+    })),
+    ("start", softsynth_sound_params),
+    ("end", softsynth_sound_params),
+    b.padding(8 * 3)
+]
+
+song = [
+    ("phrase_notes", b.array(NUM_PHRASES, b.array(STEPS_PER_PHRASE, b.byte))),
+    ("bookmarks", b.array(64, b.byte)),
+    b.padding(96 * 8),
+    ("grooves", b.array(NUM_GROOVES, b.array(STEPS_PER_GROOVE, b.byte))),
+    ("song", b.array(NUM_CHAINS, chain)),
+    ("table_envelopes", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
+    ("words", b.array(NUM_WORDS, b.array(WORD_LENGTH))),
+    ("word_names", b.array(NUM_WORDS, b.string(4))),
+    # Set to 'rb' on init
+    ("mem_init_flag_1", b.string(2)),
+    ("instrument_names", b.array(NUM_INSTRUMENTS, b.string(5))),
+    b.padding(70 * 8),
+    # Beginning of bank 1
+    b.padding(32 * 8),
+    ("table_alloc_table", b.array(NUM_TABLES, b.byte)),
+    ("instr_alloc_table", b.array(NUM_INSTRUMENTS, b.byte)),
+    ("chain_phrases", b.array(
+        NUM_CHAINS, b.array(PHRASES_PER_CHAIN, b.byte))),
+    ("chain_transposes", b.array(
+        NUM_CHAINS, b.array(PHRASES_PER_CHAIN, b.byte))),
+    ("instruments", b.array(NUM_INSTRUMENTS, instrument)),
+    ("table_transposes", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
+    ("table_fx", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
+    ("table_fx_val", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
+    ("table_fx2", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
+    ("table_fx2_val", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
+    # Set to 'rb' on init
+    ("mem_init_flag_2", b.string(2)),
+    ("phrase_alloc_table", b.array(NUM_PHRASES, b.boolean)),
+    ("chain_alloc_table", b.array(NUM_CHAINS, b.boolean)),
+    ("softsynth_params", b.array(NUM_SYNTHS, softsynth)),
+    ("clock", [
+        ("hours", b.byte),
+        ("minutes", b.byte)]),
+    ("tempo", b.byte),
+    ("tune_setting", b.byte),
+    ("total_clock", [
+        ("days", b.byte),
+        ("hours", b.byte),
+        ("minutes", b.byte),
+        ("checksum", b.byte)
+    ]),
+    ("key_delay", b.byte),
+    ("key_repeat", b.byte),
+    ("font", b.byte),
+    ("sync_setting", b.byte),
+    ("colorset", b.byte),
+    b.padding(8),
+    ("clone", b.enum(8, {
+        0: "deep",
+        1: "slim"
+    })),
+    ("file_changed", b.byte),
+    ("power_save", b.byte),
+    ("prelisten", b.byte),
+    ("wave_synth_overwrite_lock", b.array(2, b.byte)),
+    b.padding(8 * 58),
+    # Beginning of bank 2
+    ("phrase_fx", b.array(NUM_PHRASES, b.array(STEPS_PER_PHRASE, b.byte))),
+    ("phrase_fx_val", b.array(NUM_PHRASES, b.array(STEPS_PER_PHRASE, b.byte))),
+    b.padding(32 * 8),
+    # Beginning of bank 3
+    ("wave_frames",
+     b.array(NUM_SYNTHS,
+             b.array(WAVES_PER_SYNTH,
+                     b.array(FRAMES_PER_WAVE, b.byte)))),
+    ("phrase_instruments",
+     b.array(NUM_PHRASES, b.array(STEPS_PER_PHRASE, b.byte))),
+    # Set to 'rb' on init
+    ("mem_init_flag_3", b.string(2)),
+    b.padding(13 * 8),
+    ("version", b.byte)
+]

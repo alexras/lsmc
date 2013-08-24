@@ -8,5 +8,6 @@ DEFAULT = [0x8e, 0xcd, 0xcc, 0xbb, 0xaa, 0xa9, 0x99, 0x88, 0x87, 0x76,
 NUM_FRAMES = 16
 
 class Wave(RichComparableMixin):
+    """Each synth program has its own own wave."""
     def __init__(self):
         self.frames = []

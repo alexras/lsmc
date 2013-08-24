@@ -1,13 +1,14 @@
 from rich_comparable_mixin import RichComparableMixin
 
 class Table(RichComparableMixin):
-    def __init__(self):
-        self.allocated = False
-        self.transposes = []
-        self.fx = []
-        self.fx_vals = []
-        self.fx2 = []
-        self.fx2_vals = []
+    """Each table is a sequence of transposes, commands, and amplitude
+    changes that can be applied to any channel."""
+    def __init__(self, transposes, fx, fx_vals, fx2, fx2_vals):
+        self.transposes = transposes
+        self.fx = fx
+        self.fx_vals = fx_vals
+        self.fx2 = fx2
+        self.fx2_vals = fx2_vals
 
     def as_dict(self):
         write_dict = {}
