@@ -112,9 +112,9 @@ pulse_instrument = [
     b.padding(2),
     ("table_on", b.boolean),
     ("table", b.intX(5)),
-    ("wave", b.seminibble),
+    ("wave", b.semi_nibble),
     ("phase_finetune", b.nibble),
-    ("pan", b.seminibble),
+    ("pan", b.semi_nibble),
     b.padding(8 * 7)
 ]
 
@@ -137,7 +137,7 @@ wave_instrument = [
     ("table", b.intX(5)),
     b.padding(6),
     ("pan", b.semi_nibble),
-    b.padding(8),
+    b.padding(8 + 6),
     ("play_type", b.enum(2, {
         "once": 0,
         "loop": 1,
@@ -147,6 +147,7 @@ wave_instrument = [
     b.padding(8 * 4),
     ("steps", b.nibble),
     ("speed", b.nibble),
+    b.padding(8)
 ]
 
 kit_instrument = [
@@ -171,6 +172,12 @@ kit_instrument = [
     b.padding(2),
     ("table_on", b.boolean),
     ("table", b.intX(5)),
+    b.padding(6),
+    ("pan", b.semi_nibble),
+    ("pitch", b.byte),
+    ("keep_attack_2", b.boolean),
+    b.padding(1),
+    ("kit_2", b.intX(6)),
     ("dist_type", b.byte),
     # 0 == "auto"
     ("length_2", b.byte),
@@ -181,7 +188,7 @@ kit_instrument = [
 
 noise_instrument = [
     ("envelope", b.byte),
-    b.padding(8),
+    b.padding(9),
     # If false, sound length is UNLIM
     ("has_sound_length", b.boolean),
     ("sound_length", b.intX(6)),
@@ -251,7 +258,7 @@ song = [
     ("grooves", b.array(NUM_GROOVES, b.array(STEPS_PER_GROOVE, b.byte))),
     ("song", b.array(NUM_CHAINS, chain)),
     ("table_envelopes", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
-    ("words", b.array(NUM_WORDS, b.array(WORD_LENGTH))),
+    ("words", b.array(NUM_WORDS, b.array(WORD_LENGTH, b.byte))),
     ("word_names", b.array(NUM_WORDS, b.string(4))),
     # Set to 'rb' on init
     ("mem_init_flag_1", b.string(2)),

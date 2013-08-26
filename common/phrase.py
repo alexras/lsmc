@@ -1,26 +1,15 @@
-from rich_comparable_mixin import RichComparableMixin
-import json
+from utils import add_song_data_property, assert_index_sane, ObjectLookupDict
 
-class Phrase(RichComparableMixin):
+class Phrase(object):
     """A phrase is a sequence of notes for a single channel.
     """
-    def __init__(self, notes, fx, fx_val, instruments):
-        self.notes = notes
-        self.fx = fx
-        self.fx_val = fx_val
-        self.instruments = instruments
+    def __init__(self, song, index):
+        self.song = song
+        self.index = index
+        self.instruments = ObjectLookupDict(
+            self.song.song_data.phrase_instruments[index],
+            self.song.instruments)
 
-    def __repr__(self):
-        if sum(self.notes) == 0:
-            return "Empty phrase"
-        else:
-            return repr(self.notes)
-
-    def dump(self, filename):
-        dump_dict = {}
-
-        dump_dict["notes"] = self.notes
-
-        fp = open(filename, 'w+')
-        json.dump(dump_dict, fp)
-        fp.close()
+for property_name in ["notes", "fx", "fx_val"]:
+    add_song_data_property(Phrase, property_name, ("phrase_" + property_name,),
+                           use_index = True)

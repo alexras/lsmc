@@ -1,70 +1,36 @@
+from utils import assert_index_sane
+import bread
+import bread_spec
+
+from instruments import Pulse, Wave, Noise, Kit
+from synth import Synth
+from table import Table
+from phrase import Phrase
+from chain import Chain
+from speech_instrument import SpeechInstrument
+
 # Number of channels
 NUM_CHANNELS = 4
 
-def _assert_index_sane(self, index, upper_bound_exclusive):
-    assert type(index) == int, "Indices should be integers"
-    assert 0 <= index < upper_bound_exclusive, (
-        "Index %d out of range [%d, %d)" % (index, 0, upper_bound_exclusive))
-
 class AllocTable(object):
-    def __init__(self, song_data, alloc_table, object_class, field_prefix,
-                 fields):
+    def __init__(self, song, alloc_table, object_class):
         self.alloc_table = alloc_table
-        self.song_data = song_data
-        self.object_class = object_class
-        self.field_prefix = field_prefix
-        self.fields = fields
 
-    def _get_song_data_field(self, field):
-        full_field_name = self.field_prefix + field
+        self.access_objects = []
 
-        assert hasattr(self.song_data, full_field_name), (
-            "Can't find field '%s' in song data" % (full_field_name))
-
-        song_data_field = getattr(self.song_data, full_field_name)
-
-        assert type(song_data_field) == list, (
-            "Expect to be pulling field data from arrays")
-        assert len(song_data_field) == len(self.alloc_table), (
-            "Expected song data field '%s' to have %d elements, "
-            "but it has %d" % (full_field_name, len(self.alloc_table),
-                               len(song_data_field)))
+        for index in xrange(len(alloc_table)):
+            self.access_objects.append(object_class(song, index))
 
     def __getitem__(self, index):
-        _assert_index_sane(index, len(self.alloc_table))
+        assert_index_sane(index, len(self.alloc_table))
 
         if not self.alloc_table[index]:
-            # The object isn't allocated
             return None
 
-        # Construct the arguments for the class' constructor by retrieving the
-        # data from appropriate fields in the song data object. In particular,
-        # we're assuming that the fields we're looking at in the song data
-        # object are arrays, and that the relevant piece of data for each
-        # constructor parameter is at index `index` in its corresponding array.
-        constructor_args = {}
+        return self.access_objects[index]
 
-        for field in self.fields:
-            song_data_field = self._get_song_data_field(field)
-            constructor_args[field] = song_data_field[index]
-
-        return self.object_class(**constructor_args)
-
-    def __setitem__(self, index, value_obj):
-        _assert_index_sane(index, len(self.alloc_table))
-
-        assert type(value_obj) == self.object_class, (
-            "Can only set objects of type '%s'" % (self.object_class))
-
-        # Whether or not the field was allocated before, it's allocated now.
+    def allocate(self, index):
         self.alloc_table[index] = True
-
-        for field in self.fields:
-            assert hasattr(value_obj, field), (
-                "Class %s doesn't have field '%s'" % (self.object_class, field))
-
-            song_data_field = self._get_song_data_field(field)
-            song_data_field[index] = getattr(value_obj, field)
 
 class Instruments(object):
     classes = {
@@ -74,39 +40,72 @@ class Instruments(object):
         "noise": Noise
     }
 
-    def __init__(self, song_data):
-        self.song_data = song_data
+    specs = {
+        "pulse": bread_spec.pulse_instrument,
+        "wave": bread_spec.wave_instrument,
+        "kit": bread_spec.kit_instrument,
+        "noise": bread_spec.noise_instrument
+    }
+
+    def __init__(self, song):
+        self.song = song
+        self.alloc_table = song.song_data.instr_alloc_table
+        self.access_objects = []
+
+        for index in xrange(len(self.alloc_table)):
+            instrument_type = song.song_data.instruments[index].instrument_type
+            self.access_objects.append(Instruments.classes[instrument_type])
+
+    def set_instrument_type(self, index, instrument_type):
+        assert instrument_type in Instruments.classes, (
+            "Invalid instrument type '%s'" % (instrument_type))
+
+        assert_index_sane(index, len(self.song.song_data.instruments))
+
+        # Need to change the structure of the song's data to match the new
+        # instrument type. We'll do this by creating the raw data for an
+        # instrument of the appropriate type, parsing a new instrument out of
+        # it, and sticking that into the appropriate place in the song's data.
+
+        instrument_length = len(self.song.song_data.instruments[index])
+
+        instrument_type_index = Instruments.classes.keys().index(
+            instrument_type)
+
+        empty_bytes = bytearray([instrument_type_index] +
+                                ([0] * (instrument_length - 1)))
+
+        parsed_instrument = bread.parse(
+            empty_bytes, Instruments.specs[instrument_type])
+
+        self.song.song_data.instruments[index] = parsed_instrument
+
+        # Finally, we have to make sure that the appropriate access object is
+        # being used
+
+        self.access_objects[index] = Instruments.classes(instrument_type)
 
     def __getitem__(self, index):
-        _assert_index_sane(index, len(self.song_data.instruments))
+        assert_index_sane(index, len(self.alloc_table))
 
-        if not self.song_data.instr_alloc_table[index]:
+        if not self.alloc_table[index]:
             return None
 
-        instr_data = self.song_data.instruments[index]
+        return self.access_objects[index]
 
-        return Instruments.classes[instr_data.instrument_type](
-            song_data, index)
+    def allocate(self, index, instrument_type):
+        self.alloc_table[index] = True
+        self.set_instrument_type(index, instrument_type)
 
-    def __setitem__(self, index, value_obj):
-        _assert_index_sane(index, len(self.song_data.instruments))
-
-        assert type(value_obj) in Instruments.classes.values(), (
-            "Instrument type must be one of '%s'" % (
-                Instruments.classes.values()))
-
-        # Instrument is now allocated
-        self.song_data.instr_alloc_table[index] = True
-        self.song_data.instruments[index] = value_obj.parsed_data
 
 class Grooves(object):
-    def __init__(self, song_data):
-        self.song_data = song_data
+    def __init__(self, song):
+        self.song = song
 
     def __getitem__(self, index):
-        _assert_index_sane(index, len(self.song_data.grooves))
+        assert_index_sane(index, len(self.song.song_data.grooves))
 
-        return Groove(self.song_data.grooves[index])
+        return self.song.song_data.grooves[index]
 
 class Sequence(object):
     PU1 = "pu1"
@@ -114,48 +113,53 @@ class Sequence(object):
     WAV = "wav"
     NOI = "noi"
 
-    def __init__(self, song_data):
-        self.song_data = song_data
+    def __init__(self, song):
+        self.song = song
 
     def __getitem__(self, index):
-        _assert_index_sane(index, len(self.song_data.song))
-        raw_chain = self.song_data.song[index]
+        assert_index_sane(index, len(self.song.song_data.song))
+        raw_chain = self.song.song_data.song[index]
 
         chain_objs = {}
 
         for channel in [Sequence.PU1, Sequence.PU2, Sequence.WAV, Sequence.NOI]:
             chain_number = getattr(raw_chain, channel)
 
-            if self.song_data.chain_alloc_table[chain_number]:
-                chain_objs[channel] = self._chains[chain_number]
+            chain = self.song.chains[chain_number]
+
+            if chain is not None:
+                chain_objs[channel] = chain
+
+        return chain_objs
 
     def __setitem__(self, index, value_dict):
-        _assert_index_sane(index, len(self.song_data.song))
+        assert_index_sane(index, len(self.song.song_data.song))
 
         for channel in value_dict:
-            assert (channel in
-                    [Sequence.PU1, Sequence.PU2, Sequence.WAV, Sequence.NOI],
-                    "Channel '%d' is not a valid channel" % (channel))
+            assert (channel in [Sequence.PU1, Sequence.PU2, Sequence.WAV,
+                                Sequence.NOI]), \
+                ("Channel '%d' is not a valid channel" % (channel))
 
-            chain_number = value_dict[channel]
+            chain = value_dict[channel]
+            chain_number = chain.index
 
-            _assert_index_sane(chain_number,
-                               len(self.song_data.chain_alloc_table))
+            assert_index_sane(chain_number,
+                              len(self.song.song_data.chain_alloc_table))
 
-            assert self.song_data.chain_alloc_table[chain_number], (
+            assert self.song.song_data.chain_alloc_table[chain_number], (
                 "Assigning a chain (%d) that has not been allocated" % (
                     chain_number))
 
-            setattr(self.song_data.song[index], channel, chain_number)
+            setattr(self.song.song_data.song[index], channel, chain_number)
 
 class Synths(object):
-    def __init__(self, song_data):
-        self.song_data = song_data
+    def __init__(self, song):
+        self.song = song
 
     def __getitem__(self, index):
-        _assert_index_sane(index, len(self.song_data.softsynth_params))
+        assert_index_sane(index, len(self.song.song_data.softsynth_params))
 
-        return Synth(self.song_data, index)
+        return Synth(self.song, index)
 
 class Song(object):
     """A song consists of a sequence of chains, one per channel.
@@ -171,40 +175,33 @@ class Song(object):
         # it back out in the right format
         self.song_data = song_data
 
-        # Stitch together allocated phrases
-        self._phrases = AllocTable(
-            alloc_table = self.song_data.phrase_alloc_table,
-            object_class = Phrase,
-            field_prefix = "phrase_",
-            fields = ["notes", "fx", "fx_val", "instruments"])
-
-        # Stitch together allocated chains
-        self._chains = AllocTable(
-            alloc_table = self.song_data.chain_alloc_table,
-            object_class = Chain,
-            field_prefix = "chain_",
-            fields = ["phrases", "transposes"])
+        self._instruments = Instruments(self)
 
         # Stitch together allocated tables
         self._tables = AllocTable(
+            song = self,
             alloc_table = self.song_data.table_alloc_table,
-            object_class = Table,
-            field_prefix = "table_",
-            fields = ["transposes", "fx", "fx_val", "fx2", "fx2_val",
-                      "envelope"])
+            object_class = Table)
 
-        self._instruments = Instruments(self.song_data)
-        self._grooves = Grooves(self.song_data)
-        self._speech_instrument = SpeechInstrument(self.song_data)
-        self._synths = Synths(self.song_data)
+        # Stitch together allocated phrases
+        self._phrases = AllocTable(
+            song = self,
+            alloc_table = self.song_data.phrase_alloc_table,
+            object_class = Phrase)
+
+        # Stitch together allocated chains
+        self._chains = AllocTable(
+            song = self,
+            alloc_table = self.song_data.chain_alloc_table,
+            object_class = Chain)
+
+        self._grooves = Grooves(self)
+        self._speech_instrument = SpeechInstrument(self)
+        self._synths = Synths(self)
 
     @property
-    def clock(self):
-        return Clock(self.song_data.clock)
-
-    @property
-    def global_clock(self):
-        return Clock(self.song_data.global_clock)
+    def instruments(self):
+        return self._instruments
 
     @property
     def phrases(self):
@@ -219,20 +216,28 @@ class Song(object):
         return self._grooves
 
     @property
-    def song_version(self):
-        return self.song_data.version
-
-    @song_version.setter
-    def song_version(self, version):
-        self.song_data.version = version
-
-    @property
     def speech_instrument(self):
         return self._speech_instrument
 
     @property
     def synths(self):
         return self._synths
+
+    @property
+    def clock(self):
+        return Clock(self.song_data.clock)
+
+    @property
+    def global_clock(self):
+        return Clock(self.song_data.global_clock)
+
+    @property
+    def song_version(self):
+        return self.song_data.version
+
+    @song_version.setter
+    def song_version(self, version):
+        self.song_data.version = version
 
 # For fields with a one-to-one correspondence with song data, we'll
 # programmatically insert properties to avoid repetition

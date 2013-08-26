@@ -1,13 +1,13 @@
-from rich_comparable_mixin import RichComparableMixin
+from utils import add_song_data_property
 
-class Synth(RichComparableMixin):
+class Synth(object):
     """The wave channel can be used as a soft synthesizer to generate sounds."""
-    def __init__(self, raw_synth):
-        self.waves = []
-        self.waveform = raw_synth.waveform
-        self.filter_type = raw_synth.filter_type
-        self.filter_resonance = raw_synth.filter_resonance
-        self.distortion = raw_synth.distortion
-        self.phase_type = raw_synth.phase_type
-        self.start_sound = raw_synth.start
-        self.end_sound = raw_synth.end
+    def __init__(self, song, index):
+        self._params = song.song_data.softsynth_params[index]
+        self.index = index
+
+    def __getattr__(self, name):
+        return getattr(self._params, name)
+
+    def __setattr__(self, name, value):
+        setattr(self._params, name, value)

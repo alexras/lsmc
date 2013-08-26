@@ -1,23 +1,13 @@
-from rich_comparable_mixin import RichComparableMixin
+from utils import add_song_data_property
 
-class Table(RichComparableMixin):
+class Table(object):
     """Each table is a sequence of transposes, commands, and amplitude
     changes that can be applied to any channel."""
-    def __init__(self, transposes, fx, fx_vals, fx2, fx2_vals):
-        self.transposes = transposes
-        self.fx = fx
-        self.fx_vals = fx_vals
-        self.fx2 = fx2
-        self.fx2_vals = fx2_vals
+    def __init__(self, song, index):
+        self.song = song
+        self.index = index
 
-    def as_dict(self):
-        write_dict = {}
-
-        for key, value in self.__dict__.items():
-            write_dict[key] = getattr(self, key)
-
-        return write_dict
-
-    def load(self, jsonObj):
-        for key in self.__dict__:
-            setattr(self, key, jsonObj[key])
+for property_name in ["envelopes", "transposes", "fx", "fx_val", "fx2",
+                      "fx2_val"]:
+    add_song_data_property(Table, property_name, ("table_" + property_name,),
+                           use_index=True)
