@@ -1,3 +1,5 @@
+import bread_spec
+import bread
 import os
 import sys
 from struct import unpack
@@ -7,7 +9,7 @@ from project import Project
 import blockutils
 from blockutils import BlockReader, BlockWriter, BlockFactory
 import filepack
-from rich_comparable_mixin import RichComparableMixin
+import collections
 
 class SAVFile(RichComparableMixin):
     # Start offset of SAV file contents
@@ -50,44 +52,30 @@ class SAVFile(RichComparableMixin):
     def __init__(self, filename):
         self.projects = []
 
-        fp = open(filename, 'r')
+        fp = open(filename, 'rb')
 
         self.preamble = fp.read(self.START_OFFSET)
 
-        filenames = []
+        self.header_block = bread.parse(fp, bread_spec.compressed_sav_file)
 
-        for i in xrange(self.NUM_FILES):
-            filenames.append(fp.read(self.FILENAME_LENGTH))
-
-        file_versions = []
-
-        for i in xrange(self.NUM_FILES):
-            file_versions.append(utils.binary_read_uint(
-                    fp, self.FILE_VERSION_LENGTH))
-
-        fp.seek(self.SRAM_INIT_CHECK_OFFSET, os.SEEK_SET)
-
-        sram_check = fp.read(self.SRAM_INIT_CHECK_LENGTH)
-
-        if sram_check != 'jk':
+        if self.header_block.sram_check != 'jk':
             assert False, "SRAM init check bits incorrect " \
                 "(should be 'jk', was '%s')" % (sram_check)
 
-        self.active_project_number = utils.binary_read_uint(
-            fp, self.FILE_NUMBER_LENGTH)
+        self.active_project_number = self.header_block.active_file
 
-        file_blocks = {}
+        file_blocks = collections.defaultdict(list)
 
-        for i in xrange(self.BAT_START_OFFSET, self.BAT_END_OFFSET + 1):
-            block_number = i - self.BAT_START_OFFSET + 1
-            file_number = utils.binary_read_uint(fp, self.FILE_NUMBER_LENGTH)
+        for block_number, file_number in enumerate(
+                self.header_block.block_alloc_table):
+            if file_number == EMPTY_BLOCK:
+                continue
 
-            if file_number != self.EMPTY_BLOCK and \
-                    file_number in xrange(0, 0x1f):
-                if file_number not in file_blocks:
-                    file_blocks[file_number] = []
+            assert 0 <= file_number <= 0x1f, (
+                "File number %x for block %x out of range" %
+                (file_number, block_number))
 
-                file_blocks[file_number].append(block_number)
+            file_blocks[file_number].append(block_number)
 
         for file_number in file_blocks:
             block_numbers = file_blocks[file_number]
@@ -99,25 +87,18 @@ class SAVFile(RichComparableMixin):
 
                 fp.seek(offset, os.SEEK_SET)
 
-                block_contents = fp.read(blockutils.BLOCK_SIZE)
-
-                block_data = utils.binary_uint(
-                    block_contents, 1, len(block_contents))
+                block_data = bytearray(fp.read(blockutils.BLOCK_SIZE))
 
                 block_map[block_number] = blockutils.Block(block_number,
                                                            block_data)
 
-            project = Project(name = filenames[file_number],
-                              version = file_versions[file_number])
-
             reader = BlockReader()
-
             compressed_data = reader.read(block_map)
-
             raw_data = filepack.decompress(compressed_data)
 
-            project.load_data(raw_data)
-            project.postprocess()
+            project = Project(name = filenames[file_number],
+                              version = file_versions[file_number],
+                              data = raw_data)
 
             self.projects.append(project)
 
@@ -160,9 +141,7 @@ class SAVFile(RichComparableMixin):
 
         for (i, project) in enumerate(self.projects):
             raw_data = project.get_raw_data()
-
             compressed_data = filepack.compress(raw_data)
-
             project_block_ids = writer.write(compressed_data, factory)
 
             for b in project_block_ids:
@@ -171,41 +150,36 @@ class SAVFile(RichComparableMixin):
         # Bytes up to START_OFFSET will remain the same
         fp.write(self.preamble)
 
-        for project in self.projects:
-            name_bytes = utils.string_to_bytes(project.name,
-                                               self.FILENAME_LENGTH)
+        # Set header block filenames
+        for i, project in enumerate(self.projects):
+            self.header_block.filenames[i] = project.name
 
-            header_block.data.extend(name_bytes)
-
-        empty_project_name = []
-
-        for i in xrange(self.FILENAME_LENGTH):
-            empty_project_name.append(0)
+        empty_project_name = '\0' * self.FILENAME_LENGTH
 
         for i in xrange(self.NUM_FILES - len(self.projects)):
-            header_block.data.extend(empty_project_name)
+            self.header_block.filenames[i] = empty_project_name
 
-        for project in self.projects:
-            header_block.data.append(project.version)
+        # Set header block project versions
+        for i, project in enumerate(self.projects):
+            self.header_block.file_versions[i] = project.version
 
         for i in xrange(self.NUM_FILES - len(self.projects)):
-            header_block.data.append(0)
+            self.header_block.file_versions[i] = 0
 
-        for i in xrange(self.HEADER_EMPTY_SECTION_1[0],
-                        self.HEADER_EMPTY_SECTION_1[1] + 1):
-            header_block.data.append(0)
+        self.header_block.active_file = self.active_project_number
 
-        header_block.data.extend([ord('j'), ord('k')])
 
-        header_block.data.append(self.active_project_number)
 
         # Ignore the header block when serializing the block allocation table
-        for b in block_table[1:]:
+        for i, b in enumerate(block_table[1:]):
             if b == None:
                 file_no = self.EMPTY_BLOCK
             else:
                 file_no = b
-            header_block.data.append(file_no)
+
+            self.header_block.block_alloc_table[i] = file_no
+
+        header_block.data = bread.write(self.header_block, compressed_sav_file)
 
         assert len(header_block.data) == blockutils.BLOCK_SIZE, \
             "Header block isn't the expected length; expected 0x%x, got 0x%x" \
@@ -223,7 +197,7 @@ class SAVFile(RichComparableMixin):
             else:
                 data_list = empty_block_data
 
-            utils.binary_write_uint_list(fp, data_list, 1)
+            fp.write(data_list)
 
         fp.close()
 

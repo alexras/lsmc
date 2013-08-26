@@ -2,9 +2,9 @@ import sys
 import bread
 import bread_spec as spec
 
-class Project(RichComparableMixin):
+class Project(object):
     def __init__(self, name, version, data):
-        self.name = utils.strip_nulls(name)
+        self.name = name
         self.version = version
 
         self._song_data = bread.parse(data, spec.song)
