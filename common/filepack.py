@@ -1,6 +1,5 @@
-import instrument
-import wave
-import project
+import bread
+import bread_spec
 
 # Byte used to denote run-length encoding
 RLE_BYTE = 0xc0
@@ -17,6 +16,11 @@ DEFAULT_INSTR_BYTE = 0xf1
 # Byte used to denote default wave
 DEFAULT_WAVE_BYTE = 0xf0
 
+DEFAULT_WAVE = [0x8e, 0xcd, 0xcc, 0xbb, 0xaa, 0xa9, 0x99, 0x88, 0x87, 0x76,
+                0x66, 0x55, 0x54, 0x43, 0x32, 0x31]
+
+DEFAULT_INSTRUMENT = [0, 0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0xf3,
+                      0, 0]
 
 RESERVED_BYTES = [SPECIAL_BYTE, RLE_BYTE]
 
@@ -227,12 +231,12 @@ def decompress(compressed_data):
 
         elif state == STATE_DEFAULT_INSTR:
             for i in xrange(data_byte):
-                raw_data.extend(instrument.DEFAULT)
+                raw_data.extend(DEFAULT_INSTRUMENT)
 
             state = STATE_BYTES
         elif state == STATE_DEFAULT_WAVE:
             for i in xrange(data_byte):
-                raw_data.extend(wave.DEFAULT)
+                raw_data.extend(DEFAULT_WAVE)
 
             state = STATE_BYTES
         else:
@@ -242,7 +246,7 @@ def decompress(compressed_data):
     return raw_data
 
 
-def compress(raw_data):
+def compress(raw_data, test=False):
     compressed_data = []
 
     data_index = 0
@@ -250,6 +254,19 @@ def compress(raw_data):
 
     index = 0
     next_bytes = [-1, -1, -1]
+
+    instrument_range = xrange(0x3080, 0x3480)
+    wave_range = xrange(0x6000, 0x7000)
+
+    default_instrument_obj = bread.parse(
+        DEFAULT_INSTRUMENT, bread_spec.instrument)
+
+    def same_as_default_instrument(instrument_data):
+        current_obj = bread.parse(
+            instrument_data, bread_spec.instrument)
+
+        print current_obj
+        return current_obj == default_instrument_obj
 
     while index < data_size:
         current_byte = raw_data[index]
@@ -268,34 +285,39 @@ def compress(raw_data):
             compressed_data.append(SPECIAL_BYTE)
             compressed_data.append(SPECIAL_BYTE)
             index += 1
-        elif (current_byte == instrument.DEFAULT[0] and
-              next_bytes[0] == instrument.DEFAULT[1] and
-              raw_data[index:index + instrument.NUM_PARAMS] ==
-              instrument.DEFAULT):
+        elif ((test or index in instrument_range) and
+              current_byte == DEFAULT_INSTRUMENT[0] and
+              next_bytes[0] == DEFAULT_INSTRUMENT[1]) and
+              same_as_default_instrument(
+                  raw_data[index:index + len(DEFAULT_INSTRUMENT)])):
 
             counter = 1
-            index += instrument.NUM_PARAMS
+            index += len(DEFAULT_INSTRUMENT)
 
-            while (raw_data[index:index + instrument.NUM_PARAMS] ==
-                   instrument.DEFAULT and counter < 0x100):
+            while (raw_data[index:index + len(DEFAULT_INSTRUMENT)] ==
+                   DEFAULT_INSTRUMENT and counter < 0x100):
                 counter += 1
-                index += instrument.NUM_PARAMS
+                index += len(DEFAULT_INSTRUMENT)
 
             compressed_data.append(SPECIAL_BYTE)
             compressed_data.append(DEFAULT_INSTR_BYTE)
             compressed_data.append(counter)
-        elif (current_byte == wave.DEFAULT[0] and
-              next_bytes[0] == wave.DEFAULT[1] and
-              raw_data[index:index + wave.NUM_FRAMES] ==
-              wave.DEFAULT):
+
+        elif ((test or index in wave_range) and
+              current_byte == DEFAULT_WAVE[0] and
+              next_bytes[0] == DEFAULT_WAVE[1] and
+              raw_data[index:index + len(DEFAULT_WAVE)] ==
+              DEFAULT_WAVE):
+
+            print "WOO YAY"
 
             counter = 1
-            index += wave.NUM_FRAMES
+            index += len(DEFAULT_WAVE)
 
-            while (raw_data[index:index + wave.NUM_FRAMES] ==
-                   wave.DEFAULT and counter < 0xff):
+            while (raw_data[index:index + len(DEFAULT_WAVE)] ==
+                   DEFAULT_WAVE and counter < 0xff):
                 counter += 1
-                index += wave.NUM_FRAMES
+                index += len(DEFAULT_WAVE)
 
             compressed_data.append(SPECIAL_BYTE)
             compressed_data.append(DEFAULT_WAVE_BYTE)

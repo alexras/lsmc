@@ -10,8 +10,9 @@ import blockutils
 from blockutils import BlockReader, BlockWriter, BlockFactory
 import filepack
 import collections
+import bitstring
 
-class SAVFile(RichComparableMixin):
+class SAVFile(object):
     # Start offset of SAV file contents
     START_OFFSET = 0x8000
 
@@ -31,7 +32,6 @@ class SAVFile(RichComparableMixin):
     BAT_END_OFFSET = 0x81ff
 
     # Start index for data blocks
-    # The file's header is block 0, so blocks are indexed from 1
     BLOCKS_START_OFFSET = 0x8000
 
     # The maximum number of files that the .sav can support
@@ -56,11 +56,15 @@ class SAVFile(RichComparableMixin):
 
         self.preamble = fp.read(self.START_OFFSET)
 
-        self.header_block = bread.parse(fp, bread_spec.compressed_sav_file)
+        header_block_data = fp.read(blockutils.BLOCK_SIZE)
 
-        if self.header_block.sram_check != 'jk':
+        self.header_block = bread.parse(
+            header_block_data, bread_spec.compressed_sav_file)
+
+        if self.header_block.sram_init_check != 'jk':
             assert False, "SRAM init check bits incorrect " \
-                "(should be 'jk', was '%s')" % (sram_check)
+                "(should be 'jk', was '%s')" % (
+                    self.header_block.sram_init_check)
 
         self.active_project_number = self.header_block.active_file
 
@@ -68,14 +72,15 @@ class SAVFile(RichComparableMixin):
 
         for block_number, file_number in enumerate(
                 self.header_block.block_alloc_table):
-            if file_number == EMPTY_BLOCK:
+            if file_number == self.EMPTY_BLOCK:
                 continue
 
             assert 0 <= file_number <= 0x1f, (
                 "File number %x for block %x out of range" %
                 (file_number, block_number))
 
-            file_blocks[file_number].append(block_number)
+            # The file's header is block 0, so blocks are indexed from 1
+            file_blocks[file_number].append(block_number + 1)
 
         for file_number in file_blocks:
             block_numbers = file_blocks[file_number]
@@ -96,9 +101,10 @@ class SAVFile(RichComparableMixin):
             compressed_data = reader.read(block_map)
             raw_data = filepack.decompress(compressed_data)
 
-            project = Project(name = filenames[file_number],
-                              version = file_versions[file_number],
-                              data = raw_data)
+            project = Project(
+                name = self.header_block.filenames[file_number],
+                version = self.header_block.file_versions[file_number],
+                data = raw_data)
 
             self.projects.append(project)
 
@@ -119,7 +125,9 @@ class SAVFile(RichComparableMixin):
         return str_stream_stringval
 
     def save(self, filename):
-        fp = open(filename, 'w')
+        print self.header_block
+
+        fp = open(filename, 'wb')
 
         writer = BlockWriter()
         factory = BlockFactory()
@@ -141,8 +149,17 @@ class SAVFile(RichComparableMixin):
 
         for (i, project) in enumerate(self.projects):
             raw_data = project.get_raw_data()
+
+            # print bitstring.ConstBitStream(bytes=raw_data).hex
+            # print len(raw_data)
+
             compressed_data = filepack.compress(raw_data)
+#            print bitstring.ConstBitStream(bytes=compressed_data).hex
+
+#            print len(compressed_data)
             project_block_ids = writer.write(compressed_data, factory)
+
+            print project_block_ids
 
             for b in project_block_ids:
                 block_table[b] = i

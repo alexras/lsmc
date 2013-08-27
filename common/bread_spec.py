@@ -61,6 +61,9 @@ ENTRIES_PER_TABLE = 16
 # Max. number of instruments
 NUM_INSTRUMENTS = 64
 
+# Max. number of sequences in the whole song
+NUM_SONG_CHAINS = 256
+
 # Max. number of chains
 NUM_CHAINS = 128
 
@@ -115,7 +118,7 @@ pulse_instrument = [
     ("wave", b.semi_nibble),
     ("phase_finetune", b.nibble),
     ("pan", b.semi_nibble),
-    b.padding(8 * 7)
+    b.padding(8 * 8)
 ]
 
 wave_instrument = [
@@ -139,10 +142,10 @@ wave_instrument = [
     ("pan", b.semi_nibble),
     b.padding(8 + 6),
     ("play_type", b.enum(2, {
-        "once": 0,
-        "loop": 1,
-        "ping-pong": 2,
-        "manual": 3
+        0: "once",
+        1: "loop",
+        2: "ping-pong",
+        3: "manual"
     })),
     b.padding(8 * 4),
     ("steps", b.nibble),
@@ -183,7 +186,7 @@ kit_instrument = [
     ("length_2", b.byte),
     ("offset", b.byte),
     ("offset_2", b.byte),
-    b.padding(8)
+    b.padding(8 * 2)
 ]
 
 noise_instrument = [
@@ -208,12 +211,13 @@ instrument = [
         1: "wave",
         2: "kit",
         3: "noise"
-    })),
+    }, default = "invalid")),
     (b.CONDITIONAL, "instrument_type", {
         "pulse" : pulse_instrument,
         "wave" : wave_instrument,
         "kit" : kit_instrument,
-        "noise" : noise_instrument
+        "noise" : noise_instrument,
+        "invalid": [b.padding(15 * 8)]
     })
 ]
 
@@ -256,7 +260,7 @@ song = [
     ("bookmarks", b.array(64, b.byte)),
     b.padding(96 * 8),
     ("grooves", b.array(NUM_GROOVES, b.array(STEPS_PER_GROOVE, b.byte))),
-    ("song", b.array(NUM_CHAINS, chain)),
+    ("song", b.array(NUM_SONG_CHAINS, chain)),
     ("table_envelopes", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
     ("words", b.array(NUM_WORDS, b.array(WORD_LENGTH, b.byte))),
     ("word_names", b.array(NUM_WORDS, b.string(4))),
@@ -281,6 +285,9 @@ song = [
     # Set to 'rb' on init
     ("mem_init_flag_2", b.string(2)),
     ("phrase_alloc_table", b.array(NUM_PHRASES, b.boolean)),
+    # There are only 255 valid phrases, but the allocation table is 256 bits
+    # long, so we ignore the last bit
+    b.padding(1),
     ("chain_alloc_table", b.array(NUM_CHAINS, b.boolean)),
     ("softsynth_params", b.array(NUM_SYNTHS, softsynth)),
     ("clock", [

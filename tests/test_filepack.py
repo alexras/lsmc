@@ -5,9 +5,9 @@ sys.path.append(
 
 import unittest
 import common.filepack as filepack
+from common.filepack import DEFAULT_INSTRUMENT, DEFAULT_WAVE
 import common.instrument as instrument
 import common.blockutils as bl
-import common.wave as wave
 import common.project as project
 
 class FilePackTest(unittest.TestCase):
@@ -77,7 +77,7 @@ class FilePackTest(unittest.TestCase):
         data = []
 
         for i in xrange(42):
-            data.extend(instrument.DEFAULT)
+            data.extend(DEFAULT_INSTRUMENT)
 
         reference = []
 
@@ -86,7 +86,7 @@ class FilePackTest(unittest.TestCase):
 
         self.assertEqual(filepack.decompress(reference), data)
 
-        compressed = filepack.compress(data)
+        compressed = filepack.compress(data, test=True)
 
         self.assertEqual(compressed, reference)
 
@@ -94,69 +94,23 @@ class FilePackTest(unittest.TestCase):
 
         self.assertEqual(data, decompressed)
 
-    # def test_compress_default_region(self):
-    #     data = []
-    #     data.extend([0] * (instrument.NUM_PARAMS * 2))
+    def test_default_wave_compress(self):
+        data = []
 
-    #     for i in xrange(4):
-    #         data.extend(instrument.DEFAULT)
+        for i in xrange(33):
+            data.extend(DEFAULT_WAVE)
 
-    #     data.extend([0] * (instrument.NUM_PARAMS * 3))
+        compressed = filepack.compress(data, test=True)
 
-    #     data.extend(instrument.DEFAULT)
+        reference = [filepack.SPECIAL_BYTE, filepack.DEFAULT_WAVE_BYTE, 33]
 
-    #     compressed = []
+        decompressed_reference = filepack.decompress(reference)
+        self.assertEqual(decompressed_reference, data)
 
-    #     filepack._compress_default_region(
-    #         data, len(data), compressed, 0, 0, len(data),
-    #         instrument.DEFAULT, instrument.NUM_PARAMS,
-    #         filepack.DEFAULT_INSTR_BYTE)
+        decompressed = filepack.decompress(compressed)
 
-    #     reference = [filepack.RLE_BYTE, 0, instrument.NUM_PARAMS * 2,
-    #                  filepack.SPECIAL_BYTE, filepack.DEFAULT_INSTR_BYTE, 4,
-    #                  filepack.RLE_BYTE, 0, instrument.NUM_PARAMS * 3,
-    #                  filepack.SPECIAL_BYTE, filepack.DEFAULT_INSTR_BYTE, 1]
-
-    #     self.assertEqual(compressed, reference)
-
-#     def test_default_wave_compress(self):
-#         data = []
-
-#         data.extend([0] * project.WAVE_FRAMES[0])
-
-#         for i in xrange(33):
-#             data.extend(wave.DEFAULT)
-
-#         compressed = filepack.compress(data)
-
-#         reference = []
-
-#         self.extend_compressed_zeroes(reference, project.INSTR_PARAMS[0])
-#         self.extend_compressed_zeroes(
-#             reference, project.INSTR_PARAMS[1] - project.INSTR_PARAMS[0])
-#         self.extend_compressed_zeroes(
-#             reference, project.WAVE_FRAMES[0] - project.INSTR_PARAMS[1])
-
-#         reference.extend([filepack.SPECIAL_BYTE,
-#                           filepack.DEFAULT_WAVE_BYTE, 33])
-
-#         decompressed_reference = filepack.decompress(reference)
-#         self.assertEqual(decompressed_reference, data)
-
-
-# #        self.assertEqual(data, filepack.decompress(reference))
-
-#         decompressed = filepack.decompress(compressed)
-
-#         self.assertEqual(data, decompressed)
-#         self.assertEqual(compressed, reference)
-
-
-    def extend_compressed_zeroes(self, data, num_zeroes):
-        for i in xrange(num_zeroes / 255):
-            data.extend([filepack.RLE_BYTE, 0, 255])
-
-        data.extend([filepack.RLE_BYTE, 0, num_zeroes % 255])
+        self.assertEqual(data, decompressed)
+        self.assertEqual(compressed, reference)
 
     def test_large_rle_compress(self):
         data = []

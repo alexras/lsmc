@@ -2,12 +2,12 @@ from utils import assert_index_sane
 import bread
 import bread_spec
 
-from instruments import Pulse, Wave, Noise, Kit
 from synth import Synth
 from table import Table
 from phrase import Phrase
 from chain import Chain
 from speech_instrument import SpeechInstrument
+from instrument import Instrument
 
 # Number of channels
 NUM_CHANNELS = 4
@@ -33,13 +33,6 @@ class AllocTable(object):
         self.alloc_table[index] = True
 
 class Instruments(object):
-    classes = {
-        "pulse": Pulse,
-        "wave": Wave,
-        "kit": Kit,
-        "noise": Noise
-    }
-
     specs = {
         "pulse": bread_spec.pulse_instrument,
         "wave": bread_spec.wave_instrument,
@@ -53,11 +46,10 @@ class Instruments(object):
         self.access_objects = []
 
         for index in xrange(len(self.alloc_table)):
-            instrument_type = song.song_data.instruments[index].instrument_type
-            self.access_objects.append(Instruments.classes[instrument_type])
+            self.access_objects.append(Instrument(song, index))
 
     def set_instrument_type(self, index, instrument_type):
-        assert instrument_type in Instruments.classes, (
+        assert instrument_type in Instruments.specs, (
             "Invalid instrument type '%s'" % (instrument_type))
 
         assert_index_sane(index, len(self.song.song_data.instruments))
@@ -69,7 +61,7 @@ class Instruments(object):
 
         instrument_length = len(self.song.song_data.instruments[index])
 
-        instrument_type_index = Instruments.classes.keys().index(
+        instrument_type_index = Instruments.specs.keys().index(
             instrument_type)
 
         empty_bytes = bytearray([instrument_type_index] +
@@ -79,11 +71,6 @@ class Instruments(object):
             empty_bytes, Instruments.specs[instrument_type])
 
         self.song.song_data.instruments[index] = parsed_instrument
-
-        # Finally, we have to make sure that the appropriate access object is
-        # being used
-
-        self.access_objects[index] = Instruments.classes(instrument_type)
 
     def __getitem__(self, index):
         assert_index_sane(index, len(self.alloc_table))
@@ -245,10 +232,10 @@ for field in ["tempo", "tune_setting", "key_delay", "key_repeat",
               "font", "sync_setting", "colorset", "clone",
               "file_changed", "power_save", "prelisten", "bookmarks",
               "wave_synth_overwrite_lock"]:
-    def field_getter(self):
-        return getattr(self.song_data, field)
+    def field_getter(this):
+        return getattr(this.song_data, field)
 
-    def field_setter(self, value):
-        setattr(self.song_data, field, value)
+    def field_setter(this, value):
+        setattr(this.song_data, field, value)
 
     setattr(Song, field, property(fset=field_setter, fget=field_getter))
