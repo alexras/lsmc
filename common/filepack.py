@@ -19,8 +19,8 @@ DEFAULT_WAVE_BYTE = 0xf0
 DEFAULT_WAVE = [0x8e, 0xcd, 0xcc, 0xbb, 0xaa, 0xa9, 0x99, 0x88, 0x87, 0x76,
                 0x66, 0x55, 0x54, 0x43, 0x32, 0x31]
 
-DEFAULT_INSTRUMENT = [0, 0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0xf3,
-                      0, 0]
+DEFAULT_INSTRUMENT = [
+    0, 0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0, 0xf3, 0]
 
 RESERVED_BYTES = [SPECIAL_BYTE, RLE_BYTE]
 
@@ -265,8 +265,16 @@ def compress(raw_data, test=False):
         current_obj = bread.parse(
             instrument_data, bread_spec.instrument)
 
-        print current_obj
         return current_obj == default_instrument_obj
+
+    def is_default_instrument(index):
+        return (
+            (test or index in instrument_range) and
+            index + len(DEFAULT_INSTRUMENT) <= len(raw_data) and
+            raw_data[index] == DEFAULT_INSTRUMENT[0] and
+            raw_data[index + 1] == DEFAULT_INSTRUMENT[1] and
+            same_as_default_instrument(
+                raw_data[index:index + len(DEFAULT_INSTRUMENT)]))
 
     while index < data_size:
         current_byte = raw_data[index]
@@ -285,17 +293,13 @@ def compress(raw_data, test=False):
             compressed_data.append(SPECIAL_BYTE)
             compressed_data.append(SPECIAL_BYTE)
             index += 1
-        elif ((test or index in instrument_range) and
-              current_byte == DEFAULT_INSTRUMENT[0] and
-              next_bytes[0] == DEFAULT_INSTRUMENT[1]) and
-              same_as_default_instrument(
-                  raw_data[index:index + len(DEFAULT_INSTRUMENT)])):
+        elif is_default_instrument(index):
 
             counter = 1
             index += len(DEFAULT_INSTRUMENT)
 
-            while (raw_data[index:index + len(DEFAULT_INSTRUMENT)] ==
-                   DEFAULT_INSTRUMENT and counter < 0x100):
+            while (is_default_instrument(index) and
+                   counter < 0x100):
                 counter += 1
                 index += len(DEFAULT_INSTRUMENT)
 
@@ -308,8 +312,6 @@ def compress(raw_data, test=False):
               next_bytes[0] == DEFAULT_WAVE[1] and
               raw_data[index:index + len(DEFAULT_WAVE)] ==
               DEFAULT_WAVE):
-
-            print "WOO YAY"
 
             counter = 1
             index += len(DEFAULT_WAVE)
