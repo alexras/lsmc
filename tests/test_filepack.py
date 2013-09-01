@@ -1,14 +1,16 @@
-import os, sys
+import os, sys, json
 
 sys.path.append(
     os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
 
 import unittest
 import common.filepack as filepack
-from common.filepack import DEFAULT_INSTRUMENT, DEFAULT_WAVE
+from common.filepack import DEFAULT_INSTRUMENT, DEFAULT_WAVE, DEFAULT_INSTRUMENT_FILEPACK
 import common.instrument as instrument
 import common.blockutils as bl
 import common.project as project
+import common.bread_spec as bread_spec
+import bread as b
 
 class FilePackTest(unittest.TestCase):
     def test_basic_compress_decompress(self):
@@ -81,18 +83,51 @@ class FilePackTest(unittest.TestCase):
 
         reference = []
 
-        reference.extend([filepack.SPECIAL_BYTE,
-                          filepack.DEFAULT_INSTR_BYTE, 42])
+        reference.extend([0, filepack.SPECIAL_BYTE,
+                          filepack.DEFAULT_INSTR_BYTE, 41])
+        reference.extend(DEFAULT_INSTRUMENT_FILEPACK)
 
-        self.assertEqual(filepack.decompress(reference), data)
+        reference = bytearray(reference)
+
+        decompressed_reference = filepack.decompress(reference)
+        assert decompressed_reference == data + [0]
+
+        data = bytearray(data)
 
         compressed = filepack.compress(data, test=True)
 
-        self.assertEqual(compressed, reference)
+        assert bytearray(compressed + [0]) == reference
 
         decompressed = filepack.decompress(compressed)
 
-        self.assertEqual(data, decompressed)
+        assert data == bytearray(decompressed)
+
+    def test_instrument_sizes(self):
+        instr_bytes = list(DEFAULT_INSTRUMENT)
+
+        parsed = b.parse(instr_bytes, bread_spec.instrument)
+        assert len(parsed) == 16 * 8
+
+        raw_data = b.write(parsed, bread_spec.instrument)
+        assert raw_data == bytearray(DEFAULT_INSTRUMENT)
+
+        instr_bytes[0] = 1
+
+        parsed = b.parse(instr_bytes, bread_spec.instrument)
+        assert len(parsed) == 16 * 8
+
+        instr_bytes[0] = 2
+
+        parsed = b.parse(instr_bytes, bread_spec.instrument)
+        assert len(parsed) == 16 * 8
+
+        instr_bytes[0] = 3
+
+        parsed = b.parse(instr_bytes, bread_spec.instrument)
+        assert len(parsed) == 16 * 8
+
+
+
 
     def test_default_wave_compress(self):
         data = []
@@ -399,6 +434,25 @@ class FilePackTest(unittest.TestCase):
         for i in xrange(max(len(data), len(recompressed))):
             self.assertEqual(data[i], recompressed[i])
 
+def test_sample_song():
+    with open("test_data/sample_song_compressed.json", "r") as fp:
+        compressed = json.load(fp)
+
+    decompressed = filepack.decompress(compressed)
+
+    recompressed = filepack.compress(decompressed)
+
+    assert len(decompressed) == 0x8000
+
+    for i in xrange(min(len(recompressed), len(compressed))):
+        if recompressed[i] != compressed[i]:
+            print "@ 0x%x" % (i), " expected ", compressed[i], ", got ", recompressed[i]
+            print map(hex, compressed[i-5:i+5])
+            print map(hex, recompressed[i-5:i+5])
+            break
+
+    assert len(recompressed) == len(compressed)
+    assert recompressed == compressed
 
 if __name__ == "__main__":
     unittest.main()

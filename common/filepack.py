@@ -16,11 +16,18 @@ DEFAULT_INSTR_BYTE = 0xf1
 # Byte used to denote default wave
 DEFAULT_WAVE_BYTE = 0xf0
 
-DEFAULT_WAVE = [0x8e, 0xcd, 0xcc, 0xbb, 0xaa, 0xa9, 0x99, 0x88, 0x87, 0x76,
-                0x66, 0x55, 0x54, 0x43, 0x32, 0x31]
+DEFAULT_WAVE = bytearray(
+    [0x8e, 0xcd, 0xcc, 0xbb, 0xaa, 0xa9, 0x99, 0x88, 0x87, 0x76,
+     0x66, 0x55, 0x54, 0x43, 0x32, 0x31])
 
-DEFAULT_INSTRUMENT = [
-    0, 0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0, 0xf3, 0]
+DEFAULT_INSTRUMENT_FILEPACK = bytearray([
+    0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0, 0xf3, 0, 0])
+
+DEFAULT_INSTRUMENT = bytearray([
+    0, 0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0, 0xf3, 0])
+
+# DEFAULT_INSTRUMENT = [
+#     0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0, 0xf3, 0, 0]
 
 RESERVED_BYTES = [SPECIAL_BYTE, RLE_BYTE]
 
@@ -186,67 +193,52 @@ def pad(segment, size):
 def decompress(compressed_data):
     raw_data = []
 
-    state = STATE_BYTES
+    index = 0
 
-    rle_byte_value = None
+    while index < len(compressed_data):
+        current = compressed_data[index]
+        index += 1
 
-    data_size = len(compressed_data)
+        if current == RLE_BYTE:
+            directive = compressed_data[index]
+            index += 1
 
-    for index in xrange(len(compressed_data)):
-        data_byte = compressed_data[index]
-
-        if state == STATE_BYTES:
-            if data_byte == RLE_BYTE:
-                state = STATE_RLE_BYTE
-            elif data_byte == SPECIAL_BYTE:
-                state = STATE_SPECIAL_BYTE
+            if directive == RLE_BYTE:
+                raw_data.append(RLE_BYTE)
             else:
-                raw_data.append(data_byte)
+                count = compressed_data[index]
+                index += 1
 
-        elif state == STATE_RLE_BYTE:
-            if data_byte == RLE_BYTE:
-                raw_data.append(data_byte)
-                state = STATE_BYTES
+                raw_data.extend([directive] * count)
+        elif current == SPECIAL_BYTE:
+            directive = compressed_data[index]
+            index += 1
+
+            if directive == SPECIAL_BYTE:
+                raw_data.append(SPECIAL_BYTE)
+            elif directive == DEFAULT_WAVE_BYTE:
+                count = compressed_data[index]
+                index += 1
+
+                raw_data.extend(DEFAULT_WAVE * count)
+            elif directive == DEFAULT_INSTR_BYTE:
+                count = compressed_data[index]
+                index += 1
+
+                raw_data.extend(DEFAULT_INSTRUMENT_FILEPACK * count)
+            elif directive == EOF_BYTE:
+                assert False, ("Unexpected EOF command encountered while "
+                               "decompressing")
             else:
-                rle_byte_value = data_byte
-                state = STATE_RLE_COUNT
-
-        elif state == STATE_RLE_COUNT:
-            for i in xrange(data_byte):
-                raw_data.append(rle_byte_value)
-            state = STATE_BYTES
-
-        elif state == STATE_SPECIAL_BYTE:
-            if data_byte == SPECIAL_BYTE:
-                raw_data.append(data_byte)
-                state = STATE_BYTES
-            elif data_byte == DEFAULT_INSTR_BYTE:
-                state = STATE_DEFAULT_INSTR
-            elif data_byte == DEFAULT_WAVE_BYTE:
-                state = STATE_DEFAULT_WAVE
-            else:
-                assert False, "Didn't expect to encounter special "\
-                    "instruction byte 0x%x while decompressing" % \
-                    (data_byte)
-
-        elif state == STATE_DEFAULT_INSTR:
-            for i in xrange(data_byte):
-                raw_data.extend(DEFAULT_INSTRUMENT)
-
-            state = STATE_BYTES
-        elif state == STATE_DEFAULT_WAVE:
-            for i in xrange(data_byte):
-                raw_data.extend(DEFAULT_WAVE)
-
-            state = STATE_BYTES
+                assert False, "Countered unexpected sequence 0x%02x 0x%02x" % (
+                    current, directive)
         else:
-            assert False, "Encountered invalid state %d" % \
-                (state) # pragma: no cover
+            raw_data.append(current)
 
     return raw_data
 
-
 def compress(raw_data, test=False):
+    raw_data = bytearray(raw_data)
     compressed_data = []
 
     data_index = 0
@@ -255,26 +247,20 @@ def compress(raw_data, test=False):
     index = 0
     next_bytes = [-1, -1, -1]
 
-    instrument_range = xrange(0x3080, 0x3480)
-    wave_range = xrange(0x6000, 0x7000)
-
-    default_instrument_obj = bread.parse(
-        DEFAULT_INSTRUMENT, bread_spec.instrument)
-
-    def same_as_default_instrument(instrument_data):
-        current_obj = bread.parse(
-            instrument_data, bread_spec.instrument)
-
-        return current_obj == default_instrument_obj
-
     def is_default_instrument(index):
-        return (
-            (test or index in instrument_range) and
-            index + len(DEFAULT_INSTRUMENT) <= len(raw_data) and
-            raw_data[index] == DEFAULT_INSTRUMENT[0] and
-            raw_data[index + 1] == DEFAULT_INSTRUMENT[1] and
-            same_as_default_instrument(
-                raw_data[index:index + len(DEFAULT_INSTRUMENT)]))
+        if index + len(DEFAULT_INSTRUMENT_FILEPACK) > len(raw_data):
+            return False
+
+        instr_bytes = raw_data[index:index + len(DEFAULT_INSTRUMENT_FILEPACK)]
+
+        if instr_bytes[0] != 0xa8 or instr_bytes[1] != 0:
+            return False
+
+        return instr_bytes == DEFAULT_INSTRUMENT_FILEPACK
+
+    def is_default_wave(index):
+        return (index + len(DEFAULT_WAVE) <= len(raw_data) and
+                raw_data[index:index + len(DEFAULT_WAVE)] == DEFAULT_WAVE)
 
     while index < data_size:
         current_byte = raw_data[index]
@@ -294,30 +280,23 @@ def compress(raw_data, test=False):
             compressed_data.append(SPECIAL_BYTE)
             index += 1
         elif is_default_instrument(index):
-
             counter = 1
-            index += len(DEFAULT_INSTRUMENT)
+            index += len(DEFAULT_INSTRUMENT_FILEPACK)
 
             while (is_default_instrument(index) and
                    counter < 0x100):
                 counter += 1
-                index += len(DEFAULT_INSTRUMENT)
+                index += len(DEFAULT_INSTRUMENT_FILEPACK)
 
             compressed_data.append(SPECIAL_BYTE)
             compressed_data.append(DEFAULT_INSTR_BYTE)
             compressed_data.append(counter)
 
-        elif ((test or index in wave_range) and
-              current_byte == DEFAULT_WAVE[0] and
-              next_bytes[0] == DEFAULT_WAVE[1] and
-              raw_data[index:index + len(DEFAULT_WAVE)] ==
-              DEFAULT_WAVE):
-
+        elif is_default_wave(index):
             counter = 1
             index += len(DEFAULT_WAVE)
 
-            while (raw_data[index:index + len(DEFAULT_WAVE)] ==
-                   DEFAULT_WAVE and counter < 0xff):
+            while is_default_wave(index) and counter < 0xff:
                 counter += 1
                 index += len(DEFAULT_WAVE)
 
@@ -341,7 +320,6 @@ def compress(raw_data, test=False):
                 counter += 1
 
             compressed_data.append(counter)
-
         else:
             compressed_data.append(current_byte)
             index += 1

@@ -1,5 +1,8 @@
 import bread as b
 
+def padded_hex(pad_count):
+    return lambda x: ("0x%%0%dx" % (pad_count)) % (x)
+
 EMPTY_BLOCK = 0xff
 
 # File management structure (starts at 0x8000)
@@ -89,13 +92,13 @@ WORD_LENGTH = 0x20
 NUM_WORDS = 42
 
 chain = [
-    ("pu1", b.byte),
-    ("pu2", b.byte),
-    ("wav", b.byte),
-    ("noi", b.byte)]
+    ("pu1", b.byte, {"str_format": padded_hex(2)}),
+    ("pu2", b.byte, {"str_format": padded_hex(2)}),
+    ("wav", b.byte, {"str_format": padded_hex(2)}),
+    ("noi", b.byte, {"str_format": padded_hex(2)})]
 
 pulse_instrument = [
-    ("envelope", b.byte),
+    ("envelope", b.byte, {"str_format": padded_hex(2)}),
     ("phase_transpose", b.byte),
     b.padding(1),
     # If false, sound length is UNLIM
@@ -117,12 +120,21 @@ pulse_instrument = [
     ("table", b.intX(5)),
     ("wave", b.semi_nibble),
     ("phase_finetune", b.nibble),
-    ("pan", b.semi_nibble),
-    b.padding(8 * 8)
+    ("pan", b.enum(2, {
+        0: "Invalid",
+        1: "L",
+        2: "R",
+        3: "LR"
+    })),
+    b.padding(2 * 8),
+    ("_default_instr_byte_1", b.byte, {"str_format": padded_hex(2)}),
+    b.padding(3 * 8),
+    ("_default_instr_byte_2", b.byte, {"str_format": padded_hex(2)}),
+    b.padding(8)
 ]
 
 wave_instrument = [
-    ("volume", b.byte),
+    ("volume", b.byte, {"str_format": padded_hex(2)}),
     ("synth", b.nibble),
     ("repeat", b.nibble),
     b.padding(8 * 2 + 3),
@@ -139,7 +151,12 @@ wave_instrument = [
     ("table_on", b.boolean),
     ("table", b.intX(5)),
     b.padding(6),
-    ("pan", b.semi_nibble),
+    ("pan", b.enum(2, {
+        0: "Invalid",
+        1: "L",
+        2: "R",
+        3: "LR"
+    })),
     b.padding(8 + 6),
     ("play_type", b.enum(2, {
         0: "once",
@@ -149,7 +166,7 @@ wave_instrument = [
     })),
     b.padding(8 * 4),
     ("steps", b.nibble),
-    ("speed", b.nibble),
+    ("speed", b.nibble, {"str_format": hex, "offset": 1}),
     b.padding(8)
 ]
 

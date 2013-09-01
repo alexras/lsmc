@@ -61,6 +61,8 @@ class SAVFile(object):
         self.header_block = bread.parse(
             header_block_data, bread_spec.compressed_sav_file)
 
+        print self.header_block
+
         if self.header_block.sram_init_check != 'jk':
             assert False, "SRAM init check bits incorrect " \
                 "(should be 'jk', was '%s')" % (
@@ -149,14 +151,8 @@ class SAVFile(object):
 
         for (i, project) in enumerate(self.projects):
             raw_data = project.get_raw_data()
-
-            # print bitstring.ConstBitStream(bytes=raw_data).hex
-            # print len(raw_data)
-
             compressed_data = filepack.compress(raw_data)
-#            print bitstring.ConstBitStream(bytes=compressed_data).hex
 
-#            print len(compressed_data)
             project_block_ids = writer.write(compressed_data, factory)
 
             print project_block_ids
@@ -196,7 +192,8 @@ class SAVFile(object):
 
             self.header_block.block_alloc_table[i] = file_no
 
-        header_block.data = bread.write(self.header_block, compressed_sav_file)
+        header_block.data = bread.write(
+            self.header_block, bread_spec.compressed_sav_file)
 
         assert len(header_block.data) == blockutils.BLOCK_SIZE, \
             "Header block isn't the expected length; expected 0x%x, got 0x%x" \
