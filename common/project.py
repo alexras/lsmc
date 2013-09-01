@@ -14,3 +14,6 @@ class Project(object):
 
     def get_raw_data(self):
         return bread.write(self._song_data, spec.song)
+
+    def __eq__(self, other):
+        return self._song_data == other._song_data

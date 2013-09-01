@@ -61,8 +61,6 @@ class SAVFile(object):
         self.header_block = bread.parse(
             header_block_data, bread_spec.compressed_sav_file)
 
-        print self.header_block
-
         if self.header_block.sram_init_check != 'jk':
             assert False, "SRAM init check bits incorrect " \
                 "(should be 'jk', was '%s')" % (
@@ -126,9 +124,10 @@ class SAVFile(object):
         str_stream.close()
         return str_stream_stringval
 
-    def save(self, filename):
-        print self.header_block
+    def __eq__(self, other):
+        return self.projects == other.projects
 
+    def save(self, filename):
         fp = open(filename, 'wb')
 
         writer = BlockWriter()
@@ -154,8 +153,6 @@ class SAVFile(object):
             compressed_data = filepack.compress(raw_data)
 
             project_block_ids = writer.write(compressed_data, factory)
-
-            print project_block_ids
 
             for b in project_block_ids:
                 block_table[b] = i
@@ -211,7 +208,7 @@ class SAVFile(object):
             else:
                 data_list = empty_block_data
 
-            fp.write(data_list)
+            fp.write(bytearray(data_list))
 
         fp.close()
 
