@@ -50,7 +50,7 @@ class SAVFile(object):
     EMPTY_BLOCK = 0xff
 
     def __init__(self, filename):
-        self.projects = []
+        self.projects = {}
 
         fp = open(filename, 'rb')
 
@@ -106,7 +106,11 @@ class SAVFile(object):
                 version = self.header_block.file_versions[file_number],
                 data = raw_data)
 
-            self.projects.append(project)
+            self.projects[file_number] = project
+
+        for i in xrange(self.NUM_FILES):
+            if i not in self.projects:
+                self.projects[i] = None
 
         fp.close()
 
@@ -114,8 +118,9 @@ class SAVFile(object):
 
         str_stream = StringIO()
 
-        for project in self.projects:
-            print >>str_stream, str(project)
+        for i, project in self.projects.items():
+            if project is not None:
+                print >>str_stream, str(project)
 
         print >>str_stream, "Active Project: %s" % \
             (self.projects[self.active_project_number])
@@ -148,7 +153,10 @@ class SAVFile(object):
         # the block allocation table
         block_table[0] = -1
 
-        for (i, project) in enumerate(self.projects):
+        for (i, project) in self.projects.items():
+            if project is None:
+                continue
+
             raw_data = project.get_raw_data()
             compressed_data = filepack.compress(raw_data)
 
@@ -160,25 +168,19 @@ class SAVFile(object):
         # Bytes up to START_OFFSET will remain the same
         fp.write(self.preamble)
 
-        # Set header block filenames
-        for i, project in enumerate(self.projects):
-            self.header_block.filenames[i] = project.name
+        # Set header block filenames and versions
 
         empty_project_name = '\0' * self.FILENAME_LENGTH
 
-        for i in xrange(self.NUM_FILES - len(self.projects)):
-            self.header_block.filenames[i] = empty_project_name
-
-        # Set header block project versions
-        for i, project in enumerate(self.projects):
-            self.header_block.file_versions[i] = project.version
-
-        for i in xrange(self.NUM_FILES - len(self.projects)):
-            self.header_block.file_versions[i] = 0
+        for i, project in self.projects.items():
+            if project is None:
+                self.header_block.filenames[i] = empty_project_name
+                self.header_block.file_versions[i] = 0
+            else:
+                self.header_block.filenames[i] = project.name
+                self.header_block.file_versions[i] = project.version
 
         self.header_block.active_file = self.active_project_number
-
-
 
         # Ignore the header block when serializing the block allocation table
         for i, b in enumerate(block_table[1:]):
