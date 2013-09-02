@@ -9,6 +9,8 @@ from chain import Chain
 from speech_instrument import SpeechInstrument
 from instrument import Instrument
 
+import StringIO
+
 # Number of channels
 NUM_CHANNELS = 4
 
@@ -100,6 +102,8 @@ class Sequence(object):
     WAV = "wav"
     NOI = "noi"
 
+    NO_CHAIN = 0xff
+
     def __init__(self, song):
         self.song = song
 
@@ -112,9 +116,8 @@ class Sequence(object):
         for channel in [Sequence.PU1, Sequence.PU2, Sequence.WAV, Sequence.NOI]:
             chain_number = getattr(raw_chain, channel)
 
-            chain = self.song.chains[chain_number]
-
-            if chain is not None:
+            if chain_number != Sequence.NO_CHAIN:
+                chain = self.song.chains[chain_number]
                 chain_objs[channel] = chain
 
         return chain_objs
@@ -138,6 +141,26 @@ class Sequence(object):
                     chain_number))
 
             setattr(self.song.song_data.song[index], channel, chain_number)
+
+    def __str__(self):
+        output_str = StringIO.StringIO()
+
+        print >>output_str, "   PU1 PU2 WAV NOI"
+
+        for i, row in enumerate(self.song.song_data.song):
+            print >>output_str, "%02x" % (i),
+
+            for channel in ["pu1", "pu2", "wav", "noi"]:
+                chain_number = getattr(row, channel)
+
+                if chain_number == Sequence.NO_CHAIN:
+                    print >>output_str, " --",
+                else:
+                    print >>output_str, " %02x" % (getattr(row, channel)),
+            print >>output_str, ""
+
+        string = output_str.getvalue()
+        return string
 
 class Synths(object):
     def __init__(self, song):
@@ -186,6 +209,18 @@ class Song(object):
         self._speech_instrument = SpeechInstrument(self)
         self._synths = Synths(self)
 
+        self._sequence = Sequence(self)
+
+    def __str__(self):
+        output_str = StringIO.StringIO()
+
+        print >>output_str, str(self.sequence)
+
+        string = output_str.getvalue()
+        output_str.close()
+
+        return string
+
     @property
     def instruments(self):
         return self._instruments
@@ -225,6 +260,10 @@ class Song(object):
     @song_version.setter
     def song_version(self, version):
         self.song_data.version = version
+
+    @property
+    def sequence(self):
+        return self._sequence
 
 # For fields with a one-to-one correspondence with song data, we'll
 # programmatically insert properties to avoid repetition
