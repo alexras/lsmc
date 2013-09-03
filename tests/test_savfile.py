@@ -1,5 +1,5 @@
 import os,sys
-import unittest
+from nose.tools import assert_equal, with_setup
 
 sys.path.append(
     os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
@@ -7,29 +7,25 @@ sys.path.append(
 import common.savfile as savfile
 from common.project import Project
 
-class ProjectTests(unittest.TestCase):
-    SAV_IN = os.path.join(os.path.dirname(__file__), "test_data", "lsdj.sav")
-    SAV_OUT = os.path.join(os.path.dirname(__file__), "lsdj.sav.out")
+SAV_IN = os.path.join(os.path.dirname(__file__), "test_data", "lsdj.sav")
+SAV_OUT = os.path.join(os.path.dirname(__file__), "lsdj.sav.out")
 
-    def setUp(self):
-       if os.path.exists(ProjectTests.SAV_OUT):
-           os.unlink(ProjectTests.SAV_OUT)
+def setup():
+   if os.path.exists(SAV_OUT):
+       os.unlink(SAV_OUT)
 
-    def tearDown(self):
-        pass
-       # if os.path.exists(ProjectTests.SAV_OUT):
-       #     os.unlink(ProjectTests.SAV_OUT)
+def teardown():
+   if os.path.exists(SAV_OUT):
+       os.unlink(SAV_OUT)
 
-    def test_project_save_load(self):
-        print "Loading..."
-        sav = savfile.SAVFile(ProjectTests.SAV_IN)
+@with_setup(setup, teardown)
+def test_project_save_load():
+    print "Loading..."
+    sav = savfile.SAVFile(SAV_IN)
 
-        print "Saving..."
-        sav.save(ProjectTests.SAV_OUT)
+    print "Saving..."
+    sav.save(SAV_OUT)
 
-        new_sav = savfile.SAVFile(ProjectTests.SAV_OUT)
+    new_sav = savfile.SAVFile(SAV_OUT)
 
-        self.assertEqual(sav, new_sav)
-
-if __name__ == "__main__":
-    unittest.main()
+    assert_equal(sav, new_sav)

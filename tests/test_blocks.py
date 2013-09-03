@@ -1,10 +1,10 @@
 import os, sys, json
+from nose.tools import assert_equal, assert_list_equal
 
 sys.path.append(
     os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
 
 import common.blockutils as bl
-import common.filepack as filepack
 
 def test_simple_read_write():
     data = [i % 10 for i in xrange(bl.BLOCK_SIZE * 5 + 17)]
@@ -22,7 +22,7 @@ def test_simple_read_write():
 
     recovered_data = reader.read(blocks)
 
-    assert data == recovered_data
+    assert_list_equal(data, recovered_data)
 
 def test_sample_file():
     reader = bl.BlockReader()
@@ -45,7 +45,7 @@ def test_sample_file():
         compressed = json.load(fp)
 
     assembled_from_blocks = reader.read(song_blocks)
-    assert assembled_from_blocks == compressed
+    assert_equal(assembled_from_blocks, compressed)
 
 
     factory = bl.BlockFactory()
@@ -53,11 +53,11 @@ def test_sample_file():
 
     block_ids = writer.write(assembled_from_blocks, factory)
 
-    assert len(block_ids) == 10
+    assert_equal(len(block_ids), 10)
 
     block_map = dict(factory.blocks)
     del block_map[0]
 
     assembled_from_write = reader.read(block_map)
 
-    assert assembled_from_write == compressed
+    assert_equal(assembled_from_write, compressed)
