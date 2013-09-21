@@ -1,14 +1,18 @@
-import json, os, sys, math
+import json, os, sys, math, cProfile
 from nose.tools import assert_equal, assert_less
 
-sys.path.append(
-    os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+sys.path.append(os.path.join(SCRIPT_DIR, os.path.pardir))
 
 import common.filepack as filepack
 from common.project import Project
 
 def test_read_write_project():
-    with open("test_data/sample_song_compressed.json") as fp:
+    sample_song_compressed = os.path.join(
+        SCRIPT_DIR, "test_data", "sample_song_compressed.json")
+
+    with open(sample_song_compressed, "r") as fp:
         song_data_compressed = json.load(fp)
 
     song_data = filepack.decompress(song_data_compressed)
@@ -34,3 +38,6 @@ def test_read_write_project():
     proj_from_raw_data = Project(song_name, song_version, raw_data)
 
     assert_equal(proj_from_raw_data._song_data, proj._song_data)
+
+if __name__ == "__main__":
+    test_read_write_project()

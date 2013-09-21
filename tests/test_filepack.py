@@ -1,8 +1,9 @@
 import os, sys, json
 from nose.tools import raises, assert_equal, assert_list_equal
 
-sys.path.append(
-    os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+sys.path.append(os.path.join(SCRIPT_DIR, os.path.pardir))
 
 def assert_bytearray_equal(x, y):
     assert_list_equal(map(hex, x), map(hex, y))
@@ -433,7 +434,10 @@ def test_weird_rle_compress():
     assert_list_equal(data, recompressed)
 
 def test_sample_song():
-    with open("test_data/sample_song_compressed.json", "r") as fp:
+    sample_song_compressed = os.path.join(
+        SCRIPT_DIR, "test_data", "sample_song_compressed.json")
+
+    with open(sample_song_compressed, "r") as fp:
         compressed = json.load(fp)
 
     decompressed = filepack.decompress(compressed)

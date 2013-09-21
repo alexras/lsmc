@@ -1,8 +1,9 @@
 import os, sys, json
 from nose.tools import assert_equal, assert_list_equal
 
-sys.path.append(
-    os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
+SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
+
+sys.path.append(os.path.join(SCRIPT_DIR, os.path.pardir))
 
 import common.blockutils as bl
 
@@ -29,7 +30,10 @@ def test_sample_file():
     writer = bl.BlockWriter()
     factory = bl.BlockFactory()
 
-    with open("test_data/sample_song_blocks.json", "r") as fp:
+    sample_song_blocks = os.path.join(
+        SCRIPT_DIR, "test_data", "sample_song_blocks.json")
+
+    with open(sample_song_blocks, "r") as fp:
         song_block_data = json.load(fp)
 
     song_blocks = {}
@@ -41,7 +45,9 @@ def test_sample_file():
         song_blocks[i + 1] = factory.new_block()
         song_blocks[i + 1].data = bytearray(song_block_data[str(key)])
 
-    with open("test_data/sample_song_compressed.json", "r") as fp:
+    with open(os.path.join(SCRIPT_DIR,
+                           "test_data", "sample_song_compressed.json"),
+              "r") as fp:
         compressed = json.load(fp)
 
     assembled_from_blocks = reader.read(song_blocks)

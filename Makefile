@@ -1,2 +1,3 @@
 test:
-	nosetests --with-coverage --cover-html tests/
+	  cd tests
+		nosetests --with-coverage --cover-html .
