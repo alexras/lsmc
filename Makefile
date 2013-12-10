@@ -1,3 +1,7 @@
 test:
 	  cd tests
-		nosetests --with-coverage --cover-html .
+		pypy -m nose .
+
+profile:
+		cd tests
+		nosetests --with-cprofile --cprofile-stats-file=profiler.out .
