@@ -1,4 +1,5 @@
 from utils import assert_index_sane
+import json
 
 class Instrument(object):
     def __init__(self, song, index):
@@ -17,6 +18,8 @@ class Instrument(object):
             if hasattr(self.data, "table_on") and self.data.table_on:
                 assert_index_sane(self.data.table, len(self.song.tables))
                 return self.song.tables[self.data.table]
+        elif name == "name":
+            return self.song.song_data.instrument_names[self.index]
         else:
             return getattr(self.__dict__["data"], name)
 
@@ -33,3 +36,25 @@ class Instrument(object):
             self.data.table = value.index
         else:
             setattr(self.data, name, value)
+
+    def export(self):
+        export_struct = {}
+
+        export_struct["name"] = self.name
+        export_struct["type"] = self.instrument_type
+
+        data_json = json.loads(self.data.as_json())
+
+        for key, value in data_json:
+            if key[0] != '_':
+                export_struct[key] = value
+
+        if ("has_sound_length" in export_struct and
+            not export_struct["has_sound_length"]):
+
+            export_struct["sound_length"] = "unlimited"
+
+        if ("table_on" in export_struct and not export_struct["table_on"]):
+            del export_struct["table"]
+
+        return export_struct
