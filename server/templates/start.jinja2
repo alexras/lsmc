@@ -1,0 +1,11 @@
+{% include 'header.jinja2' %}
+<h2><a href="/upload">Upload a .sav file</a></h2>
+
+<h2>.sav Files</h2>
+
+<ul>
+  {% for f in sav_files %}
+  <li><a href="/savs/{{ f }}">{{ f }}</a></li>
+  {% endfor %}
+</ul>
+{% include 'footer.jinja2' %}

@@ -1,0 +1,10 @@
+{% include 'header.jinja2' %}
+      <form method="post" id="file-select" action="/file_select" enctype="multipart/form-data">
+        <div class="form-group">
+          <input type="file" name="inputFile"/>
+          <p class="help-block">Select a .sav file to upload here</p>
+          <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-upload">
+</span> Upload</button>
+        </div>
+      </form>
+{% include 'footer.jinja2' %}
