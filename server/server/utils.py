@@ -1,11 +1,14 @@
-import os, orm, db_utils, uuid, datetime
+import os, uuid, datetime
+import orm
+
+from server import db
 
 def has_extension(f, extension):
     return os.path.splitext(f.filename)[1] == extension
 
 def get_uploaded_files(app, extension):
 
-    return [f for f in db_utils.get_db().query(orm.SAVFile).all()]
+    return [f for f in orm.SAVFile.query.all()]
 
 def save_file(app, f, name):
     upload_dir = app.config["UPLOAD_DIR"]
@@ -16,13 +19,11 @@ def save_file(app, f, name):
     # Create a unique folder in UPLOAD_DIR to hold the sav
     sav_obj = None
 
-    db = db_utils.get_db()
-
     while sav_obj is None:
-        sav_id = uuid.uuid4()
+        sav_id = str(uuid.uuid4())
 
-        if db.query(orm.SAVFile).filter(SAVFile.uuid(sav_id)).count() == 0:
-            sav_obj = SAVFile(
+        if orm.SAVFile.query.filter_by(uuid=sav_id).count() == 0:
+            sav_obj = orm.SAVFile(
                 uuid=sav_id, name=name,
                 date_uploaded = datetime.datetime.utcnow())
 
@@ -33,4 +34,5 @@ def save_file(app, f, name):
 
     f.save(os.path.join(directory_path, "lsdj.sav"))
 
-    db.commit()
+    db.session.add(sav_obj)
+    db.session.commit()
