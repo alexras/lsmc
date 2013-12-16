@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
-import os, sys, server_utils
+import os, sys, server_utils, db_utils
 
 from flask import Flask, request, render_template, send_from_directory, g, \
-    session
-
-from werkzeug import secure_filename
+    session, redirect
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
 app.config["UPLOAD_DIR"] = os.path.join(SCRIPT_DIR, "uploads")
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db_utils.close_db()
 
 @app.route("/upload")
 def upload():

@@ -1,8 +1,12 @@
 {% include 'header.jinja2' %}
       <form method="post" id="file-select" action="/file_select" enctype="multipart/form-data">
         <div class="form-group">
+          <label>.sav File Name</label>
+          <input type="text" class="form-control" placeholder="My LSDJ .sav"></input>
+          <br />
+          <label>File Location</label>
           <input type="file" name="inputFile"/>
-          <p class="help-block">Select a .sav file to upload here</p>
+          <br />
           <button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-upload">
 </span> Upload</button>
         </div>
