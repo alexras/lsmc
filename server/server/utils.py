@@ -36,3 +36,5 @@ def save_file(app, f, name):
 
     db.session.add(sav_obj)
     db.session.commit()
+
+    return sav_id

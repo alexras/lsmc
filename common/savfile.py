@@ -12,6 +12,10 @@ import filepack
 import collections
 import bitstring
 
+# By default, SAV file loading doesn't trigger any callback action
+def _noop_callback(message, step, total_steps, continuing):
+    pass
+
 class SAVFile(object):
     # Start offset of SAV file contents
     START_OFFSET = 0x8000
@@ -49,10 +53,16 @@ class SAVFile(object):
     #Constants
     EMPTY_BLOCK = 0xff
 
-    def __init__(self, filename):
+    def __init__(self, filename, callback=_noop_callback):
+        # 32 possible projects + read preamble + decompress blocks
+        total_steps = 34
+        current_step = 0
+
         self.projects = {}
 
         fp = open(filename, 'rb')
+
+        callback("Reading preamble", current_step, total_steps, True)
 
         self.preamble = fp.read(self.START_OFFSET)
 
@@ -62,11 +72,17 @@ class SAVFile(object):
             header_block_data, bread_spec.compressed_sav_file)
 
         if self.header_block.sram_init_check != 'jk':
-            assert False, "SRAM init check bits incorrect " \
+            callback("SRAM init check bits incorrect " \
                 "(should be 'jk', was '%s')" % (
-                    self.header_block.sram_init_check)
+                    self.header_block.sram_init_check),
+                     current_step, total_steps, False)
+            return None
 
         self.active_project_number = self.header_block.active_file
+
+        current_step += 1
+
+        callback("Decompressing", current_step, total_steps, True)
 
         file_blocks = collections.defaultdict(list)
 
@@ -75,12 +91,16 @@ class SAVFile(object):
             if file_number == self.EMPTY_BLOCK:
                 continue
 
-            assert 0 <= file_number <= 0x1f, (
-                "File number %x for block %x out of range" %
-                (file_number, block_number))
+            if file_number < 0 or file_number > 0x1f:
+                callback(
+                    "File number %x for block %x out of range" %
+                    (file_number, block_number),
+                    current_step, total_steps, False)
 
             # The file's header is block 0, so blocks are indexed from 1
             file_blocks[file_number].append(block_number + 1)
+
+        current_step += 1
 
         for file_number in file_blocks:
             block_numbers = file_blocks[file_number]
@@ -101,12 +121,21 @@ class SAVFile(object):
             compressed_data = reader.read(block_map)
             raw_data = filepack.decompress(compressed_data)
 
+            project_name = self.header_block.filenames[file_number]
+            project_version = self.header_block.file_versions[file_number]
+
+            callback("Reading project '%s' v%d" %
+                     (project_name, project_version),
+                     current_step, total_steps, True)
+
             project = Project(
                 name = self.header_block.filenames[file_number],
                 version = self.header_block.file_versions[file_number],
                 data = raw_data)
 
             self.projects[file_number] = project
+
+            current_step += 1
 
         for i in xrange(self.NUM_FILES):
             if i not in self.projects:

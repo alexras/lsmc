@@ -7,3 +7,4 @@ class SAVFile(db.Model):
     uuid = db.Column(db.String(36))
     name = db.Column(db.String(255))
     date_uploaded = db.Column(db.DateTime(timezone=True))
+    percent_complete = db.Column(db.Integer)
