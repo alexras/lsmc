@@ -10,7 +10,8 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 
 app.config.update(
-    SQLALCHEMY_DATABASE_URI = "sqlite:///database.db",
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" +
+    os.path.abspath(os.path.join(SCRIPT_DIR, os.pardir, "database.db")),
     UPLOAD_DIR = os.path.abspath(
         os.path.join(SCRIPT_DIR, os.pardir, "uploads")),
     CELERY_BROKER_URL='amqp://guest@localhost//'
