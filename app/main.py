@@ -8,7 +8,6 @@ app = wx.App(False)
 class ProjectsWindow(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-        self.current_sav_obj = None
 
         # List the projects in the currently loaded .sav
         self.sav_project_list = ObjectListView(
@@ -42,9 +41,14 @@ class ProjectsWindow(wx.Panel):
 
         self.SetSizer(window_layout)
 
+    def update_models(self, sav_obj):
+        self.sav_project_list.SetObjects(
+            [sav_obj.projects[i] for i in sorted(sav_obj.projects.keys())])
+
 class MainNotebook(wx.Notebook):
     def __init__(self, parent):
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=wx.BK_DEFAULT)
+        self.sav_obj = None
 
         self.songs_window = ProjectsWindow(self)
 
@@ -62,16 +66,20 @@ class MainNotebook(wx.Notebook):
         print "page changed ", event.GetOldSelection(), event.NewSelection(), self.GetSelection()
         event.Skip()
 
+    def update_models(self, sav_obj):
+        self.sav_obj = sav_obj
+        self.songs_window.update_models(sav_obj)
+
 class MenuBar(wx.MenuBar):
     def __init__(self, parent):
         wx.MenuBar.__init__(self)
         self.parent = parent
 
         file_menu = wx.Menu()
-        file_menu.Append(101, "&Open .sav", "Open a .sav file")
+        file_menu.Append(101, "&Open .sav ...", "Open a .sav file")
 
         self.Bind(wx.EVT_MENU, functools.partial(
-            event_handlers.open_sav, songs_window=parent.notebook.songs_window))
+            event_handlers.open_sav, main_window=parent.notebook))
 
         self.Append(file_menu, "&File")
 
