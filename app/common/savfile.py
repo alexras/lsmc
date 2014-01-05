@@ -107,6 +107,8 @@ class SAVFile(object):
 
         for file_number in file_blocks:
             block_numbers = file_blocks[file_number]
+            project_size_blks = len(block_numbers)
+
             block_map = {}
 
             for block_number in block_numbers:
@@ -134,7 +136,8 @@ class SAVFile(object):
             project = Project(
                 name = self.header_block.filenames[file_number],
                 version = self.header_block.file_versions[file_number],
-                data = raw_data)
+                data = raw_data,
+                size_blks = project_size_blks)
 
             self.projects[file_number] = project
 

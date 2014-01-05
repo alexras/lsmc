@@ -3,6 +3,8 @@
 import wx, functools, event_handlers
 from ObjectListView import ObjectListView, ColumnDefn
 
+import common.utils as cu
+
 app = wx.App(False)
 
 class ProjectsWindow(wx.Panel):
@@ -13,15 +15,38 @@ class ProjectsWindow(wx.Panel):
         self.sav_project_list = ObjectListView(
             self, wx.ID_ANY, style=wx.LC_REPORT)
         self.sav_project_list.SetEmptyListMsg("No .sav loaded")
-        name_col = ColumnDefn("Song Name", "left", 200, "name", isSpaceFilling=True)
+
+        def string_getter(x, attr):
+            if x[1] is None:
+                return "--"
+            else:
+                obj_attr = getattr(x[1], attr)
+
+                if isinstance(obj_attr, (int, float, long, complex)):
+                    return cu.printable_decimal_and_hex(obj_attr)
+                else:
+                    return obj_attr
+        index_col = ColumnDefn("#", "left", 40, lambda x: "%d" % (x[0]))
+
+        name_col = ColumnDefn(
+            "Song Name", "left", 200,
+            functools.partial(string_getter, attr="name"), isSpaceFilling=True)
         name_col.freeSpaceProportion = 2
 
-        version_col = ColumnDefn("Version", "left", 50, "version", isSpaceFilling=True)
+        version_col = ColumnDefn(
+            "Version", "left", 50,
+            functools.partial(string_getter, attr="version"),
+            isSpaceFilling=True)
         version_col.freeSpaceProportion = 1
 
-        size_col = ColumnDefn("Size (Blocks)", "left", 100, "size_blks", isSpaceFilling=True)
+        size_col = ColumnDefn(
+            "Size (Blocks)", "left", 100,
+            functools.partial(string_getter, attr="size_blks"),
+            isSpaceFilling=True)
+
         size_col.freeSpaceProportion = 1
-        self.sav_project_list.SetColumns([name_col, version_col, size_col])
+        self.sav_project_list.SetColumns(
+            [index_col, name_col, version_col, size_col])
 
         export_proj_button = wx.Button(
             self, wx.ID_ANY, label="Export Selected as .lsdsng")
@@ -43,7 +68,7 @@ class ProjectsWindow(wx.Panel):
 
     def update_models(self, sav_obj):
         self.sav_project_list.SetObjects(
-            [sav_obj.projects[i] for i in sorted(sav_obj.projects.keys())])
+            [(i, sav_obj.projects[i]) for i in sorted(sav_obj.projects.keys())])
 
 class MainNotebook(wx.Notebook):
     def __init__(self, parent):

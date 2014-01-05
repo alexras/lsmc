@@ -3,15 +3,17 @@ import bread
 import bread_spec as spec
 from song import Song
 import StringIO
+import utils
 
 class Project(object):
-    def __init__(self, name, version, data):
+    def __init__(self, name, version, size_blks, data):
         self.name = name
         self.version = version
 
         self._song_data = bread.parse(data, spec.song)
 
         self.song = Song(self._song_data)
+        self.size_blks = size_blks
 
     def get_raw_data(self):
         return bread.write(self._song_data, spec.song)

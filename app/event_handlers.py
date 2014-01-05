@@ -17,7 +17,6 @@ def open_sav(event, main_window):
         sav_obj = None
 
         def progress_update_function(message, step, total_steps, still_working):
-            print "PROGRESS! ", message, step, total_steps, still_working
             progress_dlg.Update((step * 100) / total_steps, newmsg = message)
 
         try:
