@@ -54,13 +54,15 @@ class SAVFile(object):
     EMPTY_BLOCK = 0xff
 
     def __init__(self, filename, callback=_noop_callback):
-        # 32 possible projects + read preamble + decompress blocks
-        total_steps = 34
+        with open(filename, 'rb') as fp:
+            self._load(fp, callback)
+
+    def _load(self, fp, callback):
+        # 32 possible projects + read preamble + decompress blocks + "all done"
+        total_steps = 35
         current_step = 0
 
         self.projects = {}
-
-        fp = open(filename, 'rb')
 
         callback("Reading preamble", current_step, total_steps, True)
 
@@ -72,11 +74,12 @@ class SAVFile(object):
             header_block_data, bread_spec.compressed_sav_file)
 
         if self.header_block.sram_init_check != 'jk':
-            callback("SRAM init check bits incorrect " \
-                "(should be 'jk', was '%s')" % (
-                    self.header_block.sram_init_check),
-                     current_step, total_steps, False)
-            return None
+            error_msg = (
+                "SRAM init check bits incorrect (should be 'jk', was '%s')" %
+                (self.header_block.sram_init_check))
+
+            callback(error_msg, current_step, total_steps, False)
+            raise ValueError(error_msg)
 
         self.active_project_number = self.header_block.active_file
 
@@ -141,7 +144,7 @@ class SAVFile(object):
             if i not in self.projects:
                 self.projects[i] = None
 
-        fp.close()
+        callback("Import complete!", total_steps, total_steps, True)
 
     def __str__(self):
 
