@@ -5,7 +5,7 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.append(os.path.join(SCRIPT_DIR, os.path.pardir))
 
-import common.blockutils as bl
+import app.common.blockutils as bl
 
 def test_simple_read_write():
     data = [i % 10 for i in xrange(bl.BLOCK_SIZE * 5 + 17)]

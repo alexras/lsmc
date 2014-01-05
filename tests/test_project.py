@@ -5,8 +5,8 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.append(os.path.join(SCRIPT_DIR, os.path.pardir))
 
-import common.filepack as filepack
-from common.project import Project
+import app.common.filepack as filepack
+from app.common.project import Project
 
 def test_read_write_project():
     sample_song_compressed = os.path.join(
@@ -19,7 +19,12 @@ def test_read_write_project():
     song_name = "UNTOLDST"
     song_version = 23
 
-    proj = Project(song_name, song_version, song_data)
+    # 0xbadf00d for size in blocks is synthetic, since we don't really care
+    # about its size for the purposes of this test
+    bogus_size_blks = 0xbadf00d
+
+    proj = Project(
+        song_name, song_version, bogus_size_blks, song_data)
     empty_instruments = [
         i for i in xrange(len(proj.song.instruments.alloc_table))
         if proj.song.instruments.alloc_table[i] == 0]
@@ -35,7 +40,8 @@ def test_read_write_project():
 
     # Do comparison based on parsed object, since the actual input data can
     # contain noise
-    proj_from_raw_data = Project(song_name, song_version, raw_data)
+    proj_from_raw_data = Project(
+        song_name, song_version, bogus_size_blks, raw_data)
 
     assert_equal(proj_from_raw_data._song_data, proj._song_data)
 
