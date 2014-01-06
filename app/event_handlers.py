@@ -30,3 +30,14 @@ def open_sav(event, main_window):
             progress_dlg.Destroy()
 
     dlg.Destroy()
+
+def save_song(event, main_window):
+    song_to_save = main_window.sav_project_list.GetSelectedObject()[1]
+
+    dlg = wx.FileDialog(
+        None, "Save '%s'" % (song_to_save.name), '.', '', "*.lsdsng", wx.SAVE)
+
+    if dlg.ShowModal() == wx.ID_OK:
+        song_file_path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+
+        song_to_save.save(song_file_path)

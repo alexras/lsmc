@@ -3,6 +3,8 @@
 import wx, functools, event_handlers
 from ObjectListView import ObjectListView, ColumnDefn
 
+import utils
+
 import common.utils as cu
 
 app = wx.App(False)
@@ -14,6 +16,8 @@ class ProjectsWindow(wx.Panel):
         # List the projects in the currently loaded .sav
         self.sav_project_list = ObjectListView(
             self, wx.ID_ANY, style=wx.LC_REPORT)
+        utils.enable_single_selection(self.sav_project_list, self)
+
         self.sav_project_list.SetEmptyListMsg("No .sav loaded")
 
         def string_getter(x, attr):
@@ -26,7 +30,7 @@ class ProjectsWindow(wx.Panel):
                     return cu.printable_decimal_and_hex(obj_attr)
                 else:
                     return obj_attr
-        index_col = ColumnDefn("#", "left", 40, lambda x: "%d" % (x[0]))
+        index_col = ColumnDefn("#", "left", 40, lambda x: "%02d" % (x[0] + 1))
 
         name_col = ColumnDefn(
             "Song Name", "left", 200,
@@ -52,6 +56,10 @@ class ProjectsWindow(wx.Panel):
             self, wx.ID_ANY, label="Export Selected as .lsdsng")
         add_proj_button = wx.Button(
             self, wx.ID_ANY, label="Add Song as .lsdsng")
+
+        self.Bind(wx.EVT_BUTTON,
+                  functools.partial(event_handlers.save_song, main_window=self),
+                  export_proj_button)
 
         buttons_layout = wx.BoxSizer(wx.VERTICAL)
         for i, button in enumerate([add_proj_button, export_proj_button]):
@@ -91,10 +99,6 @@ class MainNotebook(wx.Notebook):
         print "page changed ", event.GetOldSelection(), event.NewSelection(), self.GetSelection()
         event.Skip()
 
-    def update_models(self, sav_obj):
-        self.sav_obj = sav_obj
-        self.songs_window.update_models(sav_obj)
-
 class MenuBar(wx.MenuBar):
     def __init__(self, parent):
         wx.MenuBar.__init__(self)
@@ -104,7 +108,7 @@ class MenuBar(wx.MenuBar):
         file_menu.Append(101, "&Open .sav ...", "Open a .sav file")
 
         self.Bind(wx.EVT_MENU, functools.partial(
-            event_handlers.open_sav, main_window=parent.notebook))
+            event_handlers.open_sav, main_window=parent))
 
         self.Append(file_menu, "&File")
 
@@ -113,10 +117,10 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, "LSDJ .sav Utils", size=(600,400))
 
         panel = wx.Panel(self)
-        self.notebook = MainNotebook(panel)
+        self.songs_window = ProjectsWindow(panel)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.notebook, 1, wx.ALL|wx.EXPAND, 5)
+        sizer.Add(self.songs_window, 1, wx.ALL|wx.EXPAND, 5)
 
         panel.SetSizer(sizer)
 
@@ -125,6 +129,11 @@ class MainWindow(wx.Frame):
         # Display
         self.Layout()
         self.Show()
+
+    def update_models(self, sav_obj):
+        self.sav_obj = sav_obj
+        self.songs_window.update_models(sav_obj)
+
 
 starting_window = MainWindow()
 app.MainLoop()

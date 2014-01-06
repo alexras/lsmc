@@ -349,3 +349,9 @@ song = [
     b.padding(13 * 8),
     ("version", b.byte)
 ]
+
+# .lsdsng format
+lsdsng_preamble = [
+    ("name", b.string(8)),
+    ("version", b.byte)
+]
