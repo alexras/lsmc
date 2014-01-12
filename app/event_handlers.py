@@ -28,11 +28,26 @@ def open_sav(event, main_window):
                               str(e))
 
         if sav_obj is not None:
-            main_window.set_sav(sav_obj)
-            main_window.update_models()
+            main_window.GetGrandParent().set_sav(sav_obj)
+            main_window.GetGrandParent().update_models()
             progress_dlg.Destroy()
 
     dlg.Destroy()
+
+def save_sav(event, main_window):
+    dlg = wx.FileDialog(None, "Save .sav as ...", '.', '', "*.sav", wx.SAVE)
+
+    if dlg.ShowModal() == wx.ID_OK:
+        sav_file_path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+
+        progress_dlg = wx.ProgressDialog(
+            "Saving %s" % (sav_file_path), "Reticulating splines", 100)
+
+        def progress_update_function(message, step, total_steps, still_working):
+            progress_dlg.Update((step * 100) / total_steps, newmsg = message)
+
+        main_window.GetGrandParent().sav_obj.save(
+            sav_file_path, callback=progress_update_function)
 
 def save_song(event, main_window):
     song_to_save = main_window.sav_project_list.GetSelectedObject()[1]

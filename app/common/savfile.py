@@ -171,8 +171,10 @@ class SAVFile(object):
     def project_list(self):
         return [(i, self.projects[i]) for i in sorted(self.projects.keys())]
 
-    def save(self, filename):
-        fp = open(filename, 'wb')
+    def _save(self, fp, callback):
+        # Marshal 32 possible projects + write preamble + write data + "all done"
+        total_steps = 35
+        current_step = 0
 
         writer = BlockWriter()
         factory = BlockFactory()
@@ -193,8 +195,13 @@ class SAVFile(object):
         block_table[0] = -1
 
         for (i, project) in self.projects.items():
+            current_step += 1
+
             if project is None:
                 continue
+
+            callback("Marshaling song '%s'" % (project.name),
+                     current_step - 1, total_steps, True)
 
             raw_data = project.get_raw_data()
             compressed_data = filepack.compress(raw_data)
@@ -204,6 +211,9 @@ class SAVFile(object):
             for b in project_block_ids:
                 block_table[b] = i
 
+        callback("Writing preamble and constructing header block",
+                 current_step, total_steps, True)
+        current_step += 1
         # Bytes up to START_OFFSET will remain the same
         fp.write(self.preamble)
 
@@ -243,6 +253,8 @@ class SAVFile(object):
         for i in xrange(blockutils.BLOCK_SIZE):
             empty_block_data.append(0)
 
+        callback("Writing data to file", current_step, total_steps, True)
+        current_step += 1
         for i in xrange(num_blocks):
             if i in block_map:
                 data_list = block_map[i].data
@@ -251,7 +263,11 @@ class SAVFile(object):
 
             fp.write(bytearray(data_list))
 
-        fp.close()
+        callback("Save complete!", total_steps, total_steps, True)
+
+    def save(self, filename, callback=_noop_callback):
+        with open(filename, 'wb') as fp:
+            self._save(fp, callback)
 
 if __name__ == "__main__":
     sav = SAVFile(sys.argv[1])
