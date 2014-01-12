@@ -52,17 +52,27 @@ class ProjectsWindow(wx.Panel):
         self.sav_project_list.SetColumns(
             [index_col, name_col, version_col, size_col])
 
-        export_proj_button = wx.Button(
+        self.export_proj_button = wx.Button(
             self, wx.ID_ANY, label="Export Selected as .lsdsng")
-        add_proj_button = wx.Button(
+        self.export_proj_button.Disable()
+
+        self.add_proj_button = wx.Button(
             self, wx.ID_ANY, label="Add Song as .lsdsng")
+        self.add_proj_button.Disable()
 
         self.Bind(wx.EVT_BUTTON,
                   functools.partial(event_handlers.save_song, main_window=self),
-                  export_proj_button)
+                  self.export_proj_button)
+        self.Bind(
+            wx.EVT_LIST_ITEM_SELECTED, self.handle_song_selection_changed,
+            self.sav_project_list)
+        self.Bind(
+            wx.EVT_LIST_ITEM_DESELECTED, self.handle_song_selection_changed,
+            self.sav_project_list)
 
         buttons_layout = wx.BoxSizer(wx.VERTICAL)
-        for i, button in enumerate([add_proj_button, export_proj_button]):
+        for i, button in enumerate(
+                [self.add_proj_button, self.export_proj_button]):
             buttons_layout.Add(button, i, wx.EXPAND)
             buttons_layout.AddSpacer(10)
 
@@ -78,6 +88,22 @@ class ProjectsWindow(wx.Panel):
         self.sav_project_list.SetObjects(
             [(i, sav_obj.projects[i]) for i in sorted(sav_obj.projects.keys())])
 
+    def handle_song_selection_changed(self, event):
+        selected_objects = self.sav_project_list.GetSelectedObjects()
+
+        if len(selected_objects) > 0:
+            self.export_proj_button.Enable()
+
+            if len([x for x in selected_objects if x[1] is None]) > 0:
+                self.add_proj_button.Enable()
+                self.export_proj_button.Disable()
+        else:
+            self.add_proj_button.Disable()
+            self.export_proj_button.Disable()
+
+        # Make sure event propagation can continue
+        event.Skip()
+
 class MainNotebook(wx.Notebook):
     def __init__(self, parent):
         wx.Notebook.__init__(self, parent, id=wx.ID_ANY, style=wx.BK_DEFAULT)
@@ -88,33 +114,27 @@ class MainNotebook(wx.Notebook):
         self.AddPage(self.songs_window, "Songs")
 
         # Event binding
-        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.on_page_changing)
-        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
+        # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.on_page_changing)
+        # self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
 
-    def on_page_changing(self, event):
-        print "page changing ", event.GetOldSelection(), event.NewSelection(), self.GetSelection()
-        event.Skip()
-
-    def on_page_changed(self, event):
-        print "page changed ", event.GetOldSelection(), event.NewSelection(), self.GetSelection()
-        event.Skip()
-
-class MenuBar(wx.MenuBar):
+class MainMenuBar(wx.MenuBar):
     def __init__(self, parent):
         wx.MenuBar.__init__(self)
         self.parent = parent
 
         file_menu = wx.Menu()
-        file_menu.Append(101, "&Open .sav ...", "Open a .sav file")
+        open_menu_item = file_menu.Append(
+            wx.ID_ANY, "&Open .sav ...", "Open a .sav file")
 
         self.Bind(wx.EVT_MENU, functools.partial(
-            event_handlers.open_sav, main_window=parent))
+            event_handlers.open_sav, main_window=parent), open_menu_item)
 
         self.Append(file_menu, "&File")
 
 class MainWindow(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, wx.ID_ANY, "LSDJ .sav Utils", size=(600,400))
+        wx.Frame.__init__(self, None, wx.ID_ANY, "LSDJ .sav Utils",
+                          size=(600,400))
 
         panel = wx.Panel(self)
         self.songs_window = ProjectsWindow(panel)
@@ -124,7 +144,7 @@ class MainWindow(wx.Frame):
 
         panel.SetSizer(sizer)
 
-        self.SetMenuBar(MenuBar(self))
+        self.SetMenuBar(MainMenuBar(self))
 
         # Display
         self.Layout()
