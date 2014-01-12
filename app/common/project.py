@@ -42,8 +42,6 @@ def load_project(filename):
         size_blks = int(math.ceil(
             float(len(compressed_data)) / blockutils.BLOCK_SIZE))
 
-        print name, version, size_blks, len(raw_data)
-
         return Project(name, version, size_blks, raw_data)
 
 class Project(object):
@@ -80,11 +78,7 @@ class Project(object):
 
     def __str__(self):
         out_str = StringIO.StringIO()
-
-        print >>out_str, "Project Name: ", self.name
-        print >>out_str, "     Version: ", self.version
-        print >>out_str, ""
-        print >>out_str, str(self.song)
+        print >>out_str, "<%s, %d>" % (self.name, self.version)
 
         string = out_str.getvalue()
         out_str.close()
