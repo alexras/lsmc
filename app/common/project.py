@@ -1,11 +1,50 @@
-import sys
+import sys, math
 import bread
 import bread_spec as spec
 from song import Song
 import StringIO
 import utils
 import filepack
-from blockutils import BlockWriter, BlockFactory
+import blockutils
+from blockutils import BlockReader, BlockWriter, BlockFactory
+
+def load_project(filename):
+    # Load preamble data so that we know the name and version of the song
+    with open(filename, 'rb') as fp:
+        preamble_data = bread.parse(fp, spec.lsdsng_preamble)
+
+    with open(filename, 'rb') as fp:
+        # Skip the preamble this time around
+        fp.seek(len(preamble_data) / 8)
+
+        # Load compressed data into a block map and use BlockReader to
+        # decompress it
+        factory = BlockFactory()
+
+        while True:
+            block_data = bytearray(fp.read(blockutils.BLOCK_SIZE))
+
+            if len(block_data) == 0:
+                break
+
+            block = factory.new_block()
+            block.data = block_data
+
+        reader =  BlockReader()
+        compressed_data = reader.read(factory.blocks)
+
+        # Now, decompress the raw data and use it and the preamble to construct
+        # a Project
+        raw_data = filepack.decompress(compressed_data)
+
+        name = preamble_data.name
+        version = preamble_data.version
+        size_blks = int(math.ceil(
+            float(len(compressed_data)) / blockutils.BLOCK_SIZE))
+
+        print name, version, size_blks, len(raw_data)
+
+        return Project(name, version, size_blks, raw_data)
 
 class Project(object):
     def __init__(self, name, version, size_blks, data):
