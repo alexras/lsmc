@@ -63,6 +63,10 @@ class ProjectsWindow(wx.Panel):
         self.Bind(wx.EVT_BUTTON,
                   functools.partial(event_handlers.save_song, main_window=self),
                   self.export_proj_button)
+        self.Bind(wx.EVT_BUTTON,
+                  functools.partial(event_handlers.add_song, main_window=self),
+                  self.add_proj_button)
+
         self.Bind(
             wx.EVT_LIST_ITEM_SELECTED, self.handle_song_selection_changed,
             self.sav_project_list)
@@ -84,9 +88,9 @@ class ProjectsWindow(wx.Panel):
 
         self.SetSizer(window_layout)
 
-    def update_models(self, sav_obj):
+    def update_models(self):
         self.sav_project_list.SetObjects(
-            [(i, sav_obj.projects[i]) for i in sorted(sav_obj.projects.keys())])
+            self.GetGrandParent().sav_obj.project_list)
 
     def handle_song_selection_changed(self, event):
         selected_objects = self.sav_project_list.GetSelectedObjects()
@@ -136,6 +140,8 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, "LSDJ .sav Utils",
                           size=(600,400))
 
+        self.sav_obj = None
+
         panel = wx.Panel(self)
         self.songs_window = ProjectsWindow(panel)
 
@@ -150,9 +156,15 @@ class MainWindow(wx.Frame):
         self.Layout()
         self.Show()
 
-    def update_models(self, sav_obj):
+    def set_sav(self, sav_obj):
         self.sav_obj = sav_obj
-        self.songs_window.update_models(sav_obj)
+        self.songs_window.sav_project_list.SetObjects(sav_obj.project_list)
+
+    def get_sav(self):
+        return self.sav_obj
+
+    def update_models(self):
+        self.songs_window.update_models()
 
 
 starting_window = MainWindow()

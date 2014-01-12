@@ -167,6 +167,10 @@ class SAVFile(object):
     def __eq__(self, other):
         return self.projects == other.projects
 
+    @property
+    def project_list(self):
+        return [(i, self.projects[i]) for i in sorted(self.projects.keys())]
+
     def save(self, filename):
         fp = open(filename, 'wb')
 
