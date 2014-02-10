@@ -3,7 +3,7 @@ import wx, os
 import common.savfile as cs
 import common.project as cp
 
-def open_sav(event, main_window):
+def open_sav(event, projects_window, main_window):
     # Display an open dialog box so the user can select a .sav file
     dlg = wx.FileDialog(None, "Choose a .sav file", '.', '',
                         '*.sav', wx.OPEN)
@@ -28,13 +28,13 @@ def open_sav(event, main_window):
                               str(e))
 
         if sav_obj is not None:
-            main_window.GetGrandParent().set_sav(sav_obj)
-            main_window.GetGrandParent().update_models()
+            main_window.set_sav(sav_obj)
+            main_window.update_models()
             progress_dlg.Destroy()
 
     dlg.Destroy()
 
-def save_sav(event, main_window):
+def save_sav(event, projects_window, main_window):
     dlg = wx.FileDialog(None, "Save .sav as ...", '.', '', "*.sav", wx.SAVE)
 
     if dlg.ShowModal() == wx.ID_OK:
@@ -46,11 +46,11 @@ def save_sav(event, main_window):
         def progress_update_function(message, step, total_steps, still_working):
             progress_dlg.Update((step * 100) / total_steps, newmsg = message)
 
-        main_window.GetGrandParent().sav_obj.save(
+        main_window.sav_obj.save(
             sav_file_path, callback=progress_update_function)
 
-def save_song(event, main_window):
-    song_to_save = main_window.sav_project_list.GetSelectedObject()[1]
+def save_song(event, projects_window, main_window):
+    song_to_save = projects_window.sav_project_list.GetSelectedObject()[1]
 
     dlg = wx.FileDialog(
         None, "Save '%s'" % (song_to_save.name), '.', '', "*.lsdsng", wx.SAVE)
@@ -60,8 +60,8 @@ def save_song(event, main_window):
 
         song_to_save.save(song_file_path)
 
-def add_song(event, main_window):
-    selected_obj = main_window.sav_project_list.GetSelectedObject()
+def add_song(event, projects_window, main_window):
+    selected_obj = projects_window.sav_project_list.GetSelectedObject()
     index, current_proj = selected_obj
 
     if current_proj is not None:
@@ -71,7 +71,7 @@ def add_song(event, main_window):
             (index + 1))
         return
 
-    sav_obj = main_window.GetGrandParent().get_sav()
+    sav_obj = main_window.get_sav()
 
     dlg = wx.FileDialog(None, "Open .lsdsng", '.', '', "*.lsdsng", wx.OPEN)
 
