@@ -82,6 +82,9 @@ class Instruments(object):
 
         return self.access_objects[index]
 
+    def as_list(self):
+        return self.access_objects
+
     def allocate(self, index, instrument_type):
         self.alloc_table[index] = True
         self.set_instrument_type(index, instrument_type)

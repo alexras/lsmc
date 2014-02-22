@@ -14,6 +14,18 @@ class InstrumentPane(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.instr_list = utils.new_obj_list_view(self)
+        self.instr_list.SetEmptyListMsg("Loading instrument list ...")
+
+        def instr_name_printer(name):
+
+
+        name_col = ColumnDefn("Name", "left", 200, "name")
+        type_col = ColumnDefn("Type", "left", 50, "type")
+        self.instr_list.SetColumns([name_col, type_col])
+
+        self.instrument_objects = project.song.instruments.as_list()
+
+        self.instr_list.SetObjects(self.instrument_objects)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -33,7 +45,7 @@ class SongWindow(wx.Frame):
     def __init__(self, parent, project):
         wx.Frame.__init__(
             self, parent, wx.ID_ANY, "Song - %s" % (project.name),
-            size=(400,400))
+            size=(800,400))
 
         panel = wx.Panel(self)
 

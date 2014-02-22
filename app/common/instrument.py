@@ -11,6 +11,10 @@ class Instrument(object):
     def name(self):
         return self.song.song_data.instrument_names[self.index]
 
+    @property
+    def type(self):
+        return self.data.instrument_type
+
     def __getattr__(self, name):
         if name == "wave":
             return self.song.song_data.wave_frames[self.index]
