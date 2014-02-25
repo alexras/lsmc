@@ -9,29 +9,7 @@ import common.utils as cu
 
 app = wx.App(False)
 
-class InstrumentPane(wx.Panel):
-    def __init__(self, parent, project):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-
-        self.instr_list = utils.new_obj_list_view(self)
-        self.instr_list.SetEmptyListMsg("Loading instrument list ...")
-
-        def instr_name_printer(name):
-
-
-        name_col = ColumnDefn("Name", "left", 200, "name")
-        type_col = ColumnDefn("Type", "left", 50, "type")
-        self.instr_list.SetColumns([name_col, type_col])
-
-        self.instrument_objects = project.song.instruments.as_list()
-
-        self.instr_list.SetObjects(self.instrument_objects)
-
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        sizer.Add(self.instr_list, 1, wx.ALL | wx.EXPAND, border=5)
-
-        self.SetSizer(sizer)
+from InstrumentPane import InstrumentPane
 
 class SynthPane(wx.Panel):
     def __init__(self, parent, project):
@@ -74,6 +52,8 @@ class ProjectsWindow(wx.Panel):
 
         # List the projects in the currently loaded .sav
         self.sav_project_list = utils.new_obj_list_view(self)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.open_song, self.sav_project_list)
+
 
         self.sav_project_list.SetEmptyListMsg("No .sav loaded")
 

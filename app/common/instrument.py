@@ -16,7 +16,7 @@ class Instrument(object):
         return self.data.instrument_type
 
     def __getattr__(self, name):
-        if name == "wave":
+        if name == "wave" and type == "wave":
             return self.song.song_data.wave_frames[self.index]
         elif name == "table":
             if hasattr(self.data, "table_on") and self.data.table_on:
