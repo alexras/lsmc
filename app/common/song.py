@@ -34,6 +34,9 @@ class AllocTable(object):
     def allocate(self, index):
         self.alloc_table[index] = True
 
+    def __len__(self):
+        return len(self.alloc_table)
+
 class Instruments(object):
     specs = {
         "pulse": bread_spec.pulse_instrument,
@@ -267,6 +270,10 @@ class Song(object):
     @property
     def sequence(self):
         return self._sequence
+
+    @property
+    def tables(self):
+        return self._tables
 
 # For fields with a one-to-one correspondence with song data, we'll
 # programmatically insert properties to avoid repetition
