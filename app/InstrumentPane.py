@@ -81,27 +81,48 @@ class InstrumentPane(wx.Panel):
         self.show_instr_panel(instrument)
 
 class InstrumentPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, channel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
-    def change_instrument(self, instrument):
+        self.pubsub_channel = channel
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.SetSizer(self.sizer)
+
+        if channel is not None:
+            pub.subscribe(self.update_view, channel)
+
+    def update_view(self, data):
         pass
+
+    def add_field(self, label_text, control):
+        label = wx.StaticText(self, label=label_text)
+
+        field_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        field_sizer.Add(label, 1, wx.ALL)
+        field_sizer.Add(control, 1, wx.ALL)
+
+        self.sizer.Add(field_sizer, 0, wx.ALL)
+
+    def change_instrument(self, instrument):
+        pub.sendMessage(self.pubsub_channel, data=instrument)
 
 class NoInstrumentSelectedPanel(InstrumentPanel):
     def __init__(self, parent):
-        InstrumentPanel.__init__(self, parent)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        InstrumentPanel.__init__(self, parent, None)
 
         info_text = wx.StaticText(
             self, label="No Instrument Selected",
             style=wx.ALIGN_CENTRE_HORIZONTAL)
 
-        sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+        self.sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+
+    def change_instrument(self, instrument):
+        pass
 
 class PulseInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
-        InstrumentPanel.__init__(self, parent)
+        InstrumentPanel.__init__(self, parent, channels.PULSE_CHANGE)
 
         self.instr_number = wx.TextCtrl(self, style=wx.TE_READONLY)
         self.envelope = wx.TextCtrl(self, style=wx.TE_READONLY)
@@ -139,32 +160,17 @@ class PulseInstrumentPanel(InstrumentPanel):
         self.automate = wx.TextCtrl(self, style=wx.TE_READONLY)
         self.table = wx.TextCtrl(self, style=wx.TE_READONLY)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-
-        def add_field(label_text, control):
-            label = wx.StaticText(self, label=label_text)
-
-            field_sizer = wx.BoxSizer(wx.HORIZONTAL)
-            field_sizer.Add(label, 1, wx.ALL)
-            field_sizer.Add(control, 1, wx.ALL)
-
-            sizer.Add(field_sizer, 0, wx.ALL)
-
-        add_field("Instrument", self.instr_number)
-        add_field("Envelope", self.envelope)
-        add_field("Wave", self.wave)
-        add_field("Output", self.pan)
-        add_field("Length", self.length)
-        add_field("Sweep", self.sweep)
-        add_field("Vib. Type", self.vibe)
-        add_field("PU2 Tune", self.pu2_tune)
-        add_field("PU Fine", self.pu_fine)
-        add_field("Automate", self.automate)
-        add_field("Table", self.table)
-
-        pub.subscribe(self.update_view, channels.PULSE_CHANGE)
-
-        self.SetSizer(sizer)
+        self.add_field("Instrument", self.instr_number)
+        self.add_field("Envelope", self.envelope)
+        self.add_field("Wave", self.wave)
+        self.add_field("Output", self.pan)
+        self.add_field("Length", self.length)
+        self.add_field("Sweep", self.sweep)
+        self.add_field("Vib. Type", self.vibe)
+        self.add_field("PU2 Tune", self.pu2_tune)
+        self.add_field("PU Fine", self.pu_fine)
+        self.add_field("Automate", self.automate)
+        self.add_field("Table", self.table)
 
     def update_view(self, data):
         instr = data
@@ -197,43 +203,32 @@ class PulseInstrumentPanel(InstrumentPanel):
 
         self.Layout()
 
-    def change_instrument(self, instrument):
-        self.instrument = instrument
-        pub.sendMessage(channels.PULSE_CHANGE, data=self.instrument)
-
-
 class WaveInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
-        InstrumentPanel.__init__(self, parent)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        InstrumentPanel.__init__(self, parent, channels.WAVE_CHANGE)
 
         info_text = wx.StaticText(
             self, label="Wave Selected",
             style=wx.ALIGN_CENTRE_HORIZONTAL)
 
-        sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+        self.sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
 
 class KitInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
-        InstrumentPanel.__init__(self, parent)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        InstrumentPanel.__init__(self, parent, channels.KIT_CHANGE)
 
         info_text = wx.StaticText(
             self, label="Kit Selected",
             style=wx.ALIGN_CENTRE_HORIZONTAL)
 
-        sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+        self.sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
 
 class NoiseInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
-        InstrumentPanel.__init__(self, parent)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        InstrumentPanel.__init__(self, parent, channels.NOISE_CHANGE)
 
         info_text = wx.StaticText(
             self, label="Noise Selected",
             style=wx.ALIGN_CENTRE_HORIZONTAL)
 
-        sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+        self.sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
