@@ -8,6 +8,17 @@ import utils
 
 import common.utils as cu
 
+VIBE_IMAGES = [
+    wx.Image("images/vibe_hfsine.gif", wx.BITMAP_TYPE_GIF),
+    wx.Image("images/vibe_saw.gif", wx.BITMAP_TYPE_GIF),
+    wx.Image("images/vibe_sine.gif", wx.BITMAP_TYPE_GIF),
+    wx.Image("images/vibe_square.gif", wx.BITMAP_TYPE_GIF)
+
+]
+
+def read_only_text_value(parent):
+    return wx.TextCtrl(parent, style=wx.TE_READONLY)
+
 class InstrumentPane(wx.Panel):
     def __init__(self, parent, project):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -124,8 +135,7 @@ class PulseInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.PULSE_CHANGE)
 
-        self.instr_number = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.envelope = wx.TextCtrl(self, style=wx.TE_READONLY)
+        self.envelope = read_only_text_value(self)
 
         self.wave_images = [
             wx.Image("images/wave12.5.gif", wx.BITMAP_TYPE_GIF),
@@ -138,29 +148,21 @@ class PulseInstrumentPanel(InstrumentPanel):
         self.wave = wx.StaticBitmap(
             self, wx.ID_ANY, wx.BitmapFromImage(empty_wave))
 
-        self.pan = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.length = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.sweep = wx.TextCtrl(self, style=wx.TE_READONLY)
+        self.pan = read_only_text_value(self)
+        self.length = read_only_text_value(self)
+        self.sweep = read_only_text_value(self)
 
-        self.vibe_images = [
-            wx.Image("images/vibe_hfsine.gif", wx.BITMAP_TYPE_GIF),
-            wx.Image("images/vibe_saw.gif", wx.BITMAP_TYPE_GIF),
-            wx.Image("images/vibe_sine.gif", wx.BITMAP_TYPE_GIF),
-            wx.Image("images/vibe_square.gif", wx.BITMAP_TYPE_GIF)
-        ]
-
-        empty_vibe = wx.EmptyImage(self.vibe_images[0].GetWidth(),
-                                   self.vibe_images[0].GetHeight())
+        empty_vibe = wx.EmptyImage(VIBE_IMAGES[0].GetWidth(),
+                                   VIBE_IMAGES[0].GetHeight())
 
         self.vibe = wx.StaticBitmap(
             self, wx.ID_ANY, wx.BitmapFromImage(empty_vibe))
 
-        self.pu2_tune = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.pu_fine = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.automate = wx.TextCtrl(self, style=wx.TE_READONLY)
-        self.table = wx.TextCtrl(self, style=wx.TE_READONLY)
+        self.pu2_tune = read_only_text_value(self)
+        self.pu_fine = read_only_text_value(self)
+        self.automate = read_only_text_value(self)
+        self.table = read_only_text_value(self)
 
-        self.add_field("Instrument", self.instr_number)
         self.add_field("Envelope", self.envelope)
         self.add_field("Wave", self.wave)
         self.add_field("Output", self.pan)
@@ -174,7 +176,7 @@ class PulseInstrumentPanel(InstrumentPanel):
 
     def update_view(self, data):
         instr = data
-        self.instr_number.SetValue("%02d" % (instr.index))
+
         self.envelope.SetValue("%02x" % (instr.envelope))
         self.wave.SetBitmap(wx.BitmapFromImage(self.wave_images[instr.wave]))
         self.pan.SetValue(instr.pan)
@@ -187,7 +189,7 @@ class PulseInstrumentPanel(InstrumentPanel):
         self.length.SetValue(length)
         self.sweep.SetValue("%02x" % (instr.sweep))
         self.vibe.SetBitmap(
-            wx.BitmapFromImage(self.vibe_images[instr.vibrato.type]))
+            wx.BitmapFromImage(VIBE_IMAGES[instr.vibrato.type]))
         self.pu2_tune.SetValue("%02x" % (instr.phase_transpose))
         self.pu_fine.SetValue("%x" % (instr.phase_finetune))
 
@@ -207,11 +209,60 @@ class WaveInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.WAVE_CHANGE)
 
-        info_text = wx.StaticText(
-            self, label="Wave Selected",
-            style=wx.ALIGN_CENTRE_HORIZONTAL)
+        self.volume = read_only_text_value(self)
+        self.pan = read_only_text_value(self)
 
-        self.sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+        empty_vibe = wx.EmptyImage(VIBE_IMAGES[0].GetWidth(),
+                                   VIBE_IMAGES[0].GetHeight())
+
+        self.vibe = wx.StaticBitmap(
+            self, wx.ID_ANY, wx.BitmapFromImage(empty_vibe))
+
+        self.synth = read_only_text_value(self)
+        self.play = read_only_text_value(self)
+        self.length = read_only_text_value(self)
+        self.repeat = read_only_text_value(self)
+        self.speed = read_only_text_value(self)
+        self.automate = read_only_text_value(self)
+        self.table = read_only_text_value(self)
+
+        self.add_field("Volume", self.volume)
+        self.add_field("Output", self.pan)
+        self.add_field("Vib. Type", self.vibe)
+        self.add_field("Synth", self.synth)
+        self.add_field("Play", self.play)
+        self.add_field("Length", self.length)
+        self.add_field("Repeat", self.repeat)
+        self.add_field("Speed", self.speed)
+        self.add_field("Automate", self.automate)
+        self.add_field("Table", self.table)
+
+
+    def update_view(self, data):
+        instr = data
+
+        self.volume.SetValue("%02x" % (instr.volume))
+        self.pan.SetValue(instr.pan)
+
+        self.vibe.SetBitmap(
+            wx.BitmapFromImage(VIBE_IMAGES[instr.vibrato.type]))
+
+        self.synth.SetValue("%x" % (instr.synth))
+        self.play.SetValue(instr.play_type)
+        self.length.SetValue("%x" % (instr.steps))
+        self.repeat.SetValue("%x" % (instr.repeat))
+        self.speed.SetValue("%x" % (instr.speed))
+
+        if instr.automate_1:
+            self.automate.SetValue("ON")
+        else:
+            self.automate.SetValue("OFF")
+
+        if instr.table is None:
+            self.table.SetValue("OFF")
+        else:
+            self.table.SetValue("%02x" % (instr.table.index))
+
 
 class KitInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
