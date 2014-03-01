@@ -134,7 +134,14 @@ pulse_instrument = [
 ]
 
 wave_instrument = [
-    ("volume", b.byte, {"str_format": padded_hex(2)}),
+    b.padding(1),
+    ("volume", b.enum(2, {
+        0: 0,
+        1: 3,
+        2: 2,
+        3: 1
+    })),
+    b.padding(5),
     ("synth", b.nibble),
     ("repeat", b.nibble),
     b.padding(8 * 2 + 3),
@@ -208,7 +215,11 @@ kit_instrument = [
 
 noise_instrument = [
     ("envelope", b.byte),
-    b.padding(9),
+    ("s_cmd", b.enum(8, {
+        0: "free",
+        1: "stable"
+    })),
+    b.padding(1),
     # If false, sound length is UNLIM
     ("has_sound_length", b.boolean),
     ("sound_length", b.intX(6)),
@@ -219,7 +230,14 @@ noise_instrument = [
     b.padding(5),
     ("table_on", b.boolean),
     ("table", b.intX(5)),
-    b.padding(9 * 8)
+    b.padding(6),
+    ("pan", b.enum(2, {
+        0: "Invalid",
+        1: "L",
+        2: "R",
+        3: "LR"
+    })),
+    b.padding(8 * 8)
 ]
 
 instrument = [

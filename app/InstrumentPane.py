@@ -278,8 +278,45 @@ class NoiseInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.NOISE_CHANGE)
 
-        info_text = wx.StaticText(
-            self, label="Noise Selected",
-            style=wx.ALIGN_CENTRE_HORIZONTAL)
+        self.envelope = read_only_text_value(self)
+        self.pan = read_only_text_value(self)
+        self.length = read_only_text_value(self)
+        self.shape = read_only_text_value(self)
+        self.s_cmd = read_only_text_value(self)
 
-        self.sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+        self.automate = read_only_text_value(self)
+        self.table = read_only_text_value(self)
+
+        self.add_field("Envelope", self.envelope)
+        self.add_field("Output", self.pan)
+        self.add_field("Length", self.length)
+        self.add_field("Shape", self.shape)
+        self.add_field("S Cmd", self.s_cmd)
+        self.add_field("Automate", self.automate)
+        self.add_field("Table", self.table)
+
+    def update_view(self, data):
+        instr = data
+
+        self.envelope.SetValue("%02x" % (instr.envelope))
+        self.pan.SetValue(instr.pan)
+
+        if instr.has_sound_length:
+            length = "%02x" % (instr.sound_length)
+        else:
+            length = "UNLIM"
+
+        self.length.SetValue(length)
+
+        self.shape.SetValue("%02x" % (instr.sweep))
+        self.s_cmd.SetValue(instr.s_cmd)
+
+        if instr.automate_1:
+            self.automate.SetValue("ON")
+        else:
+            self.automate.SetValue("OFF")
+
+        if instr.table is None:
+            self.table.SetValue("OFF")
+        else:
+            self.table.SetValue("%02x" % (instr.table.index))
