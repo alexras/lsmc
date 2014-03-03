@@ -209,7 +209,7 @@ class InstrumentPanel(wx.Panel):
         self.updated_fields = 0
 
         self.pubsub_channel = channel
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer = wx.GridSizer(rows=0, cols=2)
 
         self.SetSizer(self.sizer)
 
@@ -219,18 +219,15 @@ class InstrumentPanel(wx.Panel):
         if fields is None:
             fields = [control]
 
-        field_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        field_sizer.Add(label, 1, wx.ALL)
+        self.sizer.Add(label, 0, wx.ALL)
 
         map(lambda x: x.subscribe(self.pubsub_channel), fields)
         self.num_fields += len(fields)
 
         if isinstance(control, ViewField):
-            field_sizer.Add(control.field, 1, wx.ALL)
+            self.sizer.Add(control.field, 0, wx.ALL)
         else:
-            field_sizer.Add(control, 1, wx.ALL)
-
-        self.sizer.Add(field_sizer, 0, wx.ALL)
+            self.sizer.Add(control, 0, wx.ALL)
 
     def change_instrument(self, instrument):
         # Reset updated fields count since we're about to start changing fields.
