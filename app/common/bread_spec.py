@@ -179,9 +179,9 @@ wave_instrument = [
 
 kit_instrument = [
     ("volume", b.byte),
-    ("keep_attack_2", b.boolean),
+    ("keep_attack_1", b.boolean),
     ("half_speed", b.boolean),
-    ("kit", b.intX(6)),
+    ("kit", b.intX(6), {"offset": 1}),
     # 0 == "auto"
     ("length_1", b.byte),
     b.padding(9),
@@ -200,12 +200,22 @@ kit_instrument = [
     ("table_on", b.boolean),
     ("table", b.intX(5)),
     b.padding(6),
-    ("pan", b.semi_nibble),
+    ("pan", b.enum(2, {
+        0: "Invalid",
+        1: "L",
+        2: "R",
+        3: "LR"
+    })),
     ("pitch", b.byte),
     ("keep_attack_2", b.boolean),
     b.padding(1),
-    ("kit_2", b.intX(6)),
-    ("dist_type", b.byte),
+    ("kit_2", b.intX(6), {"offset": 1}),
+    ("dist_type", b.enum(8, {
+        0xd0: "clip",
+        0xd1: "shape",
+        0xd2: "shap2",
+        0xd3: "wrap"
+    })),
     # 0 == "auto"
     ("length_2", b.byte),
     ("offset", b.byte),
