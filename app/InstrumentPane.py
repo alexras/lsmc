@@ -16,6 +16,8 @@ VIBE_IMAGES = [
 
 ]
 
+EMPTY_VIBE = wx.EmptyImage(
+    VIBE_IMAGES[0].GetWidth(), VIBE_IMAGES[0].GetHeight())
 def read_only_text_value(parent):
     return wx.TextCtrl(parent, style=wx.TE_READONLY)
 
@@ -151,13 +153,8 @@ class PulseInstrumentPanel(InstrumentPanel):
         self.pan = read_only_text_value(self)
         self.length = read_only_text_value(self)
         self.sweep = read_only_text_value(self)
-
-        empty_vibe = wx.EmptyImage(VIBE_IMAGES[0].GetWidth(),
-                                   VIBE_IMAGES[0].GetHeight())
-
         self.vibe = wx.StaticBitmap(
-            self, wx.ID_ANY, wx.BitmapFromImage(empty_vibe))
-
+            self, wx.ID_ANY, wx.BitmapFromImage(EMPTY_VIBE))
         self.pu2_tune = read_only_text_value(self)
         self.pu_fine = read_only_text_value(self)
         self.automate = read_only_text_value(self)
@@ -211,13 +208,8 @@ class WaveInstrumentPanel(InstrumentPanel):
 
         self.volume = read_only_text_value(self)
         self.pan = read_only_text_value(self)
-
-        empty_vibe = wx.EmptyImage(VIBE_IMAGES[0].GetWidth(),
-                                   VIBE_IMAGES[0].GetHeight())
-
         self.vibe = wx.StaticBitmap(
-            self, wx.ID_ANY, wx.BitmapFromImage(empty_vibe))
-
+            self, wx.ID_ANY, wx.BitmapFromImage(EMPTY_VIBE))
         self.synth = read_only_text_value(self)
         self.play = read_only_text_value(self)
         self.length = read_only_text_value(self)
