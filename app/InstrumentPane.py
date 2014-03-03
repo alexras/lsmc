@@ -260,11 +260,51 @@ class KitInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.KIT_CHANGE)
 
-        info_text = wx.StaticText(
-            self, label="Kit Selected",
-            style=wx.ALIGN_CENTRE_HORIZONTAL)
+        self.kit_1 = read_only_text_value(self)
+        self.kit_2 = read_only_text_value(self)
+        self.volume = read_only_text_value(self)
+        self.pan = read_only_text_value(self)
+        self.pitch = read_only_text_value(self)
+        self.offset_1 = read_only_text_value(self)
+        self.offset_2 = read_only_text_value(self)
+        self.len_1 = read_only_text_value(self)
+        self.len_2 = read_only_text_value(self)
+        self.loop_1 = read_only_text_value(self)
+        self.loop_2 = read_only_text_value(self)
+        self.speed = read_only_text_value(self)
+        self.dist = read_only_text_value(self)
+        self.vibe = wx.StaticBitmap(
+            self, wx.ID_ANY, wx.BitmapFromImage(EMPTY_VIBE))
+        self.automate = read_only_text_value(self)
+        self.table = read_only_text_value(self)
 
-        self.sizer.Add(info_text, 1, wx.ALL | wx.EXPAND)
+        self.add_compound_field("Kit", self.kit_1, self.kit_2)
+        self.add_field("Volume", self.volume)
+        self.add_field("Output", self.pan)
+        self.add_field("Pitch", self.pitch)
+        self.add_compound_field("Offset", self.offset_1, self.offset_2)
+        self.add_compound_field("Len", self.len_1, self.len_2)
+        self.add_compound_field("Loop", self.loop_1, self.loop_2)
+
+        speed_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        speed_sizer.Add(self.speed, wx.ALL | wx.EXPAND)
+        speed_sizer.Add(wx.StaticText(self, label='X'))
+        self.add_field("Speed", speed_sizer)
+        self.add_field("Dist", self.dist)
+        self.add_field("Vib. Type", self.vibe)
+        self.add_field("Automate", self.automate)
+        self.add_field("Table", self.table)
+
+    def update_view(self, data):
+        instr = data
+
+    def add_compound_field(self, name, elt1, elt2):
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(elt1, wx.ALL | wx.EXPAND)
+        sizer.Add(wx.StaticText(self, label="/"), wx.ALL | wx.EXPAND)
+        sizer.Add(elt2, wx.ALL | wx.EXPAND)
+
+        self.add_field(name, sizer)
 
 class NoiseInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
