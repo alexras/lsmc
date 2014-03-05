@@ -1,5 +1,14 @@
-import wx, time
+import wx, time, random
 from ObjectListView import ObjectListView
+
+def random_pos(window_dimensions):
+    win_width, win_height = window_dimensions
+    screen_width, screen_height = wx.DisplaySize()
+
+    padding = 20
+
+    return (random.randint(0, screen_width - win_width - padding),
+            random.randint(0, screen_height - win_height - padding))
 
 def new_obj_list_view(parent):
     view = ObjectListView(parent, wx.ID_ANY, style=wx.LC_REPORT)

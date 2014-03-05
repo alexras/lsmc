@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import wx, functools, event_handlers
-from ObjectListView import ObjectListView, ColumnDefn
+from ObjectListView import ColumnDefn
 
 import utils
 
@@ -21,9 +21,12 @@ class TablePane(wx.Panel):
 
 class SongWindow(wx.Frame):
     def __init__(self, parent, project):
+        frame_size = (750,500)
+
         wx.Frame.__init__(
             self, parent, wx.ID_ANY, "Song - %s" % (project.name),
-            size=(800,400))
+            size=frame_size, pos=utils.random_pos(frame_size),
+            style=wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN)
 
         panel = wx.Panel(self)
 
@@ -215,8 +218,9 @@ class MainMenuBar(wx.MenuBar):
 
 class MainWindow(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, wx.ID_ANY, "LSDJ .sav Utils",
-                          size=(600,400))
+        wx.Frame.__init__(
+            self, None, wx.ID_ANY, "LSDJ .sav Utils", size=(600,400),
+            style=wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN)
 
         self.sav_obj = None
 

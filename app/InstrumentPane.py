@@ -1,6 +1,6 @@
 import wx, functools, event_handlers
 from wx.lib.pubsub import pub
-from ObjectListView import ObjectListView, ColumnDefn
+from ObjectListView import ColumnDefn
 
 import channels
 
@@ -146,8 +146,9 @@ class InstrumentPane(wx.Panel):
 
         id_col = ColumnDefn("#", "center", 30, lambda x: "%02x" %
                             (getattr(x, "index")))
-        name_col = ColumnDefn("Name", "left", 200, instr_name_printer)
-        type_col = ColumnDefn("Type", "left", 50, "type")
+        name_col = ColumnDefn(
+            "Name", "left", 200, instr_name_printer, isSpaceFilling=True)
+        type_col = ColumnDefn("Type", "left", 50, "type", isSpaceFilling=True)
         self.instr_list.SetColumns([id_col, name_col, type_col])
 
         self.instrument_objects = project.song.instruments.as_list()
@@ -209,7 +210,7 @@ class InstrumentPanel(wx.Panel):
         self.updated_fields = 0
 
         self.pubsub_channel = channel
-        self.sizer = wx.GridSizer(rows=0, cols=2)
+        self.sizer = wx.FlexGridSizer(cols=2, hgap=20, vgap=10)
 
         self.SetSizer(self.sizer)
 
