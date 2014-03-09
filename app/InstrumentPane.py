@@ -97,6 +97,9 @@ class ViewField(object):
     def update(self, data):
         self.parent.field_changed()
 
+    def add_to_sizer(self, sizer, *args, **kwargs):
+        sizer.Add(self.field, *args, **kwargs)
+
 class ReadOnlyTextViewField(ViewField):
     def __init__(self, parent, format_fn):
         ViewField.__init__(
@@ -226,7 +229,7 @@ class InstrumentPanel(wx.Panel):
         self.num_fields += len(fields)
 
         if isinstance(control, ViewField):
-            self.sizer.Add(control.field, 0, wx.ALL)
+            control.add_to_sizer(self.main_sizer, 0, wx.ALL)
         else:
             self.sizer.Add(control, 0, wx.ALL)
 
@@ -360,7 +363,7 @@ class KitInstrumentPanel(InstrumentPanel):
         self.add_compound_field("Loop", self.loop_1, self.loop_2)
 
         speed_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        speed_sizer.Add(self.speed.field, wx.ALL | wx.EXPAND)
+        self.speed.add_to_sizer(speed_sizer, wx.ALL | wx.EXPAND)
         speed_sizer.Add(wx.StaticText(self, label='X'))
         self.add_field("Speed", speed_sizer, fields=[self.speed])
 
@@ -371,9 +374,9 @@ class KitInstrumentPanel(InstrumentPanel):
 
     def add_compound_field(self, name, elt1, elt2):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(elt1.field, 1, wx.ALL)
+        elt1.add_to_sizer(sizer, 1, wx.ALL)
         sizer.Add(wx.StaticText(self, label="/"), 0.2, wx.ALL)
-        sizer.Add(elt2.field, 1, wx.ALL)
+        elt2.add_to_sizer(sizer, 1, wx.ALL)
 
         self.add_field(name, sizer, (elt1, elt2))
 
