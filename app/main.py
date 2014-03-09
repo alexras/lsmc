@@ -21,7 +21,7 @@ class TablePane(wx.Panel):
 
 class SongWindow(wx.Frame):
     def __init__(self, parent, project):
-        frame_size = (750,500)
+        frame_size = (650,550)
 
         wx.Frame.__init__(
             self, parent, wx.ID_ANY, "Song - %s" % (project.name),
