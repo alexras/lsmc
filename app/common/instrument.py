@@ -49,7 +49,7 @@ class Instrument(object):
 
         data_json = json.loads(self.data.as_json())
 
-        for key, value in data_json:
+        for key, value in data_json.items():
             if key[0] != '_':
                 export_struct[key] = value
 
