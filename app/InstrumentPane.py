@@ -310,10 +310,15 @@ class InstrumentPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             instr_path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
 
+    def export_instrument(self, event):
+        def ok_handler(dlg, path):
             instr_json = self.instrument.export()
 
-            with open(instr_path, 'w') as fp:
+            with open(path, 'w') as fp:
                 json.dump(instr_json, fp, indent=2)
+
+        utils.file_dialog(
+            "Save instrument as ...", "*.lsdinst", wx.SAVE, ok_handler)
 
     def field_changed(self):
         """

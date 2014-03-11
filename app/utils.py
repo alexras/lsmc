@@ -29,3 +29,17 @@ def _single_select_event_handler(event):
 def enable_single_selection(obj_list_view, window):
     window.Bind(wx.EVT_LIST_ITEM_SELECTED, _single_select_event_handler,
                 obj_list_view)
+
+def file_dialog(message, wildcard, style, ok_handler):
+    default_dir = '.'
+    default_file = ''
+
+    dlg = wx.FileDialog(
+        None, message, default_dir, default_file, wildcard, style)
+
+    try:
+        if dlg.ShowModal() == wx.ID_OK:
+            path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+            ok_handler(dlg, path)
+    finally:
+        dlg.Destroy()
