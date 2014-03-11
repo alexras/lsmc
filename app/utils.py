@@ -1,4 +1,4 @@
-import wx, time, random
+import wx, time, random, os
 from ObjectListView import ObjectListView
 
 def random_pos(window_dimensions):

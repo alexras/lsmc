@@ -1,6 +1,25 @@
 from utils import assert_index_sane
 import json
 
+import bread
+import bread_spec
+
+from filepack import DEFAULT_INSTRUMENT
+
+def new_default_instrument(instr_type):
+    instr_data = DEFAULT_INSTRUMENT[:]
+
+    instr_name_to_code = {
+        "pulse": 0,
+        "wave": 1,
+        "kit": 2,
+        "noise": 3
+    }
+
+    instr_data[0] = instr_name_to_code[instr_type]
+
+    return bread.parse(instr_data, bread_spec.instrument)
+
 class Instrument(object):
     def __init__(self, song, index):
         self.song = song
@@ -50,19 +69,35 @@ class Instrument(object):
             setattr(self.data, name, value)
 
     def import_lsdinst(self, lsdinst_struct):
-        self.type = lsdinst_struct["type"]
         self.name = lsdinst_struct["name"]
-        self._import_instr_data(lsdinst_struct["data"], self.data)
 
-    def _import_instr_data(self, import_data, output_data):
+        # If this instrument is of a different type than we're currently
+        # storing, we've got to make a new one of the appropriate type into
+        # which to demarshal
+        instr_type = lsdinst_struct["data"]["instrument_type"]
+
+        if self.type != instr_type:
+            self.data = new_default_instrument(instr_type)
+            self.song.song_data.instruments[self.index] = self.data
+
         native_repr = self.data.as_native()
-        print native_repr
+        self._import_instr_data(lsdinst_struct["data"], native_repr, self.data)
+
+    def _import_instr_data(self, import_data, native_repr, output_data):
+        for (key, val) in native_repr.items():
+            if key[0] == '_':
+                continue
+
+            if type(val) == dict:
+                self._import_instr_data(
+                    import_data[key], val, getattr(output_data, key))
+            else:
+                setattr(output_data, key, import_data[key])
 
     def export(self):
         export_struct = {}
 
         export_struct["name"] = self.name
-        export_struct["type"] = self.instrument_type
         export_struct["data"] = {}
 
         data_json = json.loads(self.data.as_json())
@@ -70,14 +105,5 @@ class Instrument(object):
         for key, value in data_json.items():
             if key[0] != '_':
                 export_struct["data"][key] = value
-
-        if ("has_sound_length" in export_struct and
-            not export_struct["data"]["has_sound_length"]):
-
-            export_struct["data"]["sound_length"] = "unlimited"
-
-        if ("table_on" in export_struct and
-            not export_struct["data"]["table_on"]):
-            del export_struct["data"]["table"]
 
         return export_struct

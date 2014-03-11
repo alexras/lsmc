@@ -149,6 +149,8 @@ class InstrumentPane(wx.Panel):
     def __init__(self, parent, project):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
+        self.project = project
+
         self.instr_list = utils.new_obj_list_view(self)
         self.instr_list.SetEmptyListMsg("Loading instrument list ...")
 
@@ -167,9 +169,7 @@ class InstrumentPane(wx.Panel):
         type_col = ColumnDefn("Type", "left", 50, "type", isSpaceFilling=True)
         self.instr_list.SetColumns([id_col, name_col, type_col])
 
-        self.instrument_objects = project.song.instruments.as_list()
-
-        self.instr_list.SetObjects(self.instrument_objects)
+        self.refresh_instr_list()
 
         self.instr_panels = {
             None: NoInstrumentSelectedPanel(self),
@@ -182,6 +182,9 @@ class InstrumentPane(wx.Panel):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.handle_instr_changed,
                   self.instr_list)
 
+        pub.subscribe(self.handle_instr_changed, channels.INSTR_IMPORT)
+        pub.subscribe(self.update_instr_list, channels.INSTR_IMPORT)
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer.Add(self.instr_list, 1, wx.ALL | wx.EXPAND, border=5)
@@ -192,6 +195,12 @@ class InstrumentPane(wx.Panel):
         self.SetSizer(sizer)
 
         self.show_instr_panel(None)
+
+    def update_instr_list(self, data):
+        self.instr_list.SetObjects(self.project.song.instruments.as_list())
+
+    def refresh_instr_list(self):
+        self.instr_list.SetObjects(self.project.song.instruments.as_list())
 
     def show_instr_panel(self, instrument):
         instr_type = None
@@ -208,7 +217,7 @@ class InstrumentPane(wx.Panel):
 
         self.Layout()
 
-    def handle_instr_changed(self, event):
+    def handle_instr_changed(self, data):
         selected_instruments = self.instr_list.GetSelectedObjects()
 
         instrument = None
@@ -300,15 +309,14 @@ class InstrumentPanel(wx.Panel):
         pub.sendMessage(self.pubsub_channel, data=instrument)
 
     def import_instrument(self, event):
-        # FIXME implement
-        pass
+        def ok_handler(dlg, path):
+            with open(path, 'r') as fp:
+                self.instrument.import_lsdinst(json.load(fp))
 
-    def export_instrument(self, event):
-        dlg = wx.FileDialog(
-            None, "Save instrument as ...", ".", '', "*.lsdinst", wx.SAVE)
+            pub.sendMessage(channels.INSTR_IMPORT, data=self.instrument)
 
-        if dlg.ShowModal() == wx.ID_OK:
-            instr_path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+        utils.file_dialog(
+            "Load instrument", "*.lsdinst", wx.OPEN, ok_handler)
 
     def export_instrument(self, event):
         def ok_handler(dlg, path):
