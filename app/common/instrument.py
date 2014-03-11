@@ -11,9 +11,17 @@ class Instrument(object):
     def name(self):
         return self.song.song_data.instrument_names[self.index]
 
+    @name.setter
+    def name(self, val):
+        self.song.song_data.instrument_names[self.index] = val
+
     @property
     def type(self):
         return self.data.instrument_type
+
+    @type.setter
+    def type(self, val):
+        self.data.instrument_type = val
 
     def __getattr__(self, name):
         if name == "wave" and type == "wave":
@@ -41,24 +49,35 @@ class Instrument(object):
         else:
             setattr(self.data, name, value)
 
+    def import_lsdinst(self, lsdinst_struct):
+        self.type = lsdinst_struct["type"]
+        self.name = lsdinst_struct["name"]
+        self._import_instr_data(lsdinst_struct["data"], self.data)
+
+    def _import_instr_data(self, import_data, output_data):
+        native_repr = self.data.as_native()
+        print native_repr
+
     def export(self):
         export_struct = {}
 
         export_struct["name"] = self.name
         export_struct["type"] = self.instrument_type
+        export_struct["data"] = {}
 
         data_json = json.loads(self.data.as_json())
 
         for key, value in data_json.items():
             if key[0] != '_':
-                export_struct[key] = value
+                export_struct["data"][key] = value
 
         if ("has_sound_length" in export_struct and
-            not export_struct["has_sound_length"]):
+            not export_struct["data"]["has_sound_length"]):
 
-            export_struct["sound_length"] = "unlimited"
+            export_struct["data"]["sound_length"] = "unlimited"
 
-        if ("table_on" in export_struct and not export_struct["table_on"]):
-            del export_struct["table"]
+        if ("table_on" in export_struct and
+            not export_struct["data"]["table_on"]):
+            del export_struct["data"]["table"]
 
         return export_struct
