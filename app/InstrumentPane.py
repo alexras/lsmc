@@ -16,6 +16,9 @@ VIBE_IMAGES = [
     wx.Image("images/vibe_square.gif", wx.BITMAP_TYPE_GIF)
 ]
 
+def name_empty(name):
+    return map(ord, name) == [0] * len(name)
+
 def vibe_type_field(parent):
     return ImageSetViewField(
         parent, lambda instr: instr.vibrato.type, VIBE_IMAGES)
@@ -157,7 +160,7 @@ class InstrumentPane(wx.Panel):
         def instr_name_printer(x):
             name = getattr(x, "name")
 
-            if map(ord, name) == [0] * len(name):
+            if name_empty(name):
                 return "[UNNAMED]"
             else:
                 return name
@@ -325,8 +328,14 @@ class InstrumentPanel(wx.Panel):
             with open(path, 'w') as fp:
                 json.dump(instr_json, fp, indent=2)
 
+        if not name_empty(self.instrument.name):
+            default_file = '%s.lsdinst' % (self.instrument.name)
+        else:
+            default_file = ''
+
         utils.file_dialog(
-            "Save instrument as ...", "*.lsdinst", wx.SAVE, ok_handler)
+            "Save instrument as ...", "*.lsdinst", wx.SAVE, ok_handler,
+            default_file=default_file)
 
     def field_changed(self):
         """

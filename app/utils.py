@@ -30,9 +30,8 @@ def enable_single_selection(obj_list_view, window):
     window.Bind(wx.EVT_LIST_ITEM_SELECTED, _single_select_event_handler,
                 obj_list_view)
 
-def file_dialog(message, wildcard, style, ok_handler):
+def file_dialog(message, wildcard, style, ok_handler, default_file = ''):
     default_dir = '.'
-    default_file = ''
 
     dlg = wx.FileDialog(
         None, message, default_dir, default_file, wildcard, style)
