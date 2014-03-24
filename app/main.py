@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import wxversion
+wxversion.ensureMinimal('2.8')
+
 import wx, functools, event_handlers
 from ObjectListView import ColumnDefn
 
