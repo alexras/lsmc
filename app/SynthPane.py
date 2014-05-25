@@ -3,11 +3,8 @@ from wx.lib.pubsub import pub
 from ObjectListView import ColumnDefn
 
 import utils
-import common.utils as cu
-import common.bread_spec as spec
 
 from SynthParamsPanel import SynthParamsPanel
-from WavePanel import WavePanel
 from WavesPanel import WavesPanel
 
 class SynthPane(wx.Panel):

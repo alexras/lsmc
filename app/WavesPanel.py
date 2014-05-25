@@ -1,5 +1,8 @@
 import wx
 
+import common.bread_spec as spec
+from WavePanel import WavePanel
+
 class WavesPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
