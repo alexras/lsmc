@@ -27,6 +27,9 @@ class WavePanel(wx.Panel):
 
         width, height = frame.GetSizeTuple()
 
+        if width % spec.FRAMES_PER_WAVE != 0:
+            width = (width // spec.FRAMES_PER_WAVE) * spec.FRAMES_PER_WAVE
+
         square_size = (width, width / 2)
 
         frame.SetSize(square_size)
