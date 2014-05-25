@@ -7,9 +7,13 @@ class Synth(object):
         self.index = index
 
     def __getattr__(self, name):
-        return getattr(self._params, name)
+        if name in ("_params", "index"):
+            return super(Synth, self).__getattr__(name)
+        else:
+            return getattr(self._params, name)
 
     def __setattr__(self, name, value):
-        if name == "_params":
+        if name in ("_params", "index"):
             super(Synth, self).__setattr__(name, value)
-        setattr(self._params, name, value)
+        else:
+            setattr(self._params, name, value)
