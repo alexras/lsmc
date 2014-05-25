@@ -9,6 +9,11 @@ import utils
 
 import common.utils as cu
 
+from StaticTextViewField import StaticTextViewField
+from ReadOnlyTextViewField import ReadOnlyTextViewField
+from ImageSetViewField import ImageSetViewField
+from ViewField import ViewField
+
 VIBE_IMAGES = [
     wx.Image("images/vibe_hfsine.gif", wx.BITMAP_TYPE_GIF),
     wx.Image("images/vibe_saw.gif", wx.BITMAP_TYPE_GIF),
@@ -89,61 +94,6 @@ def table_format(instr):
         return "OFF"
     else:
         return "%02x" % (instr.table.index)
-
-class ViewField(object):
-    def __init__(self, parent, field):
-        self.parent = parent
-        self.field = field
-
-    def subscribe(self, channel):
-        pub.subscribe(self.update, channel)
-
-    def update(self, data):
-        self.parent.field_changed()
-
-    def add_to_sizer(self, sizer, *args, **kwargs):
-        sizer.Add(self.field, *args, **kwargs)
-
-class StaticTextViewField(ViewField):
-    def __init__(self, parent, format_fn):
-        ViewField.__init__(
-            self, parent, wx.StaticText(parent, wx.ID_ANY, label=""))
-        self.format_fn = format_fn
-
-    def update(self, data):
-        instr = data
-
-        self.field.SetLabel(self.format_fn(instr))
-        super(StaticTextViewField, self).update(data)
-
-class ReadOnlyTextViewField(ViewField):
-    def __init__(self, parent, format_fn):
-        ViewField.__init__(
-            self, parent, wx.TextCtrl(parent, style=wx.TE_READONLY))
-        self.format_fn = format_fn
-
-    def update(self, data):
-        instr = data
-
-        self.field.SetValue(self.format_fn(instr))
-        super(ReadOnlyTextViewField, self).update(data)
-
-class ImageSetViewField(ViewField):
-    def __init__(self, parent, attr_fn, image_array):
-        empty_img = wx.BitmapFromImage(wx.EmptyImage(
-            image_array[0].GetWidth(), image_array[0].GetHeight()))
-        ViewField.__init__(
-            self, parent, wx.StaticBitmap(parent, wx.ID_ANY, empty_img))
-        self.image_array = image_array
-        self.attr_fn = attr_fn
-
-    def update(self, data):
-        instr = data
-
-        self.field.SetBitmap(wx.BitmapFromImage(
-            self.image_array[self.attr_fn(instr)]))
-        super(ImageSetViewField, self).update(data)
-
 
 def read_only_text_value(parent):
     return wx.TextCtrl(parent, style=wx.TE_READONLY)
