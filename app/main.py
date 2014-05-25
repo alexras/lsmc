@@ -10,6 +10,8 @@ import utils
 
 import common.utils as cu
 
+from ProjectsWindow import ProjectsWindow
+
 app = wx.App(False)
 
 class MainMenuBar(wx.MenuBar):
