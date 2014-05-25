@@ -6,6 +6,7 @@ import utils
 
 from SynthParamsPanel import SynthParamsPanel
 from WavesPanel import WavesPanel
+import channels
 
 class SynthPane(wx.Panel):
     def __init__(self, parent, project):
@@ -17,7 +18,7 @@ class SynthPane(wx.Panel):
         self.synth_list.SetEmptyListMsg("Loading synth list ...")
 
         id_col = ColumnDefn(
-            "#", "center", 50,
+            "#", "center", 40,
             lambda x: "%01x0-%01xf" % (getattr(x, "index"),
                                        getattr(x, "index")),
             isSpaceFilling=True)
@@ -29,6 +30,9 @@ class SynthPane(wx.Panel):
         self.waves_panel = WavesPanel(self)
         self.synth_params_panel = SynthParamsPanel(self)
 
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.handle_synth_changed,
+                  self.synth_list)
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.synth_list, 1, wx.ALIGN_TOP | wx.ALL | wx.EXPAND,
                   border=5)
@@ -38,8 +42,18 @@ class SynthPane(wx.Panel):
         body_sizer.Add(self.waves_panel, 2, wx.ALL | wx.EXPAND, border=5)
         body_sizer.Add(self.synth_params_panel, 1, wx.ALL, border=5)
 
-        sizer.Add(body_sizer, 5, wx.ALL | wx.EXPAND, border=5)
+        sizer.Add(body_sizer, 7, wx.ALL | wx.EXPAND, border=5)
 
         self.SetSizer(sizer)
 
         self.Layout()
+
+    def handle_synth_changed(self, data):
+        selected_synths = self.synth_list.GetSelectedObjects()
+
+        synth = None
+
+        if len(selected_synths) > 0:
+            synth = selected_synths[0]
+
+        pub.sendMessage(channels.SYNTH_CHANGE, data=synth)
