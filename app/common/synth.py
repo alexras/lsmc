@@ -10,4 +10,6 @@ class Synth(object):
         return getattr(self._params, name)
 
     def __setattr__(self, name, value):
+        if name == "_params":
+            super(Synth, self).__setattr__(name, value)
         setattr(self._params, name, value)
