@@ -171,11 +171,19 @@ class Sequence(object):
 class Synths(object):
     def __init__(self, song):
         self.song = song
+        self.access_objects = []
+
+        for index in xrange(bread_spec.NUM_SYNTHS):
+            self.access_objects.append(Synth(self.song, index))
 
     def __getitem__(self, index):
-        assert_index_sane(index, len(self.song.song_data.softsynth_params))
+        assert_index_sane(index, bread_spec.NUM_SYNTHS)
 
-        return Synth(self.song, index)
+        return self.access_objects[index]
+
+    def as_list(self):
+        return self.access_objects
+
 
 class Song(object):
     """A song consists of a sequence of chains, one per channel.

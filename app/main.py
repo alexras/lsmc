@@ -13,10 +13,7 @@ import common.utils as cu
 app = wx.App(False)
 
 from InstrumentPane import InstrumentPane
-
-class SynthPane(wx.Panel):
-    def __init__(self, parent, project):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+from SynthPane import SynthPane
 
 class TablePane(wx.Panel):
     def __init__(self, parent, project):
