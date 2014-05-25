@@ -56,7 +56,7 @@ NUM_SYNTHS = 16
 WAVES_PER_SYNTH = 16
 
 # Number of frames per wave
-FRAMES_PER_WAVE = 16
+FRAMES_PER_WAVE = 32
 
 # Number of entries in each table
 ENTRIES_PER_TABLE = 16
@@ -369,7 +369,7 @@ song = [
     ("wave_frames",
      b.array(NUM_SYNTHS,
              b.array(WAVES_PER_SYNTH,
-                     b.array(FRAMES_PER_WAVE, b.byte)))),
+                     b.array(FRAMES_PER_WAVE, b.nibble)))),
     ("phrase_instruments",
      b.array(NUM_PHRASES, b.array(STEPS_PER_PHRASE, b.byte))),
     # Set to 'rb' on init
