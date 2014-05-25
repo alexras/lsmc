@@ -277,7 +277,7 @@ softsynth = [
     ("waveform", b.enum(8, {
         0: "sawtooth",
         1: "square",
-        2: "triangle"
+        2: "sine"
     })),
     ("filter_type", b.enum(8, {
         0: "lowpass",
