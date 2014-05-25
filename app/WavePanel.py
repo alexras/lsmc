@@ -46,14 +46,10 @@ class WavePanel(wx.Panel):
         if self.wave is None:
             return
 
-        print len(self.wave), self.wave
-
         squares = [
             (square_dimension * i,
              square_dimension * (0xf - self.wave[i]),
              square_dimension, square_dimension)
             for i in xrange(spec.FRAMES_PER_WAVE)]
-
-        print squares
 
         dc.DrawRectangleList(squares)
