@@ -8,6 +8,7 @@ import channels
 import utils
 
 import common.utils as cu
+from viewutils import instr_attr, one_digit_hex_format, two_digit_hex_format
 
 from StaticTextViewField import StaticTextViewField
 from ReadOnlyTextViewField import ReadOnlyTextViewField
@@ -27,24 +28,6 @@ def name_empty(name):
 def vibe_type_field(parent):
     return ImageSetViewField(
         parent, lambda instr: instr.vibrato.type, VIBE_IMAGES)
-
-def instr_attr(attr):
-    def instr_attr_format_fn(instr):
-        return getattr(instr, attr)
-
-    return instr_attr_format_fn
-
-def two_digit_hex_format(attr):
-    def two_digit_hex_format_fn(instr):
-        return "%02x" % (getattr(instr, attr))
-
-    return two_digit_hex_format_fn
-
-def one_digit_hex_format(attr):
-    def one_digit_hex_format_fn(instr):
-        return "%x" % (getattr(instr, attr))
-
-    return one_digit_hex_format_fn
 
 def len_format(instr):
     if instr.has_sound_length:
