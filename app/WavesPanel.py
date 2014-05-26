@@ -34,8 +34,8 @@ class WavesPanel(wx.Panel):
         slider_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         slider_sizer.Add(wx.StaticText(self, label="Frame Number: "))
-        self.frame_number.add_to_sizer(slider_sizer, 1, wx.ALL)
-        slider_sizer.Add(self.wave_slider, 1, wx.ALL | wx.EXPAND | wx.ALIGN_LEFT)
+        self.frame_number.add_to_sizer(slider_sizer, 0, wx.ALL)
+        slider_sizer.Add(self.wave_slider, 1, wx.ALL | wx.ALIGN_LEFT)
 
         sizer.Add(slider_sizer)
 
