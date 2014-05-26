@@ -22,3 +22,21 @@ def within(attr, function):
         return function(obj)
 
     return within_fn
+
+def len_format(instr):
+    if instr.has_sound_length:
+        return "%02x" % (instr.sound_length)
+    else:
+        return "UNLIM"
+
+def automate_format(instr):
+    if instr.automate_1:
+        return "ON"
+    else:
+        return "OFF"
+
+def table_format(instr):
+    if instr.table is None:
+        return "OFF"
+    else:
+        return "%02x" % (instr.table.index)
