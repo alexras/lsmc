@@ -14,6 +14,45 @@ WAVE_IMAGES = {
     "sine": wx.Image("images/synth_sine.gif", wx.BITMAP_TYPE_GIF)
 }
 
+def add_field(parent, label_text, control, sizer):
+    label = wx.StaticText(parent, label=label_text)
+
+    sizer.Add(label, 0, wx.ALL)
+
+    control.subscribe(channels.SYNTH_CHANGE)
+
+    control.add_to_sizer(sizer, 0, wx.ALL)
+
+
+class RangeFieldsSubPanel(wx.Panel):
+    def __init__(self, parent, range_param):
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
+
+        self.sizer = wx.FlexGridSizer(cols=2, hgap=20, vgap=7)
+
+        self.volume = ReadOnlyTextViewField(
+            self, within(range_param, two_digit_hex_format("volume")))
+        self.filter_cutoff = ReadOnlyTextViewField(
+            self, within(range_param, two_digit_hex_format(
+                "filter_cutoff")))
+        self.phase_amount = ReadOnlyTextViewField(
+            self, within(range_param, two_digit_hex_format(
+                "phase_amount")))
+        self.vertical_shift = ReadOnlyTextViewField(
+            self, within(range_param, two_digit_hex_format(
+                "vertical_shift")))
+
+        add_field(self, "Volume", self.volume, self.sizer)
+        add_field(self, "Cutoff", self.filter_cutoff, self.sizer)
+        add_field(self, "Phase", self.phase_amount, self.sizer)
+        add_field(self, "VShift", self.vertical_shift, self.sizer)
+
+        self.SetSizer(self.sizer)
+
+    def field_changed(self):
+        pass
+
+
 class SelectedSynthPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -35,51 +74,19 @@ class SelectedSynthPanel(wx.Panel):
         self.phase_type = ReadOnlyTextViewField(
             self, instr_attr("phase_type"))
 
-        self.add_field("Wave", self.wave_type, main_params_sizer)
-        self.add_field("Filter", self.filter_type, main_params_sizer)
-        self.add_field("Q", self.resonance, main_params_sizer)
-        self.add_field("Dist", self.distortion, main_params_sizer)
-        self.add_field("Phase", self.phase_type, main_params_sizer)
+        add_field(self, "Wave", self.wave_type, main_params_sizer)
+        add_field(self, "Filter", self.filter_type, main_params_sizer)
+        add_field(self, "Q", self.resonance, main_params_sizer)
+        add_field(self, "Dist", self.distortion, main_params_sizer)
+        add_field(self, "Phase", self.phase_type, main_params_sizer)
 
         self.sizer.Add(main_params_sizer, 1, wx.ALL | wx.EXPAND)
 
-        self.range_fields = {
-            "start": [],
-            "end": []
-        }
+        self.start_range_params = RangeFieldsSubPanel(self, "start")
+        self.end_range_params = RangeFieldsSubPanel(self, "end")
 
-        for range_param in self.range_fields.keys():
-            range_param_sizer = wx.FlexGridSizer(cols=2, hgap=20, vgap=7)
-
-            volume = ReadOnlyTextViewField(
-                self, within(range_param, two_digit_hex_format("volume")))
-            filter_cutoff = ReadOnlyTextViewField(
-                self, within(range_param, two_digit_hex_format(
-                    "filter_cutoff")))
-            phase_amount = ReadOnlyTextViewField(
-                self, within(range_param, two_digit_hex_format(
-                    "phase_amount")))
-            vertical_shift = ReadOnlyTextViewField(
-                self, within(range_param, two_digit_hex_format(
-                    "vertical_shift")))
-
-            self.range_fields[range_param].extend(
-                [volume, filter_cutoff, phase_amount, vertical_shift])
-
-            self.add_field("Volume", volume, range_param_sizer)
-            self.add_field("Cutoff", filter_cutoff, range_param_sizer)
-            self.add_field("Phase", phase_amount, range_param_sizer)
-            self.add_field("VShift", vertical_shift, range_param_sizer)
-
-            self.sizer.Add(range_param_sizer, 1, wx.ALL | wx.EXPAND)
-
-        # Wave
-        # Filter
-        # Q
-        # Dist
-        # Phase
-        # Start volume, cutoff, phase, vshift
-        # End volume, cutoff, phase, vshift
+        self.sizer.Add(self.start_range_params, 1, wx.ALL | wx.EXPAND)
+        self.sizer.Add(self.end_range_params, 1, wx.ALL | wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.Layout()
@@ -90,12 +97,3 @@ class SelectedSynthPanel(wx.Panel):
     def handle_synth_changed(self, data):
         synth = data
         self.Layout()
-
-    def add_field(self, label_text, control, sizer):
-        label = wx.StaticText(self, label=label_text)
-
-        sizer.Add(label, 0, wx.ALL)
-
-        control.subscribe(channels.SYNTH_CHANGE)
-
-        control.add_to_sizer(sizer, 0, wx.ALL)
