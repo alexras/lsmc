@@ -10,6 +10,7 @@ from viewutils import one_digit_hex_format, two_digit_hex_format, \
 from VibeTypeViewField import VibeTypeViewField
 from ReadOnlyTextViewField import ReadOnlyTextViewField
 from ImageSetViewField import ImageSetViewField
+from WaveViewField import WaveViewField
 
 class PulseInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
@@ -18,13 +19,7 @@ class PulseInstrumentPanel(InstrumentPanel):
         self.envelope = ReadOnlyTextViewField(
             self, two_digit_hex_format("envelope"))
 
-        wave_images = [
-            wx.Image("images/wave12.5.gif", wx.BITMAP_TYPE_GIF),
-            wx.Image("images/wave25.gif", wx.BITMAP_TYPE_GIF),
-            wx.Image("images/wave50.gif", wx.BITMAP_TYPE_GIF),
-            wx.Image("images/wave75.gif", wx.BITMAP_TYPE_GIF)]
-
-        self.wave = ImageSetViewField(self, instr_attr("wave"), wave_images)
+        self.wave = WaveViewField(self)
 
         self.pan = ReadOnlyTextViewField(self, instr_attr("pan"))
         self.length = ReadOnlyTextViewField(self, len_format)
