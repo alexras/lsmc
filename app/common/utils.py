@@ -40,7 +40,8 @@ def add_song_data_property(clazz, property_name, song_data_field_path,
     setattr(clazz, property_name, property(fset=set_field, fget=get_field))
 
 def assert_index_sane(index, upper_bound_exclusive):
-    assert type(index) == int, "Indices should be integers"
+    assert type(index) == int, "Indices should be integers; '%s' is not" % (
+        index)
     assert 0 <= index < upper_bound_exclusive, (
         "Index %d out of range [%d, %d)" % (index, 0, upper_bound_exclusive))
 
