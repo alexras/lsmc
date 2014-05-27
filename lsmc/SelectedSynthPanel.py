@@ -3,15 +3,17 @@ from wx.lib.pubsub import pub
 
 import channels
 
+from utils import make_image
+
 from ImageSetViewField import ImageSetViewField
 from ReadOnlyTextViewField import ReadOnlyTextViewField
 from viewutils import instr_attr, one_digit_hex_format, two_digit_hex_format, \
     within
 
 WAVE_IMAGES = {
-    "sawtooth": wx.Image("images/synth_saw.gif", wx.BITMAP_TYPE_GIF),
-    "square": wx.Image("images/synth_square.gif", wx.BITMAP_TYPE_GIF),
-    "sine": wx.Image("images/synth_sine.gif", wx.BITMAP_TYPE_GIF)
+    "sawtooth": make_image(("images", "synth_saw.gif")),
+    "square": make_image(("images", "synth_square.gif")),
+    "sine": make_image(("images", "synth_sine.gif"))
 }
 
 def add_field(parent, label_text, control, sizer):

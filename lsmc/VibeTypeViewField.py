@@ -2,11 +2,13 @@ import wx
 
 from ImageSetViewField import ImageSetViewField
 
+from utils import make_image
+
 VIBE_IMAGES = [
-    wx.Image("images/vibe_hfsine.gif", wx.BITMAP_TYPE_GIF),
-    wx.Image("images/vibe_saw.gif", wx.BITMAP_TYPE_GIF),
-    wx.Image("images/vibe_sine.gif", wx.BITMAP_TYPE_GIF),
-    wx.Image("images/vibe_square.gif", wx.BITMAP_TYPE_GIF)
+    make_image(("images", "vibe_hfsine.gif")),
+    make_image(("images", "vibe_saw.gif")),
+    make_image(("images", "vibe_sine.gif")),
+    make_image(("images", "vibe_square.gif"))
 ]
 
 class VibeTypeViewField(ImageSetViewField):

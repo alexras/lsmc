@@ -42,3 +42,20 @@ def file_dialog(message, wildcard, style, ok_handler, default_file = ''):
             ok_handler(dlg, path)
     finally:
         dlg.Destroy()
+
+def make_image(relative_path):
+    resource_path = os.getenv("RESOURCEPATH")
+
+    if resource_path is None:
+        resource_path = os.path.abspath(os.path.join(__file__, os.pardir))
+
+    absolute_path = os.path.join(resource_path, *relative_path)
+
+    extension = os.path.splitext(relative_path[-1])[1]
+
+    if extension == ".gif":
+        file_type = wx.BITMAP_TYPE_GIF
+    elif extension == ".png":
+        file_type = wx.BITMAP_TYPE_PNG
+
+    return wx.Image(absolute_path, file_type)
