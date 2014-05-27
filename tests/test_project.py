@@ -5,8 +5,8 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 sys.path.append(os.path.join(SCRIPT_DIR, os.path.pardir))
 
-import app.common.filepack as filepack
-from app.common.project import Project, load_project
+import lsmc.common.filepack as filepack
+from lsmc.common.project import Project, load_project
 
 def test_save_load_lsdsng():
     sample_song_compressed = os.path.join(

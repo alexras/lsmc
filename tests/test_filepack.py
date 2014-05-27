@@ -8,9 +8,9 @@ sys.path.append(os.path.join(SCRIPT_DIR, os.path.pardir))
 def assert_bytearray_equal(x, y):
     assert_list_equal(map(hex, x), map(hex, y))
 
-import app.common.filepack as filepack
-import app.common.blockutils as bl
-import app.common.bread_spec as bread_spec
+import lsmc.common.filepack as filepack
+import lsmc.common.blockutils as bl
+import lsmc.common.bread_spec as bread_spec
 import bread as b
 
 def test_basic_compress_decompress():

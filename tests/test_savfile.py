@@ -4,8 +4,8 @@ from nose.tools import assert_equal, with_setup
 sys.path.append(
     os.path.dirname(os.path.abspath(os.path.join(__file__, os.path.pardir))))
 
-import app.common.savfile as savfile
-from app.common.project import Project
+import lsmc.common.savfile as savfile
+from lsmc.common.project import Project
 
 SAV_IN = os.path.join(os.path.dirname(__file__), "test_data", "lsdj.sav")
 SAV_OUT = os.path.join(os.path.dirname(__file__), "lsdj.sav.out")
