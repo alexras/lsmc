@@ -300,6 +300,30 @@ softsynth = [
     b.padding(8 * 3)
 ]
 
+table_command = [
+    ("fx", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.enum(8, {
+        0: '-',
+        1: 'A',
+        2: 'C',
+        4: 'E',
+        5: 'F',
+        6: 'G',
+        7: 'H',
+        8: 'K',
+        9: 'L',
+        10: 'M',
+        11: 'O',
+        12: 'P',
+        13: 'R',
+        14: 'S',
+        15: 'T',
+        16: 'V',
+        17: 'W',
+        18: 'Z'
+    })))),
+    ("val", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte)))
+]
+
 song = [
     ("phrase_notes", b.array(NUM_PHRASES, b.array(STEPS_PER_PHRASE, b.byte))),
     ("bookmarks", b.array(64, b.byte)),
@@ -323,10 +347,8 @@ song = [
         NUM_CHAINS, b.array(PHRASES_PER_CHAIN, b.byte))),
     ("instruments", b.array(NUM_INSTRUMENTS, instrument)),
     ("table_transposes", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
-    ("table_fx", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
-    ("table_fx_val", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
-    ("table_fx2", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
-    ("table_fx2_val", b.array(NUM_TABLES, b.array(STEPS_PER_TABLE, b.byte))),
+    ("table_cmd1", table_command),
+    ("table_cmd2", table_command),
     # Set to 'rb' on init
     ("mem_init_flag_2", b.string(2)),
     ("phrase_alloc_table", b.array(NUM_PHRASES, b.boolean)),

@@ -37,6 +37,16 @@ class AllocTable(object):
     def __len__(self):
         return len(self.alloc_table)
 
+    def as_list(self):
+        l = []
+        for i in xrange(len(self.alloc_table)):
+            if not self.alloc_table[i]:
+                l.append(None)
+            else:
+                l.append(self.access_objects[i])
+
+        return l
+
 class Instruments(object):
     specs = {
         "pulse": bread_spec.pulse_instrument,

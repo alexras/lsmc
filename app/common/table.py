@@ -7,7 +7,11 @@ class Table(object):
         self.song = song
         self.index = index
 
-for property_name in ["envelopes", "transposes", "fx", "fx_val", "fx2",
-                      "fx2_val"]:
-    add_song_data_property(Table, property_name, ("table_" + property_name,),
-                           use_index=True)
+for property_name, field_path in [
+        ("envelopes", ("table_envelopes",)),
+        ("transposes", ("table_transposes",)),
+        ("fx1", ("table_cmd1", "fx")),
+        ("fx1_vals", ("table_cmd1", "val")),
+        ("fx2", ("table_cmd2", "fx")),
+        ("fx2_vals", ("table_cmd2", "val"))]:
+    add_song_data_property(Table, property_name, field_path, use_index=True)
