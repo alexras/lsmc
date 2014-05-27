@@ -25,7 +25,7 @@ def within(attr, function):
 
 def len_format(instr):
     if instr.has_sound_length:
-        return "%02x" % (instr.sound_length)
+        return "%02x" % ((~(instr.sound_length)) & 0b00111111)
     else:
         return "UNLIM"
 
