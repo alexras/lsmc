@@ -20,7 +20,7 @@ def open_sav(event, projects_window, main_window):
             sav_obj = cs.SAVFile(path, callback=progress_update_function)
         except ValueError, e:
             show_error_dialog("Failed to load '%s'" % (dlg.GetFilename()),
-                              str(e))
+                              str(e), projects_window)
 
         if sav_obj is not None:
             main_window.set_sav(sav_obj)
