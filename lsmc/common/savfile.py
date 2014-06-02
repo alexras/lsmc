@@ -130,7 +130,7 @@ class SAVFile(object):
             project_version = self.header_block.file_versions[file_number]
 
             callback("Reading project '%s' v%d" %
-                     (project_name, project_version),
+                     (utils.name_without_zeroes(project_name), project_version),
                      current_step, total_steps, True)
 
             project = Project(
