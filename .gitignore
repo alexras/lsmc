@@ -1,5 +1,4 @@
 *.pyc
 cover/
 .coverage
-tests/test_data
 .DS_Store
