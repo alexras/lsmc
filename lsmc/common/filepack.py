@@ -1,5 +1,6 @@
 import bread
 import bread_spec
+import itertools
 
 # Byte used to denote run-length encoding
 RLE_BYTE = 0xc0
@@ -30,6 +31,8 @@ DEFAULT_INSTRUMENT = bytearray([
 #     0xa8, 0, 0, 0xff, 0, 0, 3, 0, 0, 0xd0, 0, 0, 0, 0xf3, 0, 0]
 
 RESERVED_BYTES = [SPECIAL_BYTE, RLE_BYTE]
+
+SPECIAL_DEFAULTS = [DEFAULT_INSTR_BYTE, DEFAULT_WAVE_BYTE]
 
 STATE_BYTES = 0
 STATE_RLE_BYTE = 1
@@ -124,14 +127,63 @@ def split(compressed_data, segment_size, block_factory):
 
     return block_ids
 
+def renumber_block_keys(blocks):
+    # There is an implicit block switch to the 0th block at the start of the
+    # file
+    byte_switch_keys = [0]
+    block_keys = blocks.keys()
+
+    # Scan the blocks, recording every block switch statement
+    for block in blocks.values():
+        i = 0
+        while i < len(block.data) - 1:
+            current_byte = block.data[i]
+            next_byte = block.data[i + 1]
+
+            if current_byte == RLE_BYTE:
+                if next_byte == RLE_BYTE:
+                    i += 2
+                else:
+                    i += 3
+            elif current_byte == SPECIAL_BYTE:
+                if next_byte in SPECIAL_DEFAULTS:
+                    i += 3
+                elif next_byte == SPECIAL_BYTE:
+                    i += 2
+                else:
+                    if next_byte != EOF_BYTE:
+                        byte_switch_keys.append(next_byte)
+
+                    break
+
+            else:
+                i += 1
+
+    byte_switch_keys.sort()
+    block_keys.sort()
+
+    assert len(byte_switch_keys) == len(block_keys), (
+        "Number of blocks that are target of block switches does not equal "
+        "number of blocks in the song; possible corruption")
+
+    if byte_switch_keys == block_keys:
+        # No remapping necessary
+        return blocks
+
+    new_block_map = {}
+
+    for block_key, byte_switch_key in itertools.izip(
+            block_keys, byte_switch_keys):
+
+        new_block_map[byte_switch_key] = blocks[block_key]
+
+    return new_block_map
+
 def merge(blocks):
     current_block = blocks[sorted(blocks.keys())[0]]
 
     compressed_data = []
     eof = False
-
-    ignored_special_commands = [DEFAULT_INSTR_BYTE,
-                                DEFAULT_WAVE_BYTE]
 
     while not eof:
         data_size_to_append = None
@@ -148,7 +200,7 @@ def merge(blocks):
                 else:
                     i += 3
             elif current_byte == SPECIAL_BYTE:
-                if next_byte in ignored_special_commands:
+                if next_byte in SPECIAL_DEFAULTS:
                     i += 3
                 elif next_byte == SPECIAL_BYTE:
                     i += 2

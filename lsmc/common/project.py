@@ -30,8 +30,10 @@ def load_project(filename):
             block = factory.new_block()
             block.data = block_data
 
+        remapped_blocks = filepack.renumber_block_keys(factory.blocks)
+
         reader =  BlockReader()
-        compressed_data = reader.read(factory.blocks)
+        compressed_data = reader.read(remapped_blocks)
 
         # Now, decompress the raw data and use it and the preamble to construct
         # a Project

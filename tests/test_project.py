@@ -73,5 +73,15 @@ def test_read_write_project():
 
     assert_equal(proj_from_raw_data._song_data, proj._song_data)
 
+
+def test_block_remap_required():
+    block_remap_song = os.path.join(SCRIPT_DIR, "test_data", "ANNARKTE.lsdsng")
+
+    proj = load_project(block_remap_song)
+
+    assert_equal("ANNARKTE", proj.name)
+    assert_equal(3, proj.version)
+    assert_equal(4, proj.size_blks)
+
 if __name__ == "__main__":
-    test_read_write_project()
+    test_block_remap_required()
