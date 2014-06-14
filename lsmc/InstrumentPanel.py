@@ -90,9 +90,13 @@ class InstrumentPanel(wx.Panel):
     def import_instrument(self, event):
         def ok_handler(dlg, path):
             with open(path, 'r') as fp:
-                self.instrument.import_lsdinst(json.load(fp))
+                failure_message = self.instrument.import_lsdinst(json.load(fp))
 
-            pub.sendMessage(channels.INSTR_IMPORT, data=self.instrument)
+            if failure_message is None:
+                pub.sendMessage(channels.INSTR_IMPORT, data=self.instrument)
+            else:
+                event_handlers.show_error_dialog(
+                    'Import Failed', failure_message, self)
 
         utils.file_dialog(
             "Load instrument", "*.lsdinst", wx.OPEN, ok_handler)
@@ -104,7 +108,7 @@ class InstrumentPanel(wx.Panel):
             with open(path, 'w') as fp:
                 json.dump(instr_json, fp, indent=2)
 
-        if not name_empty(self.instrument.name):
+        if not utils.name_empty(self.instrument.name):
             default_file = '%s.lsdinst' % (self.instrument.name)
         else:
             default_file = ''

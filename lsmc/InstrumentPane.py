@@ -12,9 +12,6 @@ from WaveInstrumentPanel import WaveInstrumentPanel
 from KitInstrumentPanel import KitInstrumentPanel
 from NoiseInstrumentPanel import NoiseInstrumentPanel
 
-def name_empty(name):
-    return map(ord, name) == [0] * len(name)
-
 class InstrumentPane(wx.Panel):
     def __init__(self, parent, project):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -27,7 +24,7 @@ class InstrumentPane(wx.Panel):
         def instr_name_printer(x):
             name = getattr(x, "name")
 
-            if name_empty(name):
+            if utils.name_empty(name):
                 return "[UNNAMED]"
             else:
                 return name

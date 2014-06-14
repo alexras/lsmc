@@ -1,3 +1,4 @@
+import json
 from utils import add_song_data_property
 
 class Synth(object):
@@ -18,3 +19,40 @@ class Synth(object):
             super(Synth, self).__setattr__(name, value)
         else:
             setattr(self._params, name, value)
+
+    def export(self):
+        export_struct = {}
+
+        export_struct["params"] = json.loads(self._params.as_json())
+        export_struct["waves"] = []
+
+        for wave in self.waves:
+            export_struct["waves"].append(list(wave))
+
+        return export_struct
+
+    def import_lsdinst(self, synth_data):
+        params_native = self._params.as_native()
+
+        for key in params_native:
+            if key[0] == '_':
+                continue
+
+            if key in ('start', 'end'):
+                self._import_sound_params(
+                    synth_data['params'][key], getattr(self, key))
+            else:
+                setattr(self._params, key, synth_data['params'][key])
+
+        for i, wave in enumerate(synth_data['waves']):
+            for j, frame in enumerate(wave):
+                self.waves[i][j] = frame
+
+    def _import_sound_params(self, params, dest):
+        native_repr = dest.as_native()
+
+        for key in native_repr:
+            if key[0] == '_':
+                continue
+
+            setattr(dest, key, params[key])

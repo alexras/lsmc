@@ -47,6 +47,12 @@ class AllocTable(object):
 
         return l
 
+    def next_free(self):
+        for i, occupied in enumerate(self.alloc_table):
+            if not occupied:
+                return i
+        return None
+
 class Instruments(object):
     specs = {
         "pulse": bread_spec.pulse_instrument,

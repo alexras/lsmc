@@ -5,6 +5,7 @@ import bread
 import bread_spec
 
 from filepack import DEFAULT_INSTRUMENT
+from synth import Synth
 
 def new_default_instrument(instr_type):
     instr_data = DEFAULT_INSTRUMENT[:]
@@ -43,7 +44,7 @@ class Instrument(object):
         self.data.instrument_type = val
 
     def __getattr__(self, name):
-        if name == "wave" and type == "wave":
+        if name == "wave" and self.type == "wave":
             return self.song.song_data.wave_frames[self.index]
         elif name == "table":
             if hasattr(self.data, "table_on") and self.data.table_on:
@@ -68,24 +69,50 @@ class Instrument(object):
         else:
             setattr(self.data, name, value)
 
+    def _get_open_synth_index(self):
+        available_synths = set(range(bread_spec.NUM_SYNTHS))
+
+        for instrument in self.song.instruments.as_list():
+            if instrument is not None and instrument.type == 'wave':
+                available_synths.discard(instrument.synth)
+
+        if len(available_synths) == 0:
+            return None
+        else:
+            return available_synths.pop()
+
     def import_lsdinst(self, lsdinst_struct):
-        self.name = lsdinst_struct["name"]
+        instr_type = lsdinst_struct['data']['instrument_type']
+
+        # Make sure we've got enough space for the synth if we need one
+        if instr_type == 'wave':
+            synth_index = self._get_open_synth_index()
+
+            if synth_index is None:
+                return ("No available synth slot in which to store the "
+                        "instrument's synth data")
+
+        self.name = lsdinst_struct['name']
 
         # If this instrument is of a different type than we're currently
         # storing, we've got to make a new one of the appropriate type into
         # which to demarshal
-        instr_type = lsdinst_struct["data"]["instrument_type"]
-
         if self.type != instr_type:
             self.data = new_default_instrument(instr_type)
             self.song.song_data.instruments[self.index] = self.data
 
         native_repr = self.data.as_native()
-        self._import_instr_data(lsdinst_struct["data"], native_repr, self.data)
+        self._import_instr_data(lsdinst_struct['data'], native_repr, self.data)
+
+        if instr_type == 'wave':
+            self.data.synth = synth_index
+
+            synth = Synth(self.song, synth_index)
+            synth.import_lsdinst(lsdinst_struct['synth'])
 
     def _import_instr_data(self, import_data, native_repr, output_data):
         for (key, val) in native_repr.items():
-            if key[0] == '_':
+            if key[0] == '_' or key in ('synth'):
                 continue
 
             if type(val) == dict:
@@ -97,13 +124,15 @@ class Instrument(object):
     def export(self):
         export_struct = {}
 
-        export_struct["name"] = self.name
-        export_struct["data"] = {}
+        export_struct['name'] = self.name
+        export_struct['data'] = {}
 
         data_json = json.loads(self.data.as_json())
 
         for key, value in data_json.items():
-            if key[0] != '_':
-                export_struct["data"][key] = value
+            if key[0] != '_' or key in ('synth',):
+                export_struct['data'][key] = value
 
+        if self.type == 'wave':
+            export_struct['synth'] = Synth(self.song, self.synth).export()
         return export_struct

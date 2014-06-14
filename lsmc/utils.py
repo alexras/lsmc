@@ -59,3 +59,6 @@ def make_image(relative_path):
         file_type = wx.BITMAP_TYPE_PNG
 
     return wx.Image(absolute_path, file_type)
+
+def name_empty(name):
+    return map(ord, name) == [0] * len(name)
