@@ -57,3 +57,6 @@ class SynthPane(wx.Panel):
             synth = selected_synths[0]
 
         pub.sendMessage(channels.SYNTH_CHANGE, data=synth)
+
+    def refresh(self):
+        pass

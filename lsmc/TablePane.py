@@ -74,8 +74,7 @@ class TablePane(wx.Panel):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.handle_table_changed,
                   self.table_list)
 
-        self.table_list.SetObjects(list(enumerate(
-            self.project.song.tables.as_list())))
+        self.refresh()
 
         self.table_view = utils.new_obj_list_view(self)
         self.table_view.SetEmptyListMsg("No Table Selected")
@@ -107,6 +106,10 @@ class TablePane(wx.Panel):
         self.sizer.AddStretchSpacer()
 
         self.SetSizer(self.sizer)
+
+    def refresh(self):
+        self.table_list.SetObjects(list(enumerate(
+            self.project.song.tables.as_list())))
 
     def handle_table_changed(self, event):
         selected_tables = self.table_list.GetSelectedObjects()

@@ -36,7 +36,7 @@ class InstrumentPane(wx.Panel):
         type_col = ColumnDefn("Type", "left", 50, "type", isSpaceFilling=True)
         self.instr_list.SetColumns([id_col, name_col, type_col])
 
-        self.refresh_instr_list()
+        self.update_instr_list()
 
         self.instr_panels = {
             None: NoInstrumentSelectedPanel(self),
@@ -63,11 +63,11 @@ class InstrumentPane(wx.Panel):
 
         self.show_instr_panel(None)
 
-    def update_instr_list(self, data):
+    def update_instr_list(self, data=None):
         self.instr_list.SetObjects(self.project.song.instruments.as_list())
 
-    def refresh_instr_list(self):
-        self.instr_list.SetObjects(self.project.song.instruments.as_list())
+    def refresh(self):
+        self.update_instr_list()
 
     def show_instr_panel(self, instrument):
         instr_type = None

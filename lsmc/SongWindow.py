@@ -27,6 +27,9 @@ class SongWindow(wx.Frame):
         self.notebook.AddPage(synth_pane, "Synths")
         self.notebook.AddPage(table_pane, "Tables")
 
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING,
+                  self.handle_notebook_page_changing, self.notebook)
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(self.notebook, 1, flag=wx.ALL | wx.EXPAND, border=5)
 
@@ -34,3 +37,6 @@ class SongWindow(wx.Frame):
 
         self.Layout()
         self.Show()
+
+    def handle_notebook_page_changing(self, event):
+        self.notebook.GetPage(event.GetSelection()).refresh()

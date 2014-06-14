@@ -1,5 +1,4 @@
 import json
-from utils import add_song_data_property
 
 class Synth(object):
     """The wave channel can be used as a soft synthesizer to generate sounds."""

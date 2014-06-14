@@ -92,6 +92,16 @@ class Instrument(object):
                 return ("No available synth slot in which to store the "
                         "instrument's synth data")
 
+        # Make sure we've got enough room for the table if we need it
+        if 'table' in lsdinst_struct:
+            table_index = self.song.tables.next_free()
+
+            if table_index is None:
+                return ("No available table slot in which to store the "
+                        "instrument's table data")
+            else:
+                self.song.tables.allocate(table_index)
+
         self.name = lsdinst_struct['name']
 
         # If this instrument is of a different type than we're currently
@@ -109,6 +119,14 @@ class Instrument(object):
 
             synth = Synth(self.song, synth_index)
             synth.import_lsdinst(lsdinst_struct['synth'])
+
+        if 'table' in lsdinst_struct:
+            table = self.song.tables[table_index]
+
+            self.data.table_on = True
+            self.data.table = table_index
+            table.import_lsdinst(lsdinst_struct['table'])
+
 
     def _import_instr_data(self, import_data, native_repr, output_data):
         for (key, val) in native_repr.items():
@@ -130,9 +148,12 @@ class Instrument(object):
         data_json = json.loads(self.data.as_json())
 
         for key, value in data_json.items():
-            if key[0] != '_' or key in ('synth',):
+            if key[0] != '_' or key in ('synth','table'):
                 export_struct['data'][key] = value
 
         if self.type == 'wave':
             export_struct['synth'] = Synth(self.song, self.synth).export()
+
+        if self.table is not None:
+            export_struct['table'] = self.table.export()
         return export_struct
