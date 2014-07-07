@@ -1,5 +1,4 @@
 import wx
-from wx.lib.pubsub import pub
 from ObjectListView import ColumnDefn
 
 import utils
@@ -13,6 +12,8 @@ class SynthPane(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.project = project
+
+        self.synth_change_channel = channels.SYNTH_CHANGE(project)
 
         self.synth_list = utils.new_obj_list_view(self)
         self.synth_list.SetEmptyListMsg("Loading synth list ...")
@@ -56,7 +57,7 @@ class SynthPane(wx.Panel):
         if len(selected_synths) > 0:
             synth = selected_synths[0]
 
-        pub.sendMessage(channels.SYNTH_CHANGE, data=synth)
+        self.synth_change_channel.publish(synth)
 
     def refresh(self):
         pass

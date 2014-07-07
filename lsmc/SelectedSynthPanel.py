@@ -1,5 +1,4 @@
 import wx
-from wx.lib.pubsub import pub
 
 import channels
 
@@ -21,7 +20,7 @@ def add_field(parent, label_text, control, sizer):
 
     sizer.Add(label, 0, wx.ALL)
 
-    control.subscribe(channels.SYNTH_CHANGE)
+    control.subscribe(parent.synth_change_channel)
 
     control.add_to_sizer(sizer, 0, wx.ALL)
 
@@ -29,7 +28,6 @@ def add_field(parent, label_text, control, sizer):
 class RangeFieldsSubPanel(wx.Panel):
     def __init__(self, parent, range_param):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-
         self.hpos = 0
 
         self.sizer = wx.GridBagSizer(hgap=20, vgap=7)
@@ -61,7 +59,7 @@ class RangeFieldsSubPanel(wx.Panel):
         label = wx.StaticText(self, label=label_text)
 
         sizer.Add(label, pos=(self.hpos, 0), flag=wx.ALL)
-        control.subscribe(channels.SYNTH_CHANGE)
+        control.subscribe(self.GetParent().synth_change_channel)
         control.add_to_sizer(sizer, pos=(self.hpos, 1), flag=wx.ALL)
 
         self.hpos += 1
@@ -74,7 +72,10 @@ class SelectedSynthPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
-        pub.subscribe(self.handle_synth_changed, channels.SYNTH_CHANGE)
+        self.synth_change_channel = channels.SYNTH_CHANGE(
+            parent.GetParent().project)
+
+        self.synth_change_channel.subscribe(self.handle_synth_changed)
 
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -119,5 +120,5 @@ class SelectedSynthPanel(wx.Panel):
         label = wx.StaticText(self, label=label_text)
 
         sizer.Add(label, 0, wx.ALL)
-        control.subscribe(channels.SYNTH_CHANGE)
+        control.subscribe(self.synth_change_channel)
         control.add_to_sizer(sizer, 0, wx.ALL)

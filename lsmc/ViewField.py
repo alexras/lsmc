@@ -1,12 +1,10 @@
-from wx.lib.pubsub import pub
-
 class ViewField(object):
     def __init__(self, parent, field):
         self.parent = parent
         self.field = field
 
     def subscribe(self, channel):
-        pub.subscribe(self.update, channel)
+        channel.subscribe(self.update)
 
     def update(self, data):
         self.parent.field_changed()

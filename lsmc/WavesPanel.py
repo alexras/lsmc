@@ -1,5 +1,4 @@
 import wx
-from wx.lib.pubsub import pub
 
 import common.bread_spec as spec
 from WavePanel import WavePanel
@@ -25,7 +24,8 @@ class WavesPanel(wx.Panel):
 
         self.Bind(wx.EVT_SCROLL, self.handle_scroll, self.wave_slider)
 
-        pub.subscribe(self.handle_synth_changed, channels.SYNTH_CHANGE)
+        channels.SYNTH_CHANGE(parent.project).subscribe(
+            self.handle_synth_changed)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 

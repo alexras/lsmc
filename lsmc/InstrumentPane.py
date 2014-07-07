@@ -1,5 +1,4 @@
 import wx, functools
-from wx.lib.pubsub import pub
 from ObjectListView import ColumnDefn
 
 import channels
@@ -49,8 +48,10 @@ class InstrumentPane(wx.Panel):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.handle_instr_changed,
                   self.instr_list)
 
-        pub.subscribe(self.handle_instr_changed, channels.INSTR_IMPORT)
-        pub.subscribe(self.update_instr_list, channels.INSTR_IMPORT)
+        channel = channels.INSTR_IMPORT(project)
+
+        channel.subscribe(self.handle_instr_changed)
+        channel.subscribe(self.update_instr_list)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 

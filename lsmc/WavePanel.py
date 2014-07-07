@@ -1,5 +1,4 @@
 import wx
-from wx.lib.pubsub import pub
 
 import common.bread_spec as spec
 import channels
@@ -13,7 +12,8 @@ class WavePanel(wx.Panel):
         self.Bind(wx.EVT_SIZE, self.on_size)
         self.wave = None
 
-        pub.subscribe(self.handle_synth_changed, channels.SYNTH_CHANGE)
+        channels.SYNTH_CHANGE(parent.GetParent().project).subscribe(
+            self.handle_synth_changed)
 
     def handle_synth_changed(self, data):
         synth = data

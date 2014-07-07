@@ -1,5 +1,4 @@
 import wx
-from wx.lib.pubsub import pub
 
 import channels
 
@@ -13,7 +12,8 @@ class SynthParamsPanel(wx.Panel):
         self.empty_synth_panel = EmptySynthPanel(self)
         self.selected_synth_panel = SelectedSynthPanel(self)
 
-        pub.subscribe(self.handle_synth_changed, channels.SYNTH_CHANGE)
+        channels.SYNTH_CHANGE(parent.project).subscribe(
+            self.handle_synth_changed)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 

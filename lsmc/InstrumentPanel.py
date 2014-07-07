@@ -1,5 +1,4 @@
 import wx, json
-from wx.lib.pubsub import pub
 
 import channels, utils
 
@@ -15,10 +14,11 @@ class InstrumentPanel(wx.Panel):
 
         self.instrument = None
 
-        self.pubsub_channel = channel
+        self.pubsub_channel = None
 
         if channel is not None:
-            pub.subscribe(self._set_instrument, self.pubsub_channel)
+            self.pubsub_channel = channel(parent.project)
+            self.pubsub_channel.subscribe(self._set_instrument)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -85,7 +85,7 @@ class InstrumentPanel(wx.Panel):
     def change_instrument(self, instrument):
         # Reset updated fields count since we're about to start changing fields.
         self.updated_fields = 0
-        pub.sendMessage(self.pubsub_channel, data=instrument)
+        self.pubsub_channel.publish(instrument)
 
     def import_instrument(self, event):
         def ok_handler(dlg, path):
@@ -93,7 +93,7 @@ class InstrumentPanel(wx.Panel):
                 failure_message = self.instrument.import_lsdinst(json.load(fp))
 
             if failure_message is None:
-                pub.sendMessage(channels.INSTR_IMPORT, data=self.instrument)
+                self.pubsub_channel.publish(self.instrument)
             else:
                 event_handlers.show_error_dialog(
                     'Import Failed', failure_message, self)
