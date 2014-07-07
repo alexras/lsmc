@@ -65,8 +65,14 @@ def add_song(event, projects_window, main_window):
     sav_obj = main_window.get_sav()
 
     def ok_handler(dlg, path):
-        proj = cp.load_project(path)
-        sav_obj.projects[index] = proj
+        try:
+            proj = cp.load_project(path)
+            sav_obj.projects[index] = proj
+        except Exception, e:
+            error_dialog = wx.MessageDialog(
+                None, 'Error loading file: %s' % (e), 'Error',
+                wx.OK | wx.ICON_ERROR)
+            error_dialog.ShowModal()
 
     utils.file_dialog("Open .lsdsng", "*.lsdsng", wx.OPEN, ok_handler)
 
