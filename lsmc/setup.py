@@ -7,7 +7,7 @@ Usage:
 
 from setuptools import setup
 
-APP = ['main.py']
+APP = ['LSMC']
 DATA_FILES = ['images']
 OPTIONS = {'argv_emulation': True,
            'resources': list(DATA_FILES),

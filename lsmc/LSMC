@@ -32,7 +32,7 @@ class MainMenuBar(wx.MenuBar):
 class MainWindow(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(
-            self, None, wx.ID_ANY, "LSDJ .sav Utils", size=(600,400),
+            self, None, wx.ID_ANY, "Little Sound MC", size=(600,400),
             style=wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN)
 
         self.sav_obj = None
