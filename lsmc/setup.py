@@ -11,7 +11,8 @@ APP = ['LSMC']
 DATA_FILES = ['images']
 OPTIONS = {'argv_emulation': True,
            'resources': list(DATA_FILES),
-           'site_packages': True}
+           'site_packages': True,
+           'iconfile': 'icon.icns'}
 
 setup(
     app=APP,
