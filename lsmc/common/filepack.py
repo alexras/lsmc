@@ -163,8 +163,11 @@ def renumber_block_keys(blocks):
     block_keys.sort()
 
     assert len(byte_switch_keys) == len(block_keys), (
-        "Number of blocks that are target of block switches does not equal "
-        "number of blocks in the song; possible corruption")
+        "Number of blocks that are target of block switches (%d) "
+        % (len(byte_switch_keys)) +
+        "does not equal number of blocks in the song (%d)"
+        % (len(block_keys)) +
+        "; possible corruption")
 
     if byte_switch_keys == block_keys:
         # No remapping necessary
