@@ -14,11 +14,13 @@ class InstrumentPanel(wx.Panel):
 
         self.instrument = None
 
-        self.pubsub_channel = None
+        self.instr_of_type_channel = None
 
         if channel is not None:
-            self.pubsub_channel = channel(parent.project)
-            self.pubsub_channel.subscribe(self._set_instrument)
+            self.instr_of_type_channel = channel(parent.project)
+            self.instr_of_type_channel.subscribe(self._set_instrument)
+
+        self.instr_imported_channel = channels.INSTR_IMPORT(parent.project)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -44,7 +46,7 @@ class InstrumentPanel(wx.Panel):
             return "Instrument %02x" % (instr.index)
 
         self.instrument_name = StaticTextViewField(self, header_format)
-        self.instrument_name.subscribe(self.pubsub_channel)
+        self.instrument_name.subscribe(self.instr_of_type_channel)
         self.instrument_name.add_to_sizer(header_sizer, 1, wx.ALL)
 
         self.sizer.Add(header_sizer, 1, wx.EXPAND | wx.ALL)
@@ -74,7 +76,7 @@ class InstrumentPanel(wx.Panel):
 
         self.main_sizer.Add(label, 0, wx.ALL)
 
-        map(lambda x: x.subscribe(self.pubsub_channel), fields)
+        map(lambda x: x.subscribe(self.instr_of_type_channel), fields)
         self.num_fields += len(fields)
 
         if isinstance(control, ViewField):
@@ -85,7 +87,7 @@ class InstrumentPanel(wx.Panel):
     def change_instrument(self, instrument):
         # Reset updated fields count since we're about to start changing fields.
         self.updated_fields = 0
-        self.pubsub_channel.publish(instrument)
+        self.instr_of_type_channel.publish(instrument)
 
     def import_instrument(self, event):
         def ok_handler(dlg, path):
@@ -93,7 +95,7 @@ class InstrumentPanel(wx.Panel):
                 failure_message = self.instrument.import_lsdinst(json.load(fp))
 
             if failure_message is None:
-                self.pubsub_channel.publish(self.instrument)
+                self.instr_imported_channel.publish(self.instrument)
             else:
                 event_handlers.show_error_dialog(
                     'Import Failed', failure_message, self)
