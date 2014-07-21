@@ -56,6 +56,10 @@ class Project(object):
         self.song = Song(self._song_data)
         self.size_blks = size_blks
 
+        # Useful for applications tracking whether a project was modified since
+        # it was loaded.
+        self.modified = False
+
     def get_raw_data(self):
         return bread.write(self._song_data, spec.song)
 

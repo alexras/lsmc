@@ -29,3 +29,5 @@ KIT_CHANGE = new_channel("KIT_CHANGE")
 INSTR_IMPORT = new_channel("INSTR_IMPORT")
 
 SYNTH_CHANGE = new_channel("SYNTH_CHANGE")
+
+SONG_MODIFIED = new_channel("SONG_MODIFIED")

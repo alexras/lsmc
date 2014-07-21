@@ -47,9 +47,17 @@ class MainWindow(wx.Frame):
 
         self.SetMenuBar(MainMenuBar(self))
 
+        self.Bind(wx.EVT_CLOSE, self.handle_close)
+
         # Display
         self.Layout()
         self.Show()
+
+    def handle_close(self, event):
+        try:
+            self.songs_window.handle_close(event)
+        finally:
+            self.Destroy()
 
     def set_sav(self, sav_obj):
         self.sav_obj = sav_obj

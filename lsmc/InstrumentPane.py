@@ -85,7 +85,10 @@ class InstrumentPane(wx.Panel):
 
         self.Layout()
 
-    def handle_instr_changed(self, data):
+    def handle_instr_changed(self, data=None):
+        if data is None:
+            return
+
         selected_instruments = self.instr_list.GetSelectedObjects()
 
         instrument = None

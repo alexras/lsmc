@@ -5,6 +5,8 @@ import utils
 import common.utils as cu
 from SongWindow import SongWindow
 
+from channels import SONG_MODIFIED
+
 class ProjectsWindow(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -16,6 +18,10 @@ class ProjectsWindow(wx.Panel):
 
         self.sav_project_list.SetEmptyListMsg("No .sav loaded")
 
+        # Keep track of the projects to whose channels you're subscribing to
+        # avoid subscribing multiple times
+        self.subscribed_projects = {}
+
         def string_getter(x, attr):
             if x[1] is None:
                 return "--"
@@ -26,7 +32,16 @@ class ProjectsWindow(wx.Panel):
                     return cu.printable_decimal_and_hex(obj_attr)
                 else:
                     return obj_attr
-        index_col = ColumnDefn("#", "left", 40, lambda x: "%02d" % (x[0] + 1))
+
+        def modified_getter(x):
+            if x[1] is not None and x[1].modified:
+                return "Yes"
+            else:
+                return "No"
+
+        index_col = ColumnDefn("#", "center", 30, lambda x: "%02d" % (x[0] + 1))
+
+        mod_col = ColumnDefn("Modified", "center", 60, modified_getter)
 
         name_col = ColumnDefn(
             "Song Name", "left", 200,
@@ -46,7 +61,7 @@ class ProjectsWindow(wx.Panel):
 
         size_col.freeSpaceProportion = 1
         self.sav_project_list.SetColumns(
-            [index_col, name_col, version_col, size_col])
+            [mod_col, index_col, name_col, version_col, size_col])
 
         self.open_sav_button = self.new_button(
             "Open .sav File ...", event_handlers.open_sav)
@@ -117,9 +132,28 @@ class ProjectsWindow(wx.Panel):
 
         return btn
 
-    def update_models(self):
-        self.sav_project_list.SetObjects(
-            self.GetGrandParent().sav_obj.project_list)
+    def get_project_list(self):
+        sav_obj = self.GetGrandParent().sav_obj
+
+        if sav_obj is None:
+            return None
+
+        return sav_obj.project_list
+
+    def update_models(self, data=None):
+        project_list = self.get_project_list()
+
+        if project_list is None:
+            return
+
+        self.sav_project_list.SetObjects(project_list)
+
+        for index, project in project_list:
+            if project is not None and project not in self.subscribed_projects:
+                self.subscribed_projects[project] = True
+                channel = SONG_MODIFIED(project)
+                channel.subscribe(self.update_models)
+
 
     def handle_song_selection_changed(self, event):
         selected_objects = self.sav_project_list.GetSelectedObjects()
@@ -140,6 +174,32 @@ class ProjectsWindow(wx.Panel):
 
         # Make sure event propagation can continue
         event.Skip()
+
+    def handle_close(self, event):
+        try:
+            if self.projects_modified():
+                message = (
+                    'Some songs have been modified. Unsaved hanges to the '
+                    '.sav file will be lost. Save the .sav file '
+                    'before closing?')
+                title = ('Save .sav file?')
+
+                save_prompt = wx.MessageDialog(
+                    self, message, title, wx.YES_NO | wx.ICON_QUESTION)
+
+                if save_prompt.ShowModal() == wx.ID_YES:
+                    event_handlers.save_sav(self.GetGrandParent().sav_obj)
+        finally:
+            self.Destroy()
+
+    def projects_modified(self):
+        project_list = self.get_project_list()
+
+        if project_list is not None:
+            for index, project in self.get_project_list():
+                if project is not None and project.modified:
+                    return True
+        return False
 
     def open_song(self, event):
         selected_objects = self.sav_project_list.GetSelectedObjects()

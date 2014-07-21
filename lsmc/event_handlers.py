@@ -31,6 +31,9 @@ def open_sav(event, projects_window, main_window):
     utils.file_dialog("Choose a .sav file", '*.sav', wx.OPEN, ok_handler)
 
 def save_sav(event, projects_window, main_window):
+    save_sav(main_window.sav_obj)
+
+def save_sav(sav_obj):
     def ok_handler(dlg, path):
         progress_dlg = wx.ProgressDialog(
             "Saving %s" % (path), "Reticulating splines", 100)
@@ -38,18 +41,22 @@ def save_sav(event, projects_window, main_window):
         def progress_update_function(message, step, total_steps, still_working):
             progress_dlg.Update((step * 100) / total_steps, newmsg = message)
 
-        main_window.sav_obj.save(path, callback=progress_update_function)
+        sav_obj.save(path, callback=progress_update_function)
 
     utils.file_dialog("Save .sav as ...", "*.sav", wx.SAVE, ok_handler)
 
 def save_song(event, projects_window, main_window):
     song_to_save = projects_window.sav_project_list.GetSelectedObject()[1]
 
+    save_song(song_to_save)
+
+def save_song(song_to_save):
     def ok_handler(dlg, path):
         song_to_save.save(path)
 
     utils.file_dialog(
         "Save '%s'" % (song_to_save.name), "*.lsdsng", wx.SAVE, ok_handler)
+
 
 def add_song(event, projects_window, main_window):
     selected_obj = projects_window.sav_project_list.GetSelectedObject()
