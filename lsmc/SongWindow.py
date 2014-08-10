@@ -11,9 +11,14 @@ class SongWindow(wx.Frame):
     def __init__(self, parent, project):
         frame_size = (650,550)
 
+        window_pos = utils.random_pos(frame_size)
+
+        if window_pos is None:
+            return
+
         wx.Frame.__init__(
             self, parent, wx.ID_ANY, "Song - %s" % (project.name),
-            size=frame_size, pos=utils.random_pos(frame_size),
+            size=frame_size, pos=window_pos,
             style=wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN)
 
         panel = wx.Panel(self)

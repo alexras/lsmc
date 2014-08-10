@@ -19,8 +19,8 @@ def open_sav(event, projects_window, main_window):
         try:
             sav_obj = cs.SAVFile(path, callback=progress_update_function)
         except ValueError, e:
-            show_error_dialog("Failed to load '%s'" % (dlg.GetFilename()),
-                              str(e), projects_window)
+            utils.show_error_dialog("Failed to load '%s'" % (dlg.GetFilename()),
+                                    str(e), projects_window)
 
         if sav_obj is not None:
             main_window.set_sav(sav_obj)
@@ -63,7 +63,7 @@ def add_song(event, projects_window, main_window):
     index, current_proj = selected_obj
 
     if current_proj is not None:
-        show_error_dialog(
+        utils.show_error_dialog(
             "Invalid Selection",
             "Song slot %d is currently occupied and cannot be saved over" %
             (index + 1))
@@ -76,16 +76,9 @@ def add_song(event, projects_window, main_window):
             proj = cp.load_project(path)
             sav_obj.projects[index] = proj
         except Exception, e:
-            error_dialog = wx.MessageDialog(
-                None, 'Error loading file: %s' % (e), 'Error',
-                wx.OK | wx.ICON_ERROR)
-            error_dialog.ShowModal()
+            show_error_dialog("can't load file", 'Error loading file: %s' % (e),
+                              None)
 
     utils.file_dialog("Open .lsdsng", "*.lsdsng", wx.OPEN, ok_handler)
 
     main_window.update_models()
-
-def show_error_dialog(caption, msg, parent):
-    errorWindow = wx.MessageDialog(parent, msg, "Error - " + caption)
-
-    errorWindow.ShowModal()

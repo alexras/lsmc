@@ -4,11 +4,24 @@ from ObjectListView import ObjectListView
 def random_pos(window_dimensions):
     win_width, win_height = window_dimensions
     screen_width, screen_height = wx.DisplaySize()
-
     padding = 20
 
-    return (random.randint(0, screen_width - win_width - padding),
-            random.randint(0, screen_height - win_height - padding))
+    max_x = screen_width - win_width - padding
+    max_y = screen_height - win_height - padding
+
+    if max_x < 0 or max_y < 0:
+        show_error_dialog(
+            "Screen Resolution Too Small",
+            "Screen resolution must be at least %d x %d to display a song" %
+            (win_width + padding, win_height + padding), None)
+        return None
+
+    return (random.randint(0, max_x), random.randint(0, max_y))
+
+def show_error_dialog(caption, msg, parent):
+    errorWindow = wx.MessageDialog(
+        parent, msg, "Error - " + caption, wx.OK | wx.ICON_ERROR)
+    errorWindow.ShowModal()
 
 def new_obj_list_view(parent):
     view = ObjectListView(parent, wx.ID_ANY, style=wx.LC_REPORT)
