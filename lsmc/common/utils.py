@@ -3,9 +3,6 @@ import warnings
 import sys
 from struct import pack, unpack
 
-def printable_decimal_and_hex(num):
-    return "{0:d} (0x{0:x})".format(num)
-
 def add_song_data_property(clazz, property_name, song_data_field_path,
                            use_index=False):
     """Add a property to the class `clazz` named `property_name`. This

@@ -2,7 +2,6 @@ import wx, functools, event_handlers
 from ObjectListView import ColumnDefn
 
 import utils
-import common.utils as cu
 from SongWindow import SongWindow
 
 from channels import SONG_MODIFIED
@@ -29,7 +28,7 @@ class ProjectsWindow(wx.Panel):
                 obj_attr = getattr(x[1], attr)
 
                 if isinstance(obj_attr, (int, float, long, complex)):
-                    return cu.printable_decimal_and_hex(obj_attr)
+                    return utils.printable_decimal_and_hex(obj_attr)
                 else:
                     return obj_attr
 

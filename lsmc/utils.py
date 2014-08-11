@@ -75,3 +75,6 @@ def make_image(relative_path):
 
 def name_empty(name):
     return map(ord, name) == [0] * len(name)
+
+def printable_decimal_and_hex(num):
+    return "{0:d} (0x{0:x})".format(num)
