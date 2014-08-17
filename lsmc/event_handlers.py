@@ -58,7 +58,7 @@ def save_song(song_to_save):
         "Save '%s'" % (song_to_save.name), "*.lsdsng", wx.SAVE, ok_handler)
 
 
-def add_song(event, projects_window, main_window):
+def get_song_from_windows(projects_window, main_window):
     selected_obj = projects_window.sav_project_list.GetSelectedObject()
     index, current_proj = selected_obj
 
@@ -71,14 +71,36 @@ def add_song(event, projects_window, main_window):
 
     sav_obj = main_window.get_sav()
 
+    return (index, sav_obj)
+
+def add_song(event, projects_window, main_window):
+    index, sav_obj = get_song_from_windows(
+        projects_window, main_window)
+
     def ok_handler(dlg, path):
         try:
-            proj = cp.load_project(path)
+            proj = cp.load_lsdsng(path)
             sav_obj.projects[index] = proj
         except Exception, e:
             show_error_dialog("can't load file", 'Error loading file: %s' % (e),
                               None)
 
     utils.file_dialog("Open .lsdsng", "*.lsdsng", wx.OPEN, ok_handler)
+
+    main_window.update_models()
+
+def add_srm(event, projects_window, main_window):
+    index, sav_obj = get_song_from_windows(
+        projects_window, main_window)
+
+    def ok_handler(dlg, path):
+        try:
+            proj = cp.load_srm(path)
+            sav_obj.projects[index] = proj
+        except Exception, e:
+            show_error_dialog(
+                "can't load file", 'Error loading file: %s' % (e), None)
+
+    utils.file_dialog("Open .srm", "*.srm", wx.OPEN, ok_handler)
 
     main_window.update_models()

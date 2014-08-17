@@ -70,7 +70,11 @@ class ProjectsWindow(wx.Panel):
             start_disabled=True)
 
         self.add_song_button = self.new_button(
-            "Add Song as .lsdsng ...", event_handlers.add_song,
+            "Add Song from .lsdsng ...", event_handlers.add_song,
+            start_disabled=True)
+
+        self.add_srm_button = self.new_button(
+            "Add Song from .srm ...", event_handlers.add_srm,
             start_disabled=True)
 
         self.export_song_button = self.new_button(
@@ -100,6 +104,7 @@ class ProjectsWindow(wx.Panel):
         buttons_layout.AddSpacer(20)
 
         add_side_button(self.add_song_button)
+        add_side_button(self.add_srm_button)
         buttons_layout.AddSpacer(20)
 
         add_side_button(self.open_song_button)
@@ -158,7 +163,7 @@ class ProjectsWindow(wx.Panel):
         selected_objects = self.sav_project_list.GetSelectedObjects()
 
         full_song_buttons = [self.export_song_button, self.open_song_button]
-        empty_song_buttons = [self.add_song_button]
+        empty_song_buttons = [self.add_song_button, self.add_srm_button]
 
         if len(selected_objects) > 0:
             if len(filter(lambda x: x[1] is None, selected_objects)) > 0:
