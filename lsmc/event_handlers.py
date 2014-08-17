@@ -1,7 +1,7 @@
 import wx, os
 
-import common.savfile as cs
-import common.project as cp
+import pylsdj.savfile as cs
+import pylsdj.project as cp
 
 import utils
 

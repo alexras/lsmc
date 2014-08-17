@@ -3,8 +3,8 @@ from ObjectListView import ColumnDefn
 
 import utils
 
-from common.table import Table
-import common.bread_spec as spec
+from pylsdj.table import Table
+import pylsdj.bread_spec as spec
 
 class TableRowView(object):
     def __init__(self, index, volume, transpose, command1, command1_params,

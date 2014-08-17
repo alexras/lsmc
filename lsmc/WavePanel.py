@@ -1,6 +1,6 @@
 import wx
 
-import common.bread_spec as spec
+import pylsdj.bread_spec as spec
 import channels
 
 class WavePanel(wx.Panel):
