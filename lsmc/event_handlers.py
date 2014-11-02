@@ -1,7 +1,7 @@
 import wx, os
 
-import pylsdj.savfile as cs
-import pylsdj.project as cp
+from pylsdj.savfile import SAVFile
+from pylsdj.project import load_lsdsng, load_srm
 
 import utils
 
@@ -17,7 +17,7 @@ def open_sav(event, projects_window, main_window):
             progress_dlg.Update((step * 100) / total_steps, newmsg = message)
 
         try:
-            sav_obj = cs.SAVFile(path, callback=progress_update_function)
+            sav_obj = SAVFile(path, callback=progress_update_function)
         except ValueError, e:
             utils.show_error_dialog("Failed to load '%s'" % (dlg.GetFilename()),
                                     str(e), projects_window)
@@ -79,7 +79,7 @@ def add_song(event, projects_window, main_window):
 
     def ok_handler(dlg, path):
         try:
-            proj = cp.load_lsdsng(path)
+            proj = load_lsdsng(path)
             sav_obj.projects[index] = proj
         except Exception, e:
             show_error_dialog("can't load file", 'Error loading file: %s' % (e),
@@ -95,7 +95,7 @@ def add_srm(event, projects_window, main_window):
 
     def ok_handler(dlg, path):
         try:
-            proj = cp.load_srm(path)
+            proj = load_srm(path)
             sav_obj.projects[index] = proj
         except Exception, e:
             show_error_dialog(

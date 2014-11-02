@@ -3,7 +3,7 @@ from ObjectListView import ColumnDefn
 
 import utils
 
-from pylsdj.table import Table
+from pylsdj import Table
 import pylsdj.bread_spec as spec
 
 class TableRowView(object):
