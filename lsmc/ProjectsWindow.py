@@ -192,7 +192,7 @@ class ProjectsWindow(wx.Panel):
                     self, message, title, wx.YES_NO | wx.ICON_QUESTION)
 
                 if save_prompt.ShowModal() == wx.ID_YES:
-                    event_handlers.save_sav(self.GetGrandParent().sav_obj)
+                    event_handlers.save_sav_dialog(self.GetGrandParent().sav_obj)
         finally:
             self.Destroy()
 

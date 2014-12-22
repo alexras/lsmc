@@ -31,9 +31,9 @@ def open_sav(event, projects_window, main_window):
     utils.file_dialog("Choose a .sav file", '*.sav', wx.OPEN, ok_handler)
 
 def save_sav(event, projects_window, main_window):
-    save_sav(main_window.sav_obj)
+    save_sav_dialog(main_window.sav_obj)
 
-def save_sav(sav_obj):
+def save_sav_dialog(sav_obj):
     def ok_handler(dlg, path):
         progress_dlg = wx.ProgressDialog(
             "Saving %s" % (path), "Reticulating splines", 100)
