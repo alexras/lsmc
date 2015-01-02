@@ -5,6 +5,8 @@ import channels, utils
 from StaticTextViewField import StaticTextViewField
 from ViewField import ViewField
 
+from pylsdj.exceptions import ImportException
+
 class InstrumentPanel(wx.Panel):
     def __init__(self, parent, channel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -91,24 +93,19 @@ class InstrumentPanel(wx.Panel):
 
     def import_instrument(self, event):
         def ok_handler(dlg, path):
-            with open(path, 'r') as fp:
-                failure_message = self.instrument.import_lsdinst(json.load(fp))
-
-            if failure_message is None:
+            try:
+                self.instrument.import_lsdinst(path)
                 self.instr_imported_channel.publish(self.instrument)
-            else:
+            except ImportException, e:
                 event_handlers.show_error_dialog(
-                    'Import Failed', failure_message, self)
+                    'Import Failed', e.message, self)
 
         utils.file_dialog(
             "Load instrument", "*.lsdinst", wx.OPEN, ok_handler)
 
     def export_instrument(self, event):
         def ok_handler(dlg, path):
-            instr_json = self.instrument.export()
-
-            with open(path, 'w') as fp:
-                json.dump(instr_json, fp, indent=2)
+            self.instrument.export_to_file(path)
 
         if not utils.name_empty(self.instrument.name):
             default_file = '%s.lsdinst' % (self.instrument.name)
