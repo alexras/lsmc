@@ -1,2 +1,2 @@
-pylsdj >= 1.1
+pylsdj >= 1.4.0
 wxPython
