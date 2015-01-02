@@ -46,7 +46,7 @@ class KitInstrumentPanel(InstrumentPanel):
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.KIT_CHANGE)
 
-        self.kit_1 = ReadOnlyTextViewField(self, two_digit_hex_format("kit"))
+        self.kit_1 = ReadOnlyTextViewField(self, two_digit_hex_format("kit_1"))
         self.kit_2 = ReadOnlyTextViewField(self, two_digit_hex_format("kit_2"))
         self.volume = ReadOnlyTextViewField(
             self, one_digit_hex_format("volume"))
