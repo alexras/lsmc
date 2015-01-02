@@ -30,7 +30,7 @@ def len_format(instr):
         return "UNLIM"
 
 def automate_format(instr):
-    if instr.automate_1:
+    if instr.automate:
         return "ON"
     else:
         return "OFF"

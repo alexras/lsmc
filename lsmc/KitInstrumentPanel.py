@@ -53,7 +53,7 @@ class KitInstrumentPanel(InstrumentPanel):
         self.pan = ReadOnlyTextViewField(self, instr_attr("pan"))
         self.pitch = ReadOnlyTextViewField(self, two_digit_hex_format("pitch"))
         self.offset_1 = ReadOnlyTextViewField(
-            self, two_digit_hex_format("offset"))
+            self, two_digit_hex_format("offset_1"))
         self.offset_2 = ReadOnlyTextViewField(
             self, two_digit_hex_format("offset_2"))
         self.len_1 = ReadOnlyTextViewField(self, kit_len_format("length_1"))
