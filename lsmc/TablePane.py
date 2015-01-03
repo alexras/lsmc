@@ -131,7 +131,10 @@ class TablePane(wx.Panel):
         else:
             for i in xrange(spec.ENTRIES_PER_TABLE):
                 rows.append(TableRowView(
-                    i, table.envelopes[i], table.transposes[i], table.fx1[i],
-                    table.fx1_vals[i], table.fx2[i], table.fx2_vals[i]))
+                    i, table.envelopes[i], table.transposes[i],
+                    table.fx1[i].command,
+                    table.fx1[i].value,
+                    table.fx2[i].command,
+                    table.fx2[i].value))
 
         self.table_view.SetObjects(rows)
