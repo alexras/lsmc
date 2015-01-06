@@ -1,6 +1,8 @@
 import wx, time, random, os
 from ObjectListView import ObjectListView
 
+import images.images as compiled_images
+
 def random_pos(window_dimensions):
     win_width, win_height = window_dimensions
     screen_width, screen_height = wx.DisplaySize()
@@ -56,22 +58,10 @@ def file_dialog(message, wildcard, style, ok_handler, default_file = ''):
     finally:
         dlg.Destroy()
 
-def make_image(relative_path):
-    resource_path = os.getenv("RESOURCEPATH")
+def make_image(image_name):
+    assert image_name in compiled_images.catalog
 
-    if resource_path is None:
-        resource_path = os.path.abspath(os.path.join(__file__, os.pardir))
-
-    absolute_path = os.path.join(resource_path, *relative_path)
-
-    extension = os.path.splitext(relative_path[-1])[1]
-
-    if extension == ".gif":
-        file_type = wx.BITMAP_TYPE_GIF
-    elif extension == ".png":
-        file_type = wx.BITMAP_TYPE_PNG
-
-    return wx.Image(absolute_path, file_type)
+    return compiled_images.catalog[image_name].GetImage()
 
 def name_empty(name):
     return map(ord, name) == [0] * len(name)

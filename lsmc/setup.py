@@ -8,15 +8,13 @@ Usage:
 from setuptools import setup
 
 APP = ['LSMC']
-DATA_FILES = ['images']
+
 OPTIONS = {'argv_emulation': True,
-           'resources': list(DATA_FILES),
            'site_packages': True,
            'iconfile': 'icon.icns'}
 
 setup(
     app=APP,
-    data_files=DATA_FILES,
     options={'py2app': OPTIONS},
     setup_requires=['py2app'],
 )

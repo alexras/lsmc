@@ -10,9 +10,9 @@ from viewutils import instr_attr, one_digit_hex_format, two_digit_hex_format, \
     within
 
 WAVE_IMAGES = {
-    "sawtooth": make_image(("images", "synth_saw.gif")),
-    "square": make_image(("images", "synth_square.gif")),
-    "sine": make_image(("images", "synth_sine.gif"))
+    "sawtooth": make_image("synth_saw"),
+    "square": make_image("synth_square"),
+    "sine": make_image("synth_sine")
 }
 
 def add_field(parent, label_text, control, sizer):

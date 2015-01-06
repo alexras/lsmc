@@ -5,10 +5,10 @@ from ImageSetViewField import ImageSetViewField
 from utils import make_image
 
 VIBE_IMAGES = {
-    "hf": make_image(("images", "vibe_hfsine.gif")),
-    "sawtooth": make_image(("images", "vibe_saw.gif")),
-    "sine": make_image(("images", "vibe_sine.gif")),
-    "square": make_image(("images", "vibe_square.gif"))
+    "hf": make_image("vibe_hfsine"),
+    "sawtooth": make_image("vibe_saw"),
+    "sine": make_image("vibe_sine"),
+    "square": make_image("vibe_square")
 }
 
 class VibeTypeViewField(ImageSetViewField):
