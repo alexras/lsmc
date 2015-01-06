@@ -9,7 +9,7 @@ from setuptools import setup
 
 APP = ['LSMC']
 
-OPTIONS = {'argv_emulation': True,
+OPTIONS = {'argv_emulation': False,
            'site_packages': True,
            'iconfile': 'icon.icns'}
 
