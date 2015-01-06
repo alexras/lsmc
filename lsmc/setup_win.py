@@ -4,14 +4,6 @@ import os
 import sys
 from glob import glob
 
-DATA_FILES = []
-
-for filename in os.listdir('images/'):
-    filename = os.path.abspath(filename)
-
-    if os.path.isfile(filename):
-        DATA_FILES.append(('images', [filename]))
-
 setup(
     windows=[{
         "script": "LSMC",
@@ -22,6 +14,5 @@ setup(
             'bundle_files': 1,
             'packages': ['wx.lib.pubsub']
         }
-    },
-    data_files=DATA_FILES
+    }
 )
