@@ -2,4 +2,6 @@
 cover/
 .coverage
 .DS_Store
-lsmc/images/images.py
+Include/
+Lib/
+Scripts
