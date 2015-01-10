@@ -2,6 +2,7 @@ import wx, time, random, os
 from ObjectListView import ObjectListView
 
 import images.images as compiled_images
+import dirs
 
 def random_pos(window_dimensions):
     win_width, win_height = window_dimensions
@@ -46,17 +47,34 @@ def enable_single_selection(obj_list_view, window):
                 obj_list_view)
 
 def file_dialog(message, wildcard, style, ok_handler, default_file = ''):
-    default_dir = '.'
+    last_opened_dir_file = os.path.join(dirs.CACHE_DIR, 'last_opened_dir')
+
+    last_opened_dir = None
+
+    if os.path.exists(last_opened_dir_file):
+        with open(last_opened_dir_file, 'r') as fp:
+            last_opened_dir = fp.read().strip()
+
+    if last_opened_dir is None or len(last_opened_dir) == 0:
+        last_opened_dir = os.path.expanduser('~')
 
     dlg = wx.FileDialog(
-        None, message, default_dir, default_file, wildcard, style)
+        None, message, last_opened_dir, default_file, wildcard, style)
 
     try:
         if dlg.ShowModal() == wx.ID_OK:
+            last_opened_dir = dlg.GetDirectory()
+
             path = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
             ok_handler(dlg, path)
     finally:
         dlg.Destroy()
+
+    if not os.path.exists(dirs.CACHE_DIR):
+        os.makedirs(dirs.CACHE_DIR)
+
+    with open(last_opened_dir_file, 'w+') as fp:
+        fp.write(last_opened_dir)
 
 def make_image(image_name):
     assert image_name in compiled_images.catalog

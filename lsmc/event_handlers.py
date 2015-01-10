@@ -2,6 +2,7 @@ import wx, os
 
 from pylsdj.savfile import SAVFile
 from pylsdj.project import load_lsdsng, load_srm
+from pylsdj.exceptions import ImportException
 
 import utils
 
@@ -18,13 +19,14 @@ def open_sav(event, projects_window, main_window):
 
         try:
             sav_obj = SAVFile(path, callback=progress_update_function)
-        except ValueError, e:
+
+            if sav_obj is not None:
+                main_window.set_sav(sav_obj)
+                main_window.update_models()
+        except Exception, e:
             utils.show_error_dialog("Failed to load '%s'" % (dlg.GetFilename()),
                                     str(e), projects_window)
-
-        if sav_obj is not None:
-            main_window.set_sav(sav_obj)
-            main_window.update_models()
+        finally:
             progress_dlg.Destroy()
 
     # Display an open dialog box so the user can select a .sav file
