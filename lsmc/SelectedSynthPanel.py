@@ -15,6 +15,7 @@ WAVE_IMAGES = {
     "sine": make_image("synth_sine")
 }
 
+
 def add_field(parent, label_text, control, sizer):
     label = wx.StaticText(parent, label=label_text)
 
@@ -26,6 +27,7 @@ def add_field(parent, label_text, control, sizer):
 
 
 class RangeFieldsSubPanel(wx.Panel):
+
     def __init__(self, parent, range_param):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.hpos = 0
@@ -33,7 +35,7 @@ class RangeFieldsSubPanel(wx.Panel):
         self.sizer = wx.GridBagSizer(hgap=20, vgap=7)
 
         self.sizer.Add(wx.StaticText(self, label=range_param.capitalize()),
-                       pos=(0,0), span=(1,2))
+                       pos=(0, 0), span=(1, 2))
         self.hpos += 1
 
         self.volume = ReadOnlyTextViewField(
@@ -69,6 +71,7 @@ class RangeFieldsSubPanel(wx.Panel):
 
 
 class SelectedSynthPanel(wx.Panel):
+
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
@@ -113,7 +116,6 @@ class SelectedSynthPanel(wx.Panel):
         pass
 
     def handle_synth_changed(self, data):
-        synth = data
         self.Layout()
 
     def add_field(self, label_text, control, sizer):

@@ -2,7 +2,9 @@ import wx
 
 from ViewField import ViewField
 
+
 class ReadOnlyTextViewField(ViewField):
+
     def __init__(self, parent, format_fn):
         ViewField.__init__(
             self, parent, wx.TextCtrl(parent, style=wx.TE_READONLY))

@@ -4,11 +4,13 @@ def instr_attr(attr):
 
     return instr_attr_format_fn
 
+
 def one_digit_hex_format(attr):
     def one_digit_hex_format_fn(instr):
         return "%x" % (getattr(instr, attr))
 
     return one_digit_hex_format_fn
+
 
 def two_digit_hex_format(attr):
     def two_digit_hex_format_fn(instr):
@@ -16,12 +18,14 @@ def two_digit_hex_format(attr):
 
     return two_digit_hex_format_fn
 
+
 def within(attr, function):
     def within_fn(obj):
         obj = getattr(obj, attr)
         return function(obj)
 
     return within_fn
+
 
 def len_format(instr):
     sound_length = instr.sound_length
@@ -31,17 +35,20 @@ def len_format(instr):
     else:
         return "UNLIM"
 
+
 def automate_format(instr):
     if instr.automate:
         return "ON"
     else:
         return "OFF"
 
+
 def table_format(instr):
     if instr.table is None:
         return "OFF"
     else:
         return "%02x" % (instr.table.index)
+
 
 def synth_format(instr):
     return "%02x" % (instr.synth.index)

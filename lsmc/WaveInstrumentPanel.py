@@ -8,7 +8,9 @@ from viewutils import one_digit_hex_format, two_digit_hex_format, instr_attr, \
 from VibeTypeViewField import VibeTypeViewField
 from ReadOnlyTextViewField import ReadOnlyTextViewField
 
+
 class WaveInstrumentPanel(InstrumentPanel):
+
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.WAVE_CHANGE)
 
@@ -18,7 +20,8 @@ class WaveInstrumentPanel(InstrumentPanel):
         self.vibe = VibeTypeViewField(self)
         self.synth = ReadOnlyTextViewField(self, synth_format)
         self.play = ReadOnlyTextViewField(self, instr_attr("play_type"))
-        self.length = ReadOnlyTextViewField(self, one_digit_hex_format("steps"))
+        self.length = ReadOnlyTextViewField(
+            self, one_digit_hex_format("steps"))
         self.repeat = ReadOnlyTextViewField(
             self, one_digit_hex_format("repeat"))
         self.speed = ReadOnlyTextViewField(self, one_digit_hex_format("speed"))

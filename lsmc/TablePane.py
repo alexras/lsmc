@@ -3,10 +3,11 @@ from ObjectListView import ColumnDefn
 
 import utils
 
-from pylsdj import Table
 import pylsdj.bread_spec as spec
 
+
 class TableRowView(object):
+
     def __init__(self, index, volume, transpose, command1, command1_params,
                  command2, command2_params):
         self.id = index
@@ -20,7 +21,7 @@ class TableRowView(object):
     def get_cmd_view(self, field):
         if field == "cmd1":
             command = self.cmd1
-            params =  self.cmd1_params
+            params = self.cmd1_params
         elif field == "cmd2":
             command = self.cmd2
             params = self.cmd2_params
@@ -48,6 +49,7 @@ class TableRowView(object):
 
         return view
 
+
 def table_list_index_format(x):
     (index, table) = x
 
@@ -58,7 +60,9 @@ def table_list_index_format(x):
 
     return index_string
 
+
 class TablePane(wx.Panel):
+
     def __init__(self, parent, project):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 

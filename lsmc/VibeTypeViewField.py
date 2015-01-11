@@ -1,5 +1,3 @@
-import wx
-
 from ImageSetViewField import ImageSetViewField
 
 from utils import make_image
@@ -11,7 +9,9 @@ VIBE_IMAGES = {
     "square": make_image("vibe_square")
 }
 
+
 class VibeTypeViewField(ImageSetViewField):
+
     def __init__(self, parent):
         ImageSetViewField.__init__(
             self, parent, lambda instr: instr.vibrato.type, VIBE_IMAGES)

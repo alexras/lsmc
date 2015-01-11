@@ -1,15 +1,16 @@
-import wx, json
+import wx
 
-import channels, utils
+import channels
+import utils
 
 from StaticTextViewField import StaticTextViewField
 from ViewField import ViewField
 
-from pylsdj.exceptions import ImportException
-
 import event_handlers
 
+
 class InstrumentPanel(wx.Panel):
+
     def __init__(self, parent, channel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
@@ -89,7 +90,8 @@ class InstrumentPanel(wx.Panel):
             self.main_sizer.Add(control, 0, wx.ALL)
 
     def change_instrument(self, instrument):
-        # Reset updated fields count since we're about to start changing fields.
+        # Reset updated fields count since we're about to start changing
+        # fields.
         self.updated_fields = 0
         self.instr_of_type_channel.publish(instrument)
 

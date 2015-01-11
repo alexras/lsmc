@@ -1,4 +1,6 @@
-import wx, functools, event_handlers
+import wx
+import functools
+import event_handlers
 from ObjectListView import ColumnDefn
 
 import utils
@@ -6,7 +8,9 @@ from SongWindow import SongWindow
 
 from channels import SONG_MODIFIED
 
+
 class ProjectsWindow(wx.Panel):
+
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
@@ -38,7 +42,8 @@ class ProjectsWindow(wx.Panel):
             else:
                 return "No"
 
-        index_col = ColumnDefn("#", "center", 30, lambda x: "%02d" % (x[0] + 1))
+        index_col = ColumnDefn(
+            "#", "center", 30, lambda x: "%02d" % (x[0] + 1))
 
         mod_col = ColumnDefn("Modified", "center", 60, modified_getter)
 
@@ -163,7 +168,6 @@ class ProjectsWindow(wx.Panel):
                 channel = SONG_MODIFIED(project)
                 channel.subscribe(self.update_models)
 
-
     def handle_song_selection_changed(self, event):
         selected_objects = self.sav_project_list.GetSelectedObjects()
 
@@ -199,7 +203,8 @@ class ProjectsWindow(wx.Panel):
                     self, message, title, wx.YES_NO | wx.ICON_QUESTION)
 
                 if save_prompt.ShowModal() == wx.ID_YES:
-                    event_handlers.save_sav_dialog(self.GetGrandParent().sav_obj)
+                    event_handlers.save_sav_dialog(
+                        self.GetGrandParent().sav_obj)
         finally:
             self.Destroy()
 
@@ -223,4 +228,4 @@ class ProjectsWindow(wx.Panel):
         if proj is None:
             return
 
-        song_window = SongWindow(self, proj)
+        SongWindow(self, proj)

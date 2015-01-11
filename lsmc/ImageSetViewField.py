@@ -2,7 +2,9 @@ import wx
 
 from ViewField import ViewField
 
+
 class ImageSetViewField(ViewField):
+
     def __init__(self, parent, attr_fn, images):
         if isinstance(images, list):
             first_image = images[0]

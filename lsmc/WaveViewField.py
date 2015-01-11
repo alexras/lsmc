@@ -1,5 +1,3 @@
-import wx
-
 from ImageSetViewField import ImageSetViewField
 
 from viewutils import instr_attr
@@ -13,7 +11,9 @@ WAVE_IMAGES = {
     "75%": make_image("wave75")
 }
 
+
 class WaveViewField(ImageSetViewField):
+
     def __init__(self, parent):
         ImageSetViewField.__init__(
             self, parent, instr_attr("wave"), WAVE_IMAGES)

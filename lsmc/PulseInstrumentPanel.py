@@ -1,7 +1,5 @@
 from InstrumentPanel import InstrumentPanel
 
-import wx
-
 import channels
 
 from viewutils import one_digit_hex_format, two_digit_hex_format, \
@@ -9,10 +7,11 @@ from viewutils import one_digit_hex_format, two_digit_hex_format, \
 
 from VibeTypeViewField import VibeTypeViewField
 from ReadOnlyTextViewField import ReadOnlyTextViewField
-from ImageSetViewField import ImageSetViewField
 from WaveViewField import WaveViewField
 
+
 class PulseInstrumentPanel(InstrumentPanel):
+
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.PULSE_CHANGE)
 

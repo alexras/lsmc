@@ -2,7 +2,9 @@ import wx
 
 from InstrumentPanel import InstrumentPanel
 
+
 class NoInstrumentSelectedPanel(InstrumentPanel):
+
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, None)
 

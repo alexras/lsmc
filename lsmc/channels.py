@@ -1,6 +1,8 @@
 from wx.lib.pubsub import pub
 
+
 class Channel(object):
+
     def __init__(self, name, domain=None):
         if domain is not None:
             self._pubsub_channel = name + '+' + repr(domain)
@@ -15,6 +17,8 @@ class Channel(object):
 
 # This is essentially a poor man's functools.partial to allow channel
 # declaration to look a little cleaner
+
+
 def new_channel(name):
     def inner(domain):
         return Channel(name, domain)

@@ -1,4 +1,5 @@
 class ViewField(object):
+
     def __init__(self, parent, field):
         self.parent = parent
         self.field = field

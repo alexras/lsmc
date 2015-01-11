@@ -1,8 +1,11 @@
-import wx, time, random, os
+import wx
+import random
+import os
 from ObjectListView import ObjectListView
 
 import images.images as compiled_images
 import dirs
+
 
 def random_pos(window_dimensions):
     win_width, win_height = window_dimensions
@@ -21,10 +24,12 @@ def random_pos(window_dimensions):
 
     return (random.randint(0, max_x), random.randint(0, max_y))
 
+
 def show_error_dialog(caption, msg, parent):
     errorWindow = wx.MessageDialog(
         parent, msg, "Error - " + caption, wx.OK | wx.ICON_ERROR)
     errorWindow.ShowModal()
+
 
 def new_obj_list_view(parent):
     view = ObjectListView(parent, wx.ID_ANY, style=wx.LC_REPORT)
@@ -32,6 +37,7 @@ def new_obj_list_view(parent):
     view.oddRowsBackColor = wx.LIGHT_GREY
 
     return view
+
 
 def _single_select_event_handler(event):
     view = event.GetEventObject()
@@ -42,11 +48,13 @@ def _single_select_event_handler(event):
         view.DeselectAll()
         view.SelectObject(selected_objects[0])
 
+
 def enable_single_selection(obj_list_view, window):
     window.Bind(wx.EVT_LIST_ITEM_SELECTED, _single_select_event_handler,
                 obj_list_view)
 
-def file_dialog(message, wildcard, style, ok_handler, default_file = ''):
+
+def file_dialog(message, wildcard, style, ok_handler, default_file=''):
     last_opened_dir_file = os.path.join(dirs.CACHE_DIR, 'last_opened_dir')
 
     last_opened_dir = None
@@ -76,13 +84,16 @@ def file_dialog(message, wildcard, style, ok_handler, default_file = ''):
     with open(last_opened_dir_file, 'w+') as fp:
         fp.write(last_opened_dir)
 
+
 def make_image(image_name):
     assert image_name in compiled_images.catalog
 
     return compiled_images.catalog[image_name].GetImage()
 
+
 def name_empty(name):
     return map(ord, name) == [0] * len(name)
+
 
 def printable_decimal_and_hex(num):
     return "{0:d} (0x{0:x})".format(num)

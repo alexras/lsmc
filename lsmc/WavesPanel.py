@@ -6,11 +6,11 @@ import channels
 
 from StaticTextViewField import StaticTextViewField
 
+
 class WavesPanel(wx.Panel):
+
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
-
-        GRID_SPACING = 3
 
         self.wave_panels = []
 

@@ -10,6 +10,7 @@ from VibeTypeViewField import VibeTypeViewField
 from viewutils import instr_attr, one_digit_hex_format, \
     two_digit_hex_format, automate_format, table_format
 
+
 def kit_len_format(attr):
     def kit_len_format_fn(instr):
         kit_len = getattr(instr, attr)
@@ -20,6 +21,7 @@ def kit_len_format(attr):
             return "%02x" % (kit_len)
 
     return kit_len_format_fn
+
 
 def kit_loop_format(loop_attr, attack_attr):
     def kit_loop_format_fn(instr):
@@ -35,6 +37,7 @@ def kit_loop_format(loop_attr, attack_attr):
 
     return kit_loop_format_fn
 
+
 def kit_speed_format(instr):
     if instr.half_speed:
         return "0.5"
@@ -43,6 +46,7 @@ def kit_speed_format(instr):
 
 
 class KitInstrumentPanel(InstrumentPanel):
+
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.KIT_CHANGE)
 

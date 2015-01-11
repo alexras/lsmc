@@ -7,7 +7,9 @@ from viewutils import two_digit_hex_format, len_format, automate_format, \
 
 from ReadOnlyTextViewField import ReadOnlyTextViewField
 
+
 class NoiseInstrumentPanel(InstrumentPanel):
+
     def __init__(self, parent):
         InstrumentPanel.__init__(self, parent, channels.NOISE_CHANGE)
 

@@ -5,7 +5,9 @@ import channels
 from EmptySynthPanel import EmptySynthPanel
 from SelectedSynthPanel import SelectedSynthPanel
 
+
 class SynthParamsPanel(wx.Panel):
+
     def __init__(self, parent):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 

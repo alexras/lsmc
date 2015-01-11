@@ -1,4 +1,4 @@
-import wx, functools
+import wx
 from ObjectListView import ColumnDefn
 
 import channels
@@ -11,7 +11,9 @@ from WaveInstrumentPanel import WaveInstrumentPanel
 from KitInstrumentPanel import KitInstrumentPanel
 from NoiseInstrumentPanel import NoiseInstrumentPanel
 
+
 class InstrumentPane(wx.Panel):
+
     def __init__(self, parent, project):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 

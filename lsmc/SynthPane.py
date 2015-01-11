@@ -7,7 +7,9 @@ from SynthParamsPanel import SynthParamsPanel
 from WavesPanel import WavesPanel
 import channels
 
+
 class SynthPane(wx.Panel):
+
     def __init__(self, parent, project):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
@@ -41,7 +43,8 @@ class SynthPane(wx.Panel):
         body_sizer = wx.BoxSizer(wx.VERTICAL)
 
         body_sizer.Add(self.waves_panel, 2, wx.ALL | wx.EXPAND, border=5)
-        body_sizer.Add(self.synth_params_panel, 1, wx.ALL | wx.EXPAND, border=5)
+        body_sizer.Add(
+            self.synth_params_panel, 1, wx.ALL | wx.EXPAND, border=5)
 
         sizer.Add(body_sizer, 7, wx.ALL | wx.EXPAND, border=5)
 
