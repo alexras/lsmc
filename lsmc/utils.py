@@ -2,6 +2,7 @@ import wx
 import random
 import os
 from ObjectListView import ObjectListView
+import traceback
 
 import images.images as compiled_images
 import dirs
@@ -26,6 +27,11 @@ def random_pos(window_dimensions):
 
 
 def show_error_dialog(caption, msg, parent):
+    if isinstance(msg, Exception):
+        msg = traceback.format_exc()
+
+    print msg
+
     errorWindow = wx.MessageDialog(
         parent, msg, "Error - " + caption, wx.OK | wx.ICON_ERROR)
     errorWindow.ShowModal()

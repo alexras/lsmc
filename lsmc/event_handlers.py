@@ -28,7 +28,7 @@ def open_sav(event, projects_window, main_window):
         except Exception, e:
             utils.show_error_dialog(
                 "Failed to load '%s'" % (dlg.GetFilename()),
-                str(e), projects_window)
+                e, projects_window)
         finally:
             progress_dlg.Destroy()
 
