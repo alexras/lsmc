@@ -24,7 +24,9 @@ def within(attr, function):
     return within_fn
 
 def len_format(instr):
-    if instr.has_sound_length:
+    sound_length = instr.sound_length
+
+    if sound_length != 'unlimited':
         return "%02x" % ((~(instr.sound_length)) & 0b00111111)
     else:
         return "UNLIM"
@@ -40,3 +42,6 @@ def table_format(instr):
         return "OFF"
     else:
         return "%02x" % (instr.table.index)
+
+def synth_format(instr):
+    return "%02x" % (instr.synth.index)

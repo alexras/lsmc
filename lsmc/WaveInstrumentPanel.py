@@ -3,7 +3,7 @@ from InstrumentPanel import InstrumentPanel
 import channels
 
 from viewutils import one_digit_hex_format, two_digit_hex_format, instr_attr, \
-    table_format, automate_format
+    table_format, automate_format, synth_format
 
 from VibeTypeViewField import VibeTypeViewField
 from ReadOnlyTextViewField import ReadOnlyTextViewField
@@ -16,7 +16,7 @@ class WaveInstrumentPanel(InstrumentPanel):
             self, two_digit_hex_format("volume"))
         self.pan = ReadOnlyTextViewField(self, instr_attr("pan"))
         self.vibe = VibeTypeViewField(self)
-        self.synth = ReadOnlyTextViewField(self, one_digit_hex_format("synth"))
+        self.synth = ReadOnlyTextViewField(self, synth_format)
         self.play = ReadOnlyTextViewField(self, instr_attr("play_type"))
         self.length = ReadOnlyTextViewField(self, one_digit_hex_format("steps"))
         self.repeat = ReadOnlyTextViewField(

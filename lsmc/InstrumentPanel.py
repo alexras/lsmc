@@ -7,6 +7,8 @@ from ViewField import ViewField
 
 from pylsdj.exceptions import ImportException
 
+import event_handlers
+
 class InstrumentPanel(wx.Panel):
     def __init__(self, parent, channel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
@@ -94,11 +96,13 @@ class InstrumentPanel(wx.Panel):
     def import_instrument(self, event):
         def ok_handler(dlg, path):
             try:
-                self.instrument.import_from_file(path)
+                index = self.instrument.index
+                self.instrument.song.instruments.import_from_file(index, path)
+                self.instrument = self.instrument.song.instruments[index]
                 self.instr_imported_channel.publish(self.instrument)
-            except ImportException, e:
+            except Exception, e:
                 event_handlers.show_error_dialog(
-                    'Import Failed', e.message, self)
+                    'Import Failed', str(e), self)
 
         utils.file_dialog(
             "Load instrument", "*.lsdinst", wx.OPEN, ok_handler)
