@@ -50,18 +50,21 @@ def save_sav_dialog(sav_obj):
 
 def save_song(event, projects_window, main_window):
     song_to_save = projects_window.sav_project_list.GetSelectedObject()[1]
+    save_song_dialog(song_to_save, "save_lsdsng", "lsdsng")
 
-    save_song_dialog(song_to_save)
-
-def save_song_dialog(song_to_save):
+def save_song_dialog(song_to_save, method_name, song_format):
     def ok_handler(dlg, path):
-        song_to_save.save(path)
+        getattr(song_to_save, method_name)(path)
 
     readable_song_name = pylsdjutils.name_without_zeroes(song_to_save.name)
 
-    utils.file_dialog("Save '%s'" % (readable_song_name), "*.lsdsng", wx.SAVE,
-                      ok_handler, default_file=readable_song_name + ".lsdsng")
+    utils.file_dialog(
+        "Save '%s'" % (readable_song_name), "*." + song_format, wx.SAVE,
+        ok_handler, default_file=readable_song_name + "." + song_format)
 
+def save_song_srm(event, projects_window, main_window):
+    song_to_save = projects_window.sav_project_list.GetSelectedObject()[1]
+    save_song_dialog(song_to_save, "save_srm", "srm")
 
 def get_song_from_windows(projects_window, main_window):
     selected_obj = projects_window.sav_project_list.GetSelectedObject()

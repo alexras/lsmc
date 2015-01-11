@@ -81,6 +81,10 @@ class ProjectsWindow(wx.Panel):
             "Export Selected as .lsdsng ...", event_handlers.save_song,
             start_disabled=True)
 
+        self.export_song_srm_button = self.new_button(
+            "Export Selected as .srm ...", event_handlers.save_song_srm,
+            start_disabled=True)
+
         self.open_song_button = self.new_button(
             "Open Song ...", self.open_song, start_disabled=True,
             internal_handler=True)
@@ -109,6 +113,7 @@ class ProjectsWindow(wx.Panel):
 
         add_side_button(self.open_song_button)
         add_side_button(self.export_song_button)
+        add_side_button(self.export_song_srm_button)
 
         window_layout = wx.BoxSizer(wx.HORIZONTAL)
         window_layout.Add(self.sav_project_list, 1, wx.EXPAND | wx.ALL)
@@ -162,7 +167,9 @@ class ProjectsWindow(wx.Panel):
     def handle_song_selection_changed(self, event):
         selected_objects = self.sav_project_list.GetSelectedObjects()
 
-        full_song_buttons = [self.export_song_button, self.open_song_button]
+        full_song_buttons = [
+            self.export_song_button, self.export_song_srm_button,
+            self.open_song_button]
         empty_song_buttons = [self.add_song_button, self.add_srm_button]
 
         if len(selected_objects) > 0:

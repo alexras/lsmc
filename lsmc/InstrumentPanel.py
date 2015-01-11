@@ -94,7 +94,7 @@ class InstrumentPanel(wx.Panel):
     def import_instrument(self, event):
         def ok_handler(dlg, path):
             try:
-                self.instrument.import_lsdinst(path)
+                self.instrument.import_from_file(path)
                 self.instr_imported_channel.publish(self.instrument)
             except ImportException, e:
                 event_handlers.show_error_dialog(
