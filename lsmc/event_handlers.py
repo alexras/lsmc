@@ -3,6 +3,7 @@ import wx, os
 from pylsdj.savfile import SAVFile
 from pylsdj.project import load_lsdsng, load_srm
 from pylsdj.exceptions import ImportException
+from pylsdj import utils as pylsdjutils
 
 import utils
 
@@ -50,14 +51,16 @@ def save_sav_dialog(sav_obj):
 def save_song(event, projects_window, main_window):
     song_to_save = projects_window.sav_project_list.GetSelectedObject()[1]
 
-    save_song(song_to_save)
+    save_song_dialog(song_to_save)
 
-def save_song(song_to_save):
+def save_song_dialog(song_to_save):
     def ok_handler(dlg, path):
         song_to_save.save(path)
 
-    utils.file_dialog(
-        "Save '%s'" % (song_to_save.name), "*.lsdsng", wx.SAVE, ok_handler)
+    readable_song_name = pylsdjutils.name_without_zeroes(song_to_save.name)
+
+    utils.file_dialog("Save '%s'" % (readable_song_name), "*.lsdsng", wx.SAVE,
+                      ok_handler, default_file=readable_song_name + ".lsdsng")
 
 
 def get_song_from_windows(projects_window, main_window):
