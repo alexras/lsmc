@@ -18,3 +18,6 @@ debug:
 clean:
 	rm -rf build
 	rm -rf dist
+
+install-deps:
+	pip install --allow-external ObjectListView --allow-insecure ObjectListView -r ../requirements.txt
