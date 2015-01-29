@@ -9,15 +9,10 @@ import utils
 
 def open_sav(event, projects_window, main_window):
     def ok_handler(dlg, path):
-        # When loading the .sav file, we'll update a progress dialog box
-        progress_dlg = wx.ProgressDialog(
-            "Loading %s" % (path), "Starting import ...", 100)
-
         sav_obj = None
 
-        def progress_update_function(
-                message, step, total_steps, still_working):
-            progress_dlg.Update((step * 100) / total_steps, newmsg=message)
+        def progress_update_function(message, step, total_steps, still_working):
+            pass
 
         try:
             sav_obj = SAVFile(path, callback=progress_update_function)
@@ -29,8 +24,6 @@ def open_sav(event, projects_window, main_window):
             utils.show_error_dialog(
                 "Failed to load '%s'" % (dlg.GetFilename()),
                 e, projects_window)
-        finally:
-            progress_dlg.Destroy()
 
     # Display an open dialog box so the user can select a .sav file
     utils.file_dialog("Choose a .sav file", '*.sav', wx.OPEN, ok_handler)
