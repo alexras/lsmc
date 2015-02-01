@@ -98,7 +98,9 @@ class InstrumentPane(wx.Panel):
         if len(selected_instruments) > 0:
             instrument = selected_instruments[0]
 
-        if self.project.song.instruments[instrument.index] is not None:
+        if (instrument is not None and
+            self.project.song.instruments[instrument.index] is not None):
+
             instrument = self.project.song.instruments[instrument.index]
 
         self.show_instr_panel(instrument)
