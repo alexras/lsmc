@@ -932,147 +932,108 @@ catalog['lsdj_logo'] = lsdj_logo
 
 #----------------------------------------------------------------------
 synth_saw = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACcAAAATCAYAAAATSBSOAAAABHNCSVQICAgIfAhkiAAABLtJ"
-    "REFUSImVll9oU1ccxz9JT2/uTZO2uZY0ldquso11KI4hDhFBfJJKfKhjjiEDqdt0+AcVqsgm"
-    "ffBfp45KH5zDOv+0iAOta7XFgYGpxbYPUqho92JnFblZNWnTpEluTtI9xGbdKm3yfTr3/Pmc"
-    "7/md8zvnWoRonpKyFyF0FAVMk5wlZXRWnRBa7qD/8cTKlTYqKqt49pfk4cMIHo8gEJA5mfR6"
-    "PRQVKZlv05zi8eNxDCOFqlpy4rlcVlavLsVut2Hp7v5zat2697l504fXewwhqgHmjaKiQEGB"
-    "ldHRCIOD+1my5F3C4UkcDjuxmElz8yXq639DiKqseC5XmuX1ejh/fh8lJcWI6UabTWPFimUs"
-    "XaozNDROX180623WNBUAh8MOgJQSXXexdu2HLFzoYGBgjKGhRFa8/PypDMfa2HiP9ev3AtDX"
-    "d5Jz5w6ye/capAzg8ShzcTJKJmWm3NJyjU2bvmPNmk+4c6eRM2f2sXFjNVJG0XUxByWtRMKC"
-    "lGme9f79KF1dfajqv0aEEIAfwzBRsvOXUSAQpKtrEE1LD5yOAhi5gQCxaJGV4eEyQqFJwuHJ"
-    "TMPnn39EJKLS2zuBrluJx1MEg6l5gektLiUQCFFY6MA0ExQVqdTWVuP3W4jHU9hs1qySRBhG"
-    "EnBx9uzvtLff49mIn6NHtnLlygkuX+6ks/PnrA/1TDU2XgEgIRP80LidPXs2s2PHSXp6/gA8"
-    "CKHNyxOJhAVNy6O7exwpDcDg0PfpEQ5HesVlZW6ePBnl7t3sk+T27deMjkYAOHI4CUBlZTG1"
-    "tctwuez09b2eN0kEQCKhUFCQh9PpxDA0Tpy4wfHjbTQ0bKGt7TBSStrb7+DzXaWiwsPIyPzu"
-    "nE7B1JQDVbVQX/8Tmt3C0SPfsnPnAiYno5w6dYFHjx7h8TgxDPlWhnW6EIkkMQyJokBv7wRd"
-    "XYMAqKqCw2FHVdNJYprpczdf9EwzxdhYkng8xfXrftpajTccBV0vAlJAcE7GrNw2TfB4BKOj"
-    "pcRiJrGYiZQSIQQ1NUuJxfIJBGRW10J60Snsdg1dFwSDE9jtGuHwJMXFTmpqKnj1yko8bsVm"
-    "s84a+9YZDMNECJ2mpnbKym4zNh5l967PuHXrR1paruHzXcA0q7K6ZqYjbBiShoZfsNlMios1"
-    "du3awvbtX3DgQBP9/Q9ZvPid7MyZZjozOzpCSOkHgnzzdXqWwkI7NTXvUVVVwsDAOD09gfkd"
-    "vlFr6wgQZflyJ3v35gFQWemmtvYDXryI8fRpFuamDbpcVmw2J6DS1NTOxYs3qKv7lKtXDwNw"
-    "6dJNenoek5eX3RaXl6uAk1jMQv3+ZhaVF7B162bq6pwcPXaO/n4DTcvP9J+90TMUDKYwDEkg"
-    "YKGjI0RLywBOZwEOhx2Hw47NlgcM/uf5mkuGYcEwJH5/krbWYR48eE5pqY6uFxGLxgE/Y2Px"
-    "TP/slkw6SSJRNxMTkUydoiiUl3uzjtxMCaGzYIFKKBQGwO12sWrVx1RXl+ZmzjR589wU0NDw"
-    "K253By9fhjl9+iueP/fmbGz6GRwYSLFtWzMVFUUcPPglhw65M79dWZubNgjg800g5d9AEEXJ"
-    "PWIzFQol6ewcZsOGElTVBsz8UYB/AIlB/jhfkPs+AAAAAElFTkSuQmCC")
+    "iVBORw0KGgoAAAANSUhEUgAAAB4AAAAQCAYAAAABOs/SAAAABHNCSVQICAgIfAhkiAAAAHlJ"
+    "REFUOI3F1TESgCAMRNHdcP8jY6x0RgyaRARK9echDaQUrFgCALpV1a2qN4p+b3XSvogOiuLH"
+    "EgCgFM7Gzz/+ikeby1FHcUphdsPSPsgMyjQ3eBZuwjPwLvw3/giPwq3uFR6BW50LtgZ5m17n"
+    "hrN4rwvBI3GuuhZ3IVlwD+vH15MAAAAASUVORK5CYII=")
 index.append('synth_saw')
 catalog['synth_saw'] = synth_saw
 
 #----------------------------------------------------------------------
 synth_sine = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACcAAAATCAYAAAATSBSOAAAABHNCSVQICAgIfAhkiAAABRVJ"
-    "REFUSImNll1oFFcUx387e3dmZ7NpMpsP00hrxM/SakPBJxWKUHwRfW3fahWUEql5EEQLSmgg"
-    "D/14sGjBVtqn0EIetPZBiqBIq6UiJhExH9WkxeAm3Y9kZ+fuTGZ2+zDZG9c0iQeWuXvuvb97"
-    "7rn/M3MjQnRVWMV0XcPzynR0xDmwfzeuq9HWZnD60/cA6P3sV549czGMMpev3GJioqTmrMTr"
-    "7EzQ+fYONm9O0XVsF6ap1/CErmsAy4Ket7ghWLMmCUB9vU42W0DXo7SuqUPXowCY8ciqnKoJ"
-    "odHR0UCjFUdKF9MMmVWeeJmgLCvC06cuW99o5dDhHaRS9WSzBXp7L+K6ZXp6jijf4NANhh/k"
-    "say6ZTdcVweO47Jhg8Unx3cCcObMNwwOTtHZuY6zZw+RTCYQHR1xAKamvGVhlUoEIQwSCV1l"
-    "SNejTE6myeeDGp9hxEgkTGKx5Tcbi2kIYdDY+ArJZALbdkin81y/PkLKMkkmEwBoH7y/hwP7"
-    "d9Peri8soClItZ2y4hw9soe33txRs0g8bpCyzBrf1i07+ejguzSlYsvy2tt1jh7Zw7rX30FK"
-    "DwDDiAENxE1D+TTP03gZC/xQS9GoqPHL0mK2q32BHyEaXV175XJEFcHzVvWJpqYYnqetKGQj"
-    "HqG5xVDCDQIfKV3Vb9vOwvEUqa/XaWs3ECscK0BLa5xUk0E2W8DzXFx3PtysrDAzk8M0DUTX"
-    "sV1I6XJ/8M6CkE28MKuqENavb+V49y4Aensvkk7nMYwYN27MAXD69AVcd57165vp7j4IwIPh"
-    "37l7N1dTGI2NGlNTku3bW+nqCnnnzl1ibCzD0GAJISxu385w8uTXYeZMUyf8VTOnAUsLI5Wq"
-    "B2B0NMPVq5NAAiEMAC5d+gdw2LcvIJWqR0oP3Vj5WFOpemzbYXh4ioGBp7S0tKDrGul0sMAL"
-    "I1ECBGhoWNSUacZUALbtYNsOlmUihMXGjQ1qXNhOYFkmtu0QBH64c2HU8BIJUcML10sihAWE"
-    "71pd11i7NkF7ex0iDEInl5PAHOPjKMD4+CzgkMm8osq7XPbwfZfZ2cVFHcdX7WQygZQe+XwJ"
-    "388xMWGpviqvMNdINCoIAp9KJcD3XQhDwfPKpNPheCGlh5QuW7a00dAQXdDSv7huhL17X1Na"
-    "sm0Hzwvw3JW/dtlsAYBt216lsTGOYcS4di0DoHibNlmqsFb6CIgvv7hJc3OCU6c+RNejSOnS"
-    "3f0VpZJLX18XyWQdUrr0999nOl3k8ZMAIQyKxUVoPl9GCIOHDx0unL9D65o6Tpw4rHjT058D"
-    "KJ5tFxkYGGY6XWRkxF3CU8FNTMwCi4KvmhbRMU1DvXOm00UmJmbxXH8JpGqe61PlVedGowIz"
-    "riFLZZLJuhre478yuKXlT0K7fOUWo2P3lEBrFvMCAILAZ3TsHpev/EYmO7/QV35uXNjOZOf5"
-    "/oebTP59TxVF9fl8W0qXx0/u8PMvfzBnB0t4KriZGYnjeDXOUsnFka76ZobgIjMzRebnl90o"
-    "kUgF388RBLU8R7rMzZXUf12PUqkEzMwUcf7nOKsmXnR4XkBbW4tqV5+rFcKiJZifj6i5AB0d"
-    "rUvWiESiL05cGpwQBiOPClw4fwcI72k9PUcA+OnHQQqFMAuPHi0v3KrlchWEMBgeKvDdt38q"
-    "Xl/fxwD0998nnwszODRkr8oTALJUIZ22F264gSqOTEaqG65cQbgvml0s1/Cq78jpdFHx7MLq"
-    "98j/ANCYe6oikteWAAAAAElFTkSuQmCC")
+    "iVBORw0KGgoAAAANSUhEUgAAAB4AAAAQCAYAAAABOs/SAAAABHNCSVQICAgIfAhkiAAAAJ1J"
+    "REFUOI3FlUEWgCAIRAG7/43LVvTIEBg2zcrU4TNPK2YZ9IcOZPO8zqljlsGoz3qkA/WeKz47"
+    "LoNVSNJIJfAuXZbaW9c5KLGmRVOzDF49KbiTqiJRc1Zg7ThL7dWzySXa3Lm5WcMqiRYz826+"
+    "0vD2jLtnZxUF+oBXYPUGo40+YAtAiqyNeZ/HEFwpmglp+AW2IASKvmpERPzXb/EG10BkLbp0"
+    "o2gAAAAASUVORK5CYII=")
 index.append('synth_sine')
 catalog['synth_sine'] = synth_sine
 
 #----------------------------------------------------------------------
 synth_square = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACcAAAATCAYAAAATSBSOAAAABHNCSVQICAgIfAhkiAAAAfhJ"
-    "REFUSIntlrFO20Ach7/4LsnF7rUKbRBFQoglvEHEygPkBdgrdUGtxNAJBsQI6opaMfEIvASv"
-    "wIKCECrINK50TeKSc9Ihwk1InNiA1KH9Tef/3/r0ne9sX07KzT4JsbaT1EqMlKXEXlaeTGos"
-    "LDisrS3F171elAhxHBGPT0+bXF/3JvJqtcX43jS8MblyWeD7P1lff8vBwSZau3S7lnw+cR5x"
-    "35g2W1ufOT7+RqXygiCIYl6ttsjh4cfUvIly95FSoFQBpYooVQQgDH/F4+Hr+1q3a4miyUil"
-    "BFq7mXjJ+kAUDZbHmBbb2184P/+O1gXCMEIpgTF3rK6+YWfnHVp701CxvFJFjGmxu/uVs7Pb"
-    "MV61WmF//8NsueFcXv7g5KQBDG/4Dvm8iCeRNlHU4+amOZFXr/95gqnllBJAieXlV7TbFteV"
-    "XFwM6kI4meRgsG2GeZ4naDRA60K6ZZ2UdjsiCHrA4G0TwmYWA+j3+w9448k+5WdKLpd7WBm7"
-    "56/Jpcl/ucfmX5VLPE+kjiyXR/08z8H3nwiVJVxXAvZJPOn7rZFCEJSADtYmnxqmJQwjrG1y"
-    "dTWHtZ2YZ8xddrmNjaWxojEvmZ9//agv/8rKHPV6hNaFEV61Wskud3T0KbE5fGJIE6099vbe"
-    "z+QJ4cR/iKlyWQVm5Tl5vwE/1cggMspOfQAAAABJRU5ErkJggg==")
+    "iVBORw0KGgoAAAANSUhEUgAAAB4AAAAPCAYAAADzun+cAAAABHNCSVQICAgIfAhkiAAAAFlJ"
+    "REFUOI3tlTsOACAIQ1vw/jf2sxqjAU0MDr5RUmsdCimKCCTEFUBaDWrJ1XMBRbmroyjfS9xz"
+    "mmo863XXEluPC/vqb/yNr5EAf0vNONWaiWdF4MHSMWo7NcCxHCiINuN0AAAAAElFTkSuQmCC")
 index.append('synth_square')
 catalog['synth_square'] = synth_square
 
 #----------------------------------------------------------------------
 vibe_hfsine = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAADsAAAATCAIAAAChuOK/AAAAA3NCSVQICAjb4U/gAAAAtUlE"
-    "QVRIiWNk4M1hGJSgssALwmhr8mRgYKiq2w7hMg2Yi8gFjJAw/v9pMoooXy4ylyRZAvah6sUD"
-    "4MZCtMC5Qy+MWahuIjGhCE+j7RO24ZHFCoZeGA89F1M/VRADIAUWA45UAZFFS11w7nAJY5IK"
-    "LPx6iS/OiARDL4yHnouxpwpa12rwRgLEZLgWCBcuixUMlzCmNYAXavBiDqssVjD0wnjouXhg"
-    "UgUcQDIZPGfjz3MQMPTCGAD8ADqfueg5DgAAAABJRU5ErkJggg==")
+    "iVBORw0KGgoAAAANSUhEUgAAADsAAAAmCAYAAAB6beP2AAAABHNCSVQICAgIfAhkiAAAAOpJ"
+    "REFUaIHtmUsOhCAMQFuY+98YOisTwhQtDGipfYkb+T6olETEEOEthKcncCcuaxWXtYrLWsVl"
+    "rfIqWQQAYgtCxPod5XRat1XeNSFmXCn1+HVfZnZWstBmZDnqBfjcMeg/oSlB+vmo3FnKiY6n"
+    "ty2GiOXiln2olF2FStnWznCU5WU7rg+VsqtoHlAzcuZVX9KDi3KikUNumzwrkWuFcIvHZFen"
+    "I45mGPdcF6+YIVaH8shc1IYxgHyRpPVUy85GvSwXur0H04F62ZlsJzu6qwCbyM5KU1vIAvwK"
+    "D92o/C+eUVzWKi5rFZe1yhd4fF13OcSySAAAAABJRU5ErkJggg==")
 index.append('vibe_hfsine')
 catalog['vibe_hfsine'] = vibe_hfsine
 
 #----------------------------------------------------------------------
 vibe_saw = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAADsAAAATCAIAAAChuOK/AAAAA3NCSVQICAjb4U/gAAAAi0lE"
-    "QVRIid2WSw6AIAxEW8NWT6qn8aZeoC6aNBE/cUQh42zY8GA6hYBKPwqVutYGYKmZiYgO033G"
-    "lnmzRBU2QL6Mk1cZFUCBPWZjprPQpnwZ8zlOPpS0qZyFzhVtxqG3LuJ3XeLLmM9xfipclS/T"
-    "IXsG/iXjUJNX7XpTvoz5HCv0oy//K6LgnuXLeAXbQ0nl1BxgiQAAAABJRU5ErkJggg==")
+    "iVBORw0KGgoAAAANSUhEUgAAADsAAAAUCAYAAAAz30VQAAAABHNCSVQICAgIfAhkiAAAANxJ"
+    "REFUWIXll9EOhCAMBGn5/09WfLucsVJoh0Qjj8ZMdtkCrYjW8pWlJKztW2v71kgeyRDRev6g"
+    "VQhhUY7FIzSJVrkkSyVDJ0zwtJTrzlFw0jDB+yVrlQpl+Cnn+FTGolWslGeh9MYRmkq5uY0p"
+    "w5RIStPt00MJJe+DrKbuO0sJJcs6Y9htKiihZFlHQxjqoJ4g1OOMaJpqF1cZjrJmQ5jujUnD"
+    "K6vF/C869fSEzfaynslRnqcpPPVkG/0VLI+TGvFowwSvx0jPs5TIf94qBja8rzIc5VqM8AX1"
+    "xnUAaaDMWQnTRDoAAAAASUVORK5CYII=")
 index.append('vibe_saw')
 catalog['vibe_saw'] = vibe_saw
 
 #----------------------------------------------------------------------
 vibe_sine = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAADsAAAATCAIAAAChuOK/AAAAA3NCSVQICAjb4U/gAAAAw0lE"
-    "QVRIiWNk4M1hIAQqC7wgjLYmTwYGhqq67RBu+4RtROqFaITrJV4jpqVMBHUONsBITBj//zQZ"
-    "qpovF5NLjF64SjQuGZYOvTBmgSQXXAkLnpjwyGLVS4xG8vQOvTAeei5m/P//PwPurIA/o+CR"
-    "xZ87iZHFZenQC+NRF9MeDD0Xs0Dqa1wVDLw2xwrw6CVGIwOOGhG/3qEXxtB2BeUtBzS9xGjE"
-    "VEyM3qEXxkPPxSwQCi0r4E/7aIByvURmdAgYemEMACMDgKk5BXB+AAAAAElFTkSuQmCC")
+    "iVBORw0KGgoAAAANSUhEUgAAADsAAAAWCAYAAAB+F+RbAAAABHNCSVQICAgIfAhkiAAAAQFJ"
+    "REFUWIXlWNsOwyAIFf3/T1b6tM4RjCBHu2W8NGna47mItRLlkv6l8tMEUkqJW2VulZF42n1a"
+    "TVYCUi70JI4FaylZzbmVZFA4Vny3WCQZ5BiWd0I9S7lQP1U8JPtnJU60RpxcYiVBDLV3oYwb"
+    "PQdZjb0kT7SCxsksdleqEms1XUvdYpHfuhPJaWONjHtds4Wchbw1be8MiRrXj5HljRn4joXp"
+    "1BjQ7eKufhtheWfJVCxyYfIYsCNd+I+ANV2kcVasW6xG8uSqqhW6LczJRv9qEO0QDWEoNuKk"
+    "FLMTy2Pch9jRiytJILFQ9RUnFbNCGaeeVKD3wdwqoxKNYC0fy/xiXSMF2Bdd8zXgAAAAAElF"
+    "TkSuQmCC")
 index.append('vibe_sine')
 catalog['vibe_sine'] = vibe_sine
 
 #----------------------------------------------------------------------
 vibe_square = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAADsAAAATCAIAAAChuOK/AAAAA3NCSVQICAjb4U/gAAAAW0lE"
-    "QVRIiWNk4M1hGFKAaaAdQDJgwSr6/9NkYjQz8uWSpxerRiL1DpcwhoMBCUX8lg69MB51Me3B"
-    "qItpD0ZdTHsw6mLag1EX0x4MPRezENmwxArI1kuJpUMvjAEg0Bm108ot1QAAAABJRU5ErkJg"
-    "gg==")
+    "iVBORw0KGgoAAAANSUhEUgAAADsAAAAUCAYAAAAz30VQAAAABHNCSVQICAgIfAhkiAAAAIJJ"
+    "REFUWIXtmMEOwCAIQ1vc///x5k7u5kTjdAFe4o0Um3JASUnwguy+wEoOTVG+zqwVpCT+Tavo"
+    "NJPtuVyrvldrtE+tNsa4xttY9aZW0xpJX6vlKtkwa5Uwa5Uwa5UwaxVXZp91cdeSvkKnIF+I"
+    "/hUB2u9Gbc0MZvahJJYDAPT0LXMDobc8JNMWTPIAAAAASUVORK5CYII=")
 index.append('vibe_square')
 catalog['vibe_square'] = vibe_square
 
 #----------------------------------------------------------------------
 wave12 = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACcAAAAWCAIAAADM5xJqAAAAA3NCSVQICAjb4U/gAAAATElE"
-    "QVRIiWNk4M1hoDtgor+VA2Yr4////7GI8uXS1NaB8SsLhIJ77v+nyXSwdSSlplFbR20dtXXU"
-    "VvyABaso7UpjSIE/kkKYcQS1mwBUdAqZhH6g+gAAAABJRU5ErkJggg==")
+    "iVBORw0KGgoAAAANSUhEUgAAADwAAAAeCAYAAABwmH1PAAAABHNCSVQICAgIfAhkiAAAAH5J"
+    "REFUWIXtmTsOgDAMQ3HS+98YykQVkKAs5eP4bZUy5Mnt4gLmUybs7QWeJp1wiYe6zPVqGOYY"
+    "u854WsI92bszXyfdlZbwBszB8GaPKGF2JMyOhNmRMDsSZkfC7EiYHQmzU/oje/7Ya8UiI0XC"
+    "MaQUwpEmfNZfsfVa0N8SOSu0eBRSPEknUwAAAABJRU5ErkJggg==")
 index.append('wave12')
 catalog['wave12'] = wave12
 
 #----------------------------------------------------------------------
 wave25 = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACcAAAAWCAIAAADM5xJqAAAAA3NCSVQICAjb4U/gAAAATUlE"
-    "QVRIiWNk4M1hoDtgor+VA2Yr4////wkr4sulrq0D41cWCIXLN/8/TaaFrSMpNY3aOmrrqK2j"
-    "tuIHLMQoomJpDCnwR1IIM46gdhMAAbgKmUPILSwAAAAASUVORK5CYII=")
+    "iVBORw0KGgoAAAANSUhEUgAAADwAAAAeCAYAAABwmH1PAAAABHNCSVQICAgIfAhkiAAAAIhJ"
+    "REFUWIXtmUEOgCAMBC34/x8rnjCIITFVUXZ3jhyaTtpeFrMQJybC1w30hk54rh/SuiRPIQvR"
+    "7rfzPpZv2Ct6KDaANN1K0wmfbjhzZT2fOIPe0E1YwuhIGB0JoyNhdCSMjoTRkTA6dMLNAMDD"
+    "XwOBMsygmHA5CArhkl3YE7GOEMvWmP6WwNkAc3cUWXja49IAAAAASUVORK5CYII=")
 index.append('wave25')
 catalog['wave25'] = wave25
 
 #----------------------------------------------------------------------
 wave50 = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACcAAAAWCAIAAADM5xJqAAAAA3NCSVQICAjb4U/gAAAATUlE"
-    "QVRIiWNk4M1hoDtgor+VA2Yr4////8nXzJdLnsaB8SsLhCLJ1f8/TabQ1pGUmkZtHbV11NZR"
-    "W/EDFko0k1EgQwr8kRTCjCOo3QQAhNUKmf2gWQcAAAAASUVORK5CYII=")
+    "iVBORw0KGgoAAAANSUhEUgAAADwAAAAeCAYAAABwmH1PAAAABHNCSVQICAgIfAhkiAAAAIhJ"
+    "REFUWIXtmUEOwCAIBAv2/z9u7YmGmnhTaJadoxccARNRRNtRCc3eQDTlhM9xod9X3x1UtMnu"
+    "GNPY1sMRop/ASdJpJR19wAZ72FhdclkZHQnLcOZF5SlX0hRGh8LoUBgdCqNDYXQojA6F0ZkO"
+    "ACKIGgr4t3iJDPuDLSHseYX/MoLZjfBvCZwHHYQYUnnsG3wAAAAASUVORK5CYII=")
 index.append('wave50')
 catalog['wave50'] = wave50
 
 #----------------------------------------------------------------------
 wave75 = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACcAAAAWCAIAAADM5xJqAAAAA3NCSVQICAjb4U/gAAAAT0lE"
-    "QVRIiWNk4M1hoDtgor+VA2Yr4////6lsIl8uQTUD41cWCEWMA/GD/58mE694JKWmUVtHbR21"
-    "ddRW/ICF6ibiL5AhBf5ICmHGEdRuAgARAQqZjFDwWwAAAABJRU5ErkJggg==")
+    "iVBORw0KGgoAAAANSUhEUgAAADwAAAAeCAYAAABwmH1PAAAABHNCSVQICAgIfAhkiAAAAJBJ"
+    "REFUWIXtmUEOgCAMBG3x/z9WPEkaE2JQCmS7c+RAGVhIABFNWyR09gBGE054fzbk88ieBUWT"
+    "ePb/Wt/uYW/ZL/SeoBLpFWU94B6+qUXJMwmiSbyTVhWuMfvQ+Uu4SFMYHQqjQ2F0KIwOhdGh"
+    "MDoURqf5PjyaHg8C9g4fYoXtpIUQthThVZ5uvMch/FsC5wKq5RxbpDG3cwAAAABJRU5ErkJg"
+    "gg==")
 index.append('wave75')
 catalog['wave75'] = wave75
 
