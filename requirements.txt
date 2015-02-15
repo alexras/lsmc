@@ -1,4 +1,4 @@
-pylsdj >= 2.3.0
+pylsdj >= 2.3.2
 wxPython
 appdirs == 1.4.0
 py2app == 0.8.1
