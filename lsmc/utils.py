@@ -37,8 +37,9 @@ def show_error_dialog(caption, msg, parent):
     errorWindow.ShowModal()
 
 
-def new_obj_list_view(parent):
-    view = ObjectListView(parent, wx.ID_ANY, style=wx.LC_REPORT)
+def new_obj_list_view(parent, edit_mode=ObjectListView.CELLEDIT_NONE):
+    view = ObjectListView(
+        parent, wx.ID_ANY, style=wx.LC_REPORT, cellEditMode=edit_mode)
     enable_single_selection(view, parent)
     view.oddRowsBackColor = wx.LIGHT_GREY
 
