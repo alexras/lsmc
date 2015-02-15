@@ -1,5 +1,5 @@
 import wx
-from ObjectListView import ColumnDefn
+from ObjectListView import ColumnDefn, ObjectListView
 
 import channels
 
@@ -14,13 +14,15 @@ from NoiseInstrumentPanel import NoiseInstrumentPanel
 
 class InstrumentPane(wx.Panel):
 
-    def __init__(self, parent, project):
+    def __init__(self, parent, project, index):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.project = project
 
-        self.instr_list = utils.new_obj_list_view(self)
+        self.instr_list = utils.new_obj_list_view(
+            self, edit_mode=ObjectListView.CELLEDIT_DOUBLECLICK)
         self.instr_list.SetEmptyListMsg("Loading instrument list ...")
+        self.selected_instrument = None
 
         def instr_name_printer(x):
             name = getattr(x, "name")
@@ -30,11 +32,21 @@ class InstrumentPane(wx.Panel):
             else:
                 return name
 
+        song_modified_channel = channels.SONG_MODIFIED(index)
+
+        def name_setter(instrument, new_name):
+            instrument.name = new_name.upper()[:5]
+            song_modified_channel.publish(self.project)
+
         id_col = ColumnDefn("#", "center", 30, lambda x: "%02x" %
-                            (getattr(x, "index")))
+                            (getattr(x, "index")), isEditable=False)
         name_col = ColumnDefn(
-            "Name", "left", 200, instr_name_printer, isSpaceFilling=True)
-        type_col = ColumnDefn("Type", "left", 50, "type", isSpaceFilling=True)
+            "Name", "left", 200, instr_name_printer, isSpaceFilling=True,
+            valueSetter=name_setter)
+
+
+        type_col = ColumnDefn("Type", "left", 50, "type", isSpaceFilling=True,
+                              isEditable=False)
         self.instr_list.SetColumns([id_col, name_col, type_col])
 
         self.update_instr_list()
@@ -97,6 +109,11 @@ class InstrumentPane(wx.Panel):
 
         if len(selected_instruments) > 0:
             instrument = selected_instruments[0]
+
+        if instrument.index == self.selected_instrument:
+            return
+
+        self.selected_instrument = instrument.index
 
         if (instrument is not None and
             self.project.song.instruments[instrument.index] is not None):

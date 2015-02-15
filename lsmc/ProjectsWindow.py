@@ -3,11 +3,12 @@ import functools
 import event_handlers
 from ObjectListView import ColumnDefn
 
+from ProjectModel import ProjectModel
+
 import utils
 from SongWindow import SongWindow
 
-from channels import SONG_MODIFIED
-
+import channels
 
 class ProjectsWindow(wx.Panel):
 
@@ -36,34 +37,22 @@ class ProjectsWindow(wx.Panel):
                 else:
                     return obj_attr
 
-        def modified_getter(x):
-            if x[1] is not None and x[1].modified:
-                return "Yes"
-            else:
-                return "No"
+        index_col = ColumnDefn("#", "center", 30, "index_str")
 
-        index_col = ColumnDefn(
-            "#", "center", 30, lambda x: "%02d" % (x[0] + 1))
-
-        mod_col = ColumnDefn("Modified", "center", 60, modified_getter)
+        mod_col = ColumnDefn("Modified", "center", 60, "modified")
 
         name_col = ColumnDefn(
-            "Song Name", "left", 200,
-            functools.partial(string_getter, attr="name"), isSpaceFilling=True)
+            "Song Name", "left", 200, "name", isSpaceFilling=True)
         name_col.freeSpaceProportion = 2
 
         version_col = ColumnDefn(
-            "Version", "left", 50,
-            functools.partial(string_getter, attr="version"),
-            isSpaceFilling=True)
+            "Version", "left", 50, "version", isSpaceFilling=True)
         version_col.freeSpaceProportion = 1
 
         size_col = ColumnDefn(
-            "Size (Blocks)", "left", 100,
-            functools.partial(string_getter, attr="size_blks"),
-            isSpaceFilling=True)
-
+            "Size (Blocks)", "left", 100, "size", isSpaceFilling=True)
         size_col.freeSpaceProportion = 1
+
         self.sav_project_list.SetColumns(
             [mod_col, index_col, name_col, version_col, size_col])
 
@@ -128,6 +117,48 @@ class ProjectsWindow(wx.Panel):
 
         self.SetSizer(window_layout)
 
+    def handle_sav_loaded(self, sav_obj):
+        project_list = sav_obj.project_list
+
+        project_views = []
+
+        for (index, project) in sorted(project_list):
+            project_views.append(
+                ProjectModel(self.sav_project_list, index, project))
+
+            channels.SONG_MODIFIED(index).subscribe(self.handle_song_modified)
+
+        self.sav_project_list.SetObjects(project_views)
+
+        self.modified_since_load = False
+
+    def handle_song_modified(self, data=None):
+        if data is None:
+            return
+
+        self.modified_since_load = True
+
+    def handle_save_song(self, event, projects_window, main_window):
+        song_to_save = self.sav_project_list.GetSelectedObject().project
+        event_handlers.save_song_dialog(song_to_save, "save_lsdsng", "lsdsng")
+
+    def add_song(event, projects_window, main_window):
+        index, sav_obj = event_handlers.get_song_from_windows(
+            projects_window, main_window)
+
+        def ok_handler(dlg, path):
+            try:
+                proj = event_handlers.load_lsdsng(path)
+                sav_obj.projects[index] = proj
+            except Exception, e:
+                utils.show_error_dialog(
+                    "can't load file", 'Error loading file: %s' % (e),
+                    None)
+
+        utils.file_dialog("Open .lsdsng", "*.lsdsng", wx.OPEN, ok_handler)
+
+        main_window.update_models()
+
     def new_button(self, label, evt_button_handler, start_disabled=False,
                    internal_handler=False):
         btn = wx.Button(self, wx.ID_ANY, label=label)
@@ -146,28 +177,6 @@ class ProjectsWindow(wx.Panel):
 
         return btn
 
-    def get_project_list(self):
-        sav_obj = self.GetGrandParent().sav_obj
-
-        if sav_obj is None:
-            return None
-
-        return sav_obj.project_list
-
-    def update_models(self, data=None):
-        project_list = self.get_project_list()
-
-        if project_list is None:
-            return
-
-        self.sav_project_list.SetObjects(project_list)
-
-        for index, project in project_list:
-            if project is not None and project not in self.subscribed_projects:
-                self.subscribed_projects[project] = True
-                channel = SONG_MODIFIED(project)
-                channel.subscribe(self.update_models)
-
     def handle_song_selection_changed(self, event):
         selected_objects = self.sav_project_list.GetSelectedObjects()
 
@@ -177,7 +186,7 @@ class ProjectsWindow(wx.Panel):
         empty_song_buttons = [self.add_song_button, self.add_srm_button]
 
         if len(selected_objects) > 0:
-            if len(filter(lambda x: x[1] is None, selected_objects)) > 0:
+            if len(filter(lambda x: x.project is None, selected_objects)) > 0:
                 map(lambda x: x.Disable(), full_song_buttons)
                 map(lambda x: x.Enable(), empty_song_buttons)
             else:
@@ -192,9 +201,10 @@ class ProjectsWindow(wx.Panel):
 
     def handle_close(self, event):
         try:
-            if self.projects_modified():
+            # FIXME: some condition for checking this
+            if self.modified_since_load:
                 message = (
-                    'Some songs have been modified. Unsaved hanges to the '
+                    'Some songs have been modified. Unsaved changes to the '
                     '.sav file will be lost. Save the .sav file '
                     'before closing?')
                 title = ('Save .sav file?')
@@ -208,24 +218,15 @@ class ProjectsWindow(wx.Panel):
         finally:
             self.Destroy()
 
-    def projects_modified(self):
-        project_list = self.get_project_list()
-
-        if project_list is not None:
-            for index, project in self.get_project_list():
-                if project is not None and project.modified:
-                    return True
-        return False
-
     def open_song(self, event):
         selected_objects = self.sav_project_list.GetSelectedObjects()
 
         if len(selected_objects) != 1:
             return
 
-        proj = selected_objects[0][1]
+        proj = selected_objects[0].project
 
         if proj is None:
             return
 
-        SongWindow(self, proj)
+        SongWindow(self, proj, selected_objects[0].index)

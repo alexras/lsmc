@@ -26,11 +26,11 @@ def random_pos(window_dimensions):
     return (random.randint(0, max_x), random.randint(0, max_y))
 
 
-def show_error_dialog(caption, msg, parent):
-    if isinstance(msg, Exception):
-        msg = traceback.format_exc()
+def show_error_dialog(caption, msg, parent, exception=None):
+    print(msg)
 
-    print msg
+    if exception is not None or isinstance(msg, Exception):
+        print(traceback.format_exc())
 
     errorWindow = wx.MessageDialog(
         parent, msg, "Error - " + caption, wx.OK | wx.ICON_ERROR)

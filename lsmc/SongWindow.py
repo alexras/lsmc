@@ -10,7 +10,7 @@ from channels import INSTR_IMPORT, SONG_MODIFIED
 
 class SongWindow(wx.Frame):
 
-    def __init__(self, parent, project):
+    def __init__(self, parent, project, index):
         frame_size = (650, 550)
 
         window_pos = utils.random_pos(frame_size)
@@ -32,9 +32,10 @@ class SongWindow(wx.Frame):
         self.instr_import_channel = INSTR_IMPORT(self.project)
         self.instr_import_channel.subscribe(self.handle_song_modified)
 
-        self.song_modified_channel = SONG_MODIFIED(self.project)
+        self.song_modified_channel = SONG_MODIFIED(index)
+        self.song_modified_channel.subscribe(self.handle_song_modified)
 
-        instrument_pane = InstrumentPane(self.notebook, project)
+        instrument_pane = InstrumentPane(self.notebook, project, index)
         synth_pane = SynthPane(self.notebook, project)
         table_pane = TablePane(self.notebook, project)
 
@@ -57,7 +58,5 @@ class SongWindow(wx.Frame):
         self.notebook.GetPage(event.GetSelection()).refresh()
 
     def handle_song_modified(self, data=None):
-        if data is not None and not self.project.modified:
+        if data is not None:
             self.SetTitle(self.GetTitle() + ' - MODIFIED')
-            self.project.modified = True
-            self.song_modified_channel.publish(self.project)

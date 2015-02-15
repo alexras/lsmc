@@ -5,7 +5,7 @@ from pylsdj.project import load_lsdsng, load_srm
 from pylsdj import utils as pylsdjutils
 
 import utils
-
+import channels
 
 def open_sav(event, projects_window, main_window):
     def ok_handler(dlg, path):
@@ -48,7 +48,7 @@ def save_sav_dialog(sav_obj):
 
 
 def save_song(event, projects_window, main_window):
-    song_to_save = projects_window.sav_project_list.GetSelectedObject()[1]
+    song_to_save = projects_window.sav_project_list.GetSelectedObject().project
     save_song_dialog(song_to_save, "save_lsdsng", "lsdsng")
 
 
@@ -64,13 +64,14 @@ def save_song_dialog(song_to_save, method_name, song_format):
 
 
 def save_song_srm(event, projects_window, main_window):
-    song_to_save = projects_window.sav_project_list.GetSelectedObject()[1]
+    song_to_save = projects_window.sav_project_list.GetSelectedObject().project
     save_song_dialog(song_to_save, "save_srm", "srm")
 
 
 def get_song_from_windows(projects_window, main_window):
     selected_obj = projects_window.sav_project_list.GetSelectedObject()
-    index, current_proj = selected_obj
+    index = selected_obj.index
+    current_proj = selected_obj.project
 
     if current_proj is not None:
         utils.show_error_dialog(
@@ -92,14 +93,13 @@ def add_song(event, projects_window, main_window):
         try:
             proj = load_lsdsng(path)
             sav_obj.projects[index] = proj
+            channels.SONG_MODIFIED(index).publish(proj)
         except Exception, e:
             utils.show_error_dialog(
                 "can't load file", 'Error loading file: %s' % (e),
-                None)
+                None, e)
 
     utils.file_dialog("Open .lsdsng", "*.lsdsng", wx.OPEN, ok_handler)
-
-    main_window.update_models()
 
 
 def add_srm(event, projects_window, main_window):
@@ -110,10 +110,9 @@ def add_srm(event, projects_window, main_window):
         try:
             proj = load_srm(path)
             sav_obj.projects[index] = proj
+            channels.SONG_MODIFIED(index).publish(proj)
         except Exception, e:
             utils.show_error_dialog(
-                "can't load file", 'Error loading file: %s' % (e), None)
+                "can't load file", 'Error loading file: %s' % (e), None, e)
 
     utils.file_dialog("Open .srm", "*.srm", wx.OPEN, ok_handler)
-
-    main_window.update_models()

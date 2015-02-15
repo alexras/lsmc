@@ -70,14 +70,14 @@ class MainWindow(wx.Frame):
 
     def set_sav(self, sav_obj):
         self.sav_obj = sav_obj
-        self.songs_window.sav_project_list.SetObjects(sav_obj.project_list)
+        self.songs_window.handle_sav_loaded(sav_obj)
         self.songs_window.save_sav_button.Enable()
 
     def get_sav(self):
         return self.sav_obj
 
     def update_models(self):
-        self.songs_window.update_models()
+        pass
 
 
 starting_window = MainWindow()
