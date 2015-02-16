@@ -59,4 +59,8 @@ class SongWindow(wx.Frame):
 
     def handle_song_modified(self, data=None):
         if data is not None:
-            self.SetTitle(self.GetTitle() + ' - MODIFIED')
+            title = self.GetTitle()
+            modified_str = ' - MODIFIED'
+
+            if not title.endswith(modified_str):
+                self.SetTitle(title + modified_str)

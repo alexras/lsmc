@@ -201,7 +201,6 @@ class ProjectsWindow(wx.Panel):
 
     def handle_close(self, event):
         try:
-            # FIXME: some condition for checking this
             if self.modified_since_load:
                 message = (
                     'Some songs have been modified. Unsaved changes to the '
