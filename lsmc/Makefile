@@ -1,5 +1,5 @@
 .PHONY: build-mac
-build-mac:
+build-mac: images
 	python setup.py py2app
 
 .PHONY: build-win
