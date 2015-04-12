@@ -1,0 +1,5 @@
+pylsdj >= 2.3.2
+# wxPython >= 3.0
+appdirs == 1.4.0
+py2exe == 0.6.9
+ObjectListView == 1.2
