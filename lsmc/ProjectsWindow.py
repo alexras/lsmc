@@ -20,6 +20,8 @@ class ProjectsWindow(wx.Panel):
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.open_song,
                   self.sav_project_list)
 
+        self.modified_since_load = False
+
         self.sav_project_list.SetEmptyListMsg("No .sav loaded")
 
         # Keep track of the projects to whose channels you're subscribing to

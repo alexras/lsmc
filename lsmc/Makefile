@@ -19,5 +19,18 @@ clean:
 	rm -rf build
 	rm -rf dist
 
-install-deps:
-	pip install --allow-external ObjectListView --allow-insecure ObjectListView -r ../requirements.txt
+.PHONY: install-deps-mac
+install-deps-mac:
+	pip install --upgrade -r ../requirements.txt \
+		--allow-external wxPython \
+		--allow-unverified wxPython \
+		--allow-external ObjectListView \
+		--allow-unverified ObjectListView
+
+.PHONY: install-deps-win
+install-deps-win:
+	pip install --upgrade -r ../requirements_win.txt \
+		--allow-external wxPython \
+		--allow-unverified wxPython \
+		--allow-external ObjectListView \
+		--allow-unverified ObjectListView

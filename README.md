@@ -1,5 +1,4 @@
-lsmc
-----
+# lsmc
 
 Little Sound MC - a multitool for LSDJ .sav files
 
@@ -7,29 +6,19 @@ Little Sound MC - a multitool for LSDJ .sav files
 
 This is almost done, but shouldn't be used for "production" purposes just yet.
 
-Installing
-==========
+## Installing
 
-First, install lsmc's dependencies (you probably want to do this in a
-virtualenv) by running the following from top-of-tree:
+### OS X
 
-     pip install --upgrade -r requirements.txt \
-       --allow-external wxPython \
-       --allow-unverified wxPython \
-       --allow-external ObjectListView \
-       --allow-unverified ObjectListView
+     cd lsmc
+     make install-deps-mac
+     make build-mac
 
+### Windows
 
-
-Now, you can build the app itself. On OS X, run:
-
-    cd lsmc
-    make build-mac
-
-On Windows, run:
-
-    cd lsmc
-    make build-win
+     cd lsmc
+     make install-deps-win
+     make build-win
 
 You may run into problems building inside a virtualenv on OS X (see
 http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code). If
