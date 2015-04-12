@@ -3,6 +3,11 @@
 import wx, functools, event_handlers
 from ObjectListView import ColumnDefn
 
+# Filter deprecation warnings from ObjectListView so that they don't
+# trigger error log messages on Windows
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='ObjectListView')
+
 import utils
 
 from LogWindow import open_log_window
