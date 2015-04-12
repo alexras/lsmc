@@ -101,7 +101,7 @@ class InstrumentPanel(wx.Panel):
                 self.instrument = self.instrument.song.instruments[index]
                 self.instr_imported_channel.publish(self.instrument)
             except Exception, e:
-                utils.show_error_dialog('Import Failed', e, self)
+                utils.show_error_dialog('Import Failed', str(e), self)
 
         utils.file_dialog(
             "Load instrument", "*.lsdinst", wx.OPEN, ok_handler)
