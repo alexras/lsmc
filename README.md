@@ -8,13 +8,17 @@ This is almost done, but shouldn't be used for "production" purposes just yet.
 
 ## Installing
 
-### OS X
+First, download and install wxPython 3.0 [from their website][wxpython-download].
+
+Then, run the following:
+
+### On OS X
 
      cd lsmc
      make install-deps-mac
      make build-mac
 
-### Windows
+### On Windows
 
      cd lsmc
      make install-deps-win
@@ -23,3 +27,5 @@ This is almost done, but shouldn't be used for "production" purposes just yet.
 You may run into problems building inside a virtualenv on OS X (see
 http://stackoverflow.com/questions/25394320/py2app-modulegraph-missing-scan-code). If
 this is the case, run `patch_virtualenv.sh`.
+
+[wxpython-download]: https://www.wxpython.org/download.php
