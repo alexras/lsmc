@@ -3,12 +3,16 @@ build-mac: images
 	python setup.py py2app
 
 .PHONY: build-win
-build-win: images
+build-win: images-win
 	python setup_win.py py2exe
 
 .PHONY: images
 images:
 	cd images && ./make_images.sh
+
+	.PHONY: images-win
+images-win:
+	cd images && ./make_images_win.sh
 
 .PHONY: debug
 debug:
