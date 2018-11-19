@@ -13,6 +13,7 @@ class WavesPanel(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
 
         self.wave_panels = []
+        self.active_panel = 0
 
         for i in xrange(spec.NUM_SYNTHS):
             self.wave_panels.append(WavePanel(self, i))
@@ -20,7 +21,7 @@ class WavesPanel(wx.Panel):
         self.wave_slider = wx.Slider(
             self, wx.ID_ANY, 0, 0, spec.WAVES_PER_SYNTH - 1)
 
-        self.frame_number = StaticTextViewField(self, lambda x: "%02x" % (x))
+        self.frame_number = StaticTextViewField(self, self.get_slider_label)
 
         self.Bind(wx.EVT_SCROLL, self.handle_scroll, self.wave_slider)
 
@@ -43,7 +44,12 @@ class WavesPanel(wx.Panel):
 
         self.show_wave_panel(0)
 
+    def get_slider_label(self, slider_pos):
+        return "%x%x" % (self.active_panel, slider_pos)
+
     def handle_synth_changed(self, data):
+        synth = data
+        self.active_panel = synth.index
         self.show_wave_panel(0)
 
     def field_changed(self):

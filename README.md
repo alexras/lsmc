@@ -2,10 +2,6 @@
 
 Little Sound MC - a multitool for LSDJ .sav files
 
-## Under Heavy Construction
-
-This is almost done, but shouldn't be used for "production" purposes just yet.
-
 ## Installing
 
 First, download and install wxPython 3.0 [from their website][wxpython-download].
