@@ -68,16 +68,16 @@ def save_song_srm(event, projects_window, main_window):
     save_song_dialog(song_to_save, "save_srm", "srm")
 
 
-def get_song_from_windows(projects_window, main_window):
+def get_song_from_windows(projects_window, main_window, ignore_existing=False):
     selected_obj = projects_window.sav_project_list.GetSelectedObject()
     index = selected_obj.index
     current_proj = selected_obj.project
 
-    if current_proj is not None:
+    if current_proj is not None and not ignore_existing:
         utils.show_error_dialog(
             "Invalid Selection",
             "Song slot %d is currently occupied and cannot be saved over" %
-            (index + 1))
+            (index + 1), None)
         return
 
     sav_obj = main_window.get_sav()
@@ -100,6 +100,12 @@ def add_song(event, projects_window, main_window):
                 None, e)
 
     utils.file_dialog("Open .lsdsng", "*.lsdsng", wx.OPEN, ok_handler)
+
+def delete_song(event, projects_window, main_window):
+    index, sav_obj = get_song_from_windows(projects_window, main_window, ignore_existing=True)
+
+    sav_obj.projects[index] = None
+    channels.SONG_MODIFIED(index).publish(False)
 
 
 def add_srm(event, projects_window, main_window):

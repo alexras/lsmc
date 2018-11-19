@@ -50,7 +50,13 @@ class ProjectModel(object):
 
         project = data
 
-        if project == self.project:
+        # We're using False to distinguish the un-setting of a project from a
+        # None event (frankly I don't remember why None events would exist in
+        # the first place, but since we're catching `if data is None` on the
+        # previous lines it must be happening _sometime_)
+        if data is False:
+            self.project = None
+        elif project == self.project:
             self._modified = True
         else:
             self.project = project

@@ -85,6 +85,9 @@ class ProjectsWindow(wx.Panel):
             "Open Song ...", self.open_song, start_disabled=True,
             internal_handler=True)
 
+        self.delete_song_button = self.new_button(
+            "Delete Song", event_handlers.delete_song, start_disabled=True)
+
         self.Bind(
             wx.EVT_LIST_ITEM_SELECTED, self.handle_song_selection_changed,
             self.sav_project_list)
@@ -108,6 +111,7 @@ class ProjectsWindow(wx.Panel):
         buttons_layout.AddSpacer(20)
 
         add_side_button(self.open_song_button)
+        add_side_button(self.delete_song_button)
         add_side_button(self.export_song_button)
         add_side_button(self.export_song_srm_button)
 
@@ -139,27 +143,12 @@ class ProjectsWindow(wx.Panel):
             return
 
         self.modified_since_load = True
+        self.update_side_button_states()
 
     def handle_save_song(self, event, projects_window, main_window):
         song_to_save = self.sav_project_list.GetSelectedObject().project
         event_handlers.save_song_dialog(song_to_save, "save_lsdsng", "lsdsng")
 
-    def add_song(event, projects_window, main_window):
-        index, sav_obj = event_handlers.get_song_from_windows(
-            projects_window, main_window)
-
-        def ok_handler(dlg, path):
-            try:
-                proj = event_handlers.load_lsdsng(path)
-                sav_obj.projects[index] = proj
-            except Exception, e:
-                utils.show_error_dialog(
-                    "can't load file", 'Error loading file: %s' % (e),
-                    None)
-
-        utils.file_dialog("Open .lsdsng", "*.lsdsng", wx.OPEN, ok_handler)
-
-        main_window.update_models()
 
     def new_button(self, label, evt_button_handler, start_disabled=False,
                    internal_handler=False):
@@ -179,12 +168,12 @@ class ProjectsWindow(wx.Panel):
 
         return btn
 
-    def handle_song_selection_changed(self, event):
+    def update_side_button_states(self):
         selected_objects = self.sav_project_list.GetSelectedObjects()
 
         full_song_buttons = [
             self.export_song_button, self.export_song_srm_button,
-            self.open_song_button]
+            self.open_song_button, self.delete_song_button]
         empty_song_buttons = [self.add_song_button, self.add_srm_button]
 
         if len(selected_objects) > 0:
@@ -197,6 +186,10 @@ class ProjectsWindow(wx.Panel):
         else:
             map(lambda x: x.Disable(), full_song_buttons)
             map(lambda x: x.Disable(), empty_song_buttons)
+
+
+    def handle_song_selection_changed(self, event):
+        self.update_side_button_states()
 
         # Make sure event propagation can continue
         event.Skip()
