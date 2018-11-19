@@ -1,6 +1,6 @@
 .PHONY: build-mac
 build-mac: images
-	python setup.py py2app
+	python setup.py py2app --excludes gdbm
 
 .PHONY: build-win
 build-win: images-win
@@ -10,7 +10,7 @@ build-win: images-win
 images:
 	cd images && ./make_images.sh
 
-	.PHONY: images-win
+.PHONY: images-win
 images-win:
 	cd images && ./make_images_win.sh
 
@@ -25,11 +25,7 @@ clean:
 
 .PHONY: install-deps-mac
 install-deps-mac:
-	pip install --upgrade -r ../requirements.txt \
-		--allow-external wxPython \
-		--allow-unverified wxPython \
-		--allow-external ObjectListView \
-		--allow-unverified ObjectListView
+	pip install --upgrade -r ../requirements.txt
 
 .PHONY: install-deps-win
 install-deps-win:

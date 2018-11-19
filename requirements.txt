@@ -1,5 +1,5 @@
-pylsdj >= 2.3.2
+pylsdj >= 2.3.3
 # wxPython >= 3.0
 appdirs == 1.4.0
-py2app == 0.9
+py2app == 0.18
 ObjectListView >= 1.2
