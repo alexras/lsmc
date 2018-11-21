@@ -69,7 +69,7 @@ class InstrumentPane(wx.Panel):
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        sizer.Add(self.instr_list, 1, wx.ALL | wx.EXPAND, border=5)
+        sizer.Add(self.instr_list, 0, wx.ALL | wx.EXPAND, border=5)
 
         for panel in self.instr_panels.values():
             sizer.Add(panel, 1, wx.EXPAND)

@@ -11,7 +11,7 @@ from channels import INSTR_IMPORT, SONG_MODIFIED
 class SongWindow(wx.Frame):
 
     def __init__(self, parent, project, index):
-        frame_size = (650, 550)
+        frame_size = (750, 550)
 
         window_pos = utils.random_pos(frame_size)
 
@@ -22,7 +22,7 @@ class SongWindow(wx.Frame):
             self, parent, wx.ID_ANY, "Song - %s" % (project.name),
             size=frame_size, pos=window_pos,
             style=wx.SYSTEM_MENU | wx.CAPTION |
-            wx.CLOSE_BOX | wx.CLIP_CHILDREN)
+            wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.RESIZE_BORDER)
 
         panel = wx.Panel(self)
 

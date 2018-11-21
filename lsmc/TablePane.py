@@ -104,10 +104,8 @@ class TablePane(wx.Panel):
 
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.sizer.Add(self.table_list, 1, wx.ALL | wx.EXPAND)
-        self.sizer.AddSpacer(20)
-        self.sizer.Add(self.table_view, 2, wx.ALL | wx.EXPAND)
-        self.sizer.AddStretchSpacer()
+        self.sizer.Add(self.table_list, 0, wx.ALL | wx.EXPAND, border=5)
+        self.sizer.Add(self.table_view, 1, wx.EXPAND)
 
         self.SetSizer(self.sizer)
 

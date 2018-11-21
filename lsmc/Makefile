@@ -29,8 +29,4 @@ install-deps-mac:
 
 .PHONY: install-deps-win
 install-deps-win:
-	pip install --upgrade -r ../requirements_win.txt \
-		--allow-external wxPython \
-		--allow-unverified wxPython \
-		--allow-external ObjectListView \
-		--allow-unverified ObjectListView
+	pip install --upgrade -r ../requirements_win.txt
